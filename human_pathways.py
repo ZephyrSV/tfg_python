@@ -23,7 +23,8 @@ else:
 kgmls = map(lambda x: REST.kegg_get(x['entry'], 'kgml').read(), human_pathways)
 #pathway_file = list(map(lambda x: Map.parse(REST.kegg_get(x['entry']).read()), human_pathways))
 
-pathways = list(lmap(lambda x : KGML_parser.parse(x), kgmls)[0])
+pathways = map(lambda x : KGML_parser.parse(x), kgmls)
+pathways = lmap(lambda x : list(x)[0], pathways)
 pathway_reactions = lmap(lambda x : x.reactions, pathways) 
 for (i, pr) in enumerate(pathway_reactions):
     # Print general information about the pathway
