@@ -8,8 +8,7 @@ def lmap(f, l):
 human_pathways = REST.kegg_list("pathway", "hsa").read().split("\n")
 human_pathways = map(lambda x: x.split("\t"), human_pathways)
 human_pathways = filter(lambda x: x[0] != '', human_pathways) # remove empty entries
-human_pathways = map(lambda x: {'entry': x[0], 'description': x[1]}, human_pathways) # entry - description  dictionary
-human_pathways = list(human_pathways)
+human_pathways = lmap(lambda x: {'entry': x[0], 'description': x[1]}, human_pathways) # entry - description  dictionary
 
 
 if len(sys.argv) > 1:
