@@ -1,26 +1,29 @@
-import sys
+import os
 from Bio.KEGG import REST
 from Bio.KEGG.KGML import KGML_parser
+from pathway_getter import get_pathway 
+from kgml_downloader import kgml_download
 
 def lmap(f, l):
     return list(map(f,l))
 
-human_pathways = REST.kegg_list("pathway", "hsa").read().split("\n")
-human_pathways = map(lambda x: x.split("\t"), human_pathways)
-human_pathways = filter(lambda x: x[0] != '', human_pathways) # remove empty entries
-human_pathways = lmap(lambda x: {'entry': x[0], 'description': x[1]}, human_pathways) # entry - description  dictionary
+human_pathways = get_pathway(organism="hsa", filter_str="Fructose")
+human_pathways = human_pathways[0:1]
+print(f"Using the first pathway {human_pathways[0]['entry']}")
 
+for hp in human_pathways:
+    if not os.path.exists("kgmls/" + hp['entry'] + ".kgml"):
+        print(f"The kgml file for entry {hp['entry']} is being downloaded")
+        kgml_download(hp['entry'])
 
-if len(sys.argv) > 1:
-    human_pathways = list(filter(lambda x : sys.argv[1] in x['description'], human_pathways))
-    print("Filtered down to the following pathways : ")
-    print(human_pathways)
-else:
-    human_pathways = human_pathways[0:1]
-    print(f"Using the first pathway {human_pathways[0]['entry']}")
+def open_kgml(file_path):
+    f = open(file_path, 'r')
+    result = f.read()
+    f.close()
+    return result
 
-kgmls = map(lambda x: REST.kegg_get(x['entry'], 'kgml').read(), human_pathways)
-#pathway_file = list(map(lambda x: Map.parse(REST.kegg_get(x['entry']).read()), human_pathways))
+kgmls = lmap(lambda x: open_kgml("kgmls/"+ x['entry'] + ".kgml"), human_pathways)
+
 
 pathways = map(lambda x : KGML_parser.parse(x), kgmls)
 pathways = lmap(lambda x : list(x)[0], pathways)
