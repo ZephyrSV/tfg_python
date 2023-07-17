@@ -39,8 +39,8 @@ pathways = map(KGML_parser.parse, kgmls)
 pathways = lmap(lambda x: list(x)[0], pathways)
 pathway_reactions = lmap(lambda x: x.reactions, pathways)
 
-compounds = {}
 for (i, pr) in enumerate(pathway_reactions):
+    compounds = {}
     # Print general information about the pathway
     print("Pathway i:", i)
     for reaction in pr:
@@ -54,9 +54,65 @@ for (i, pr) in enumerate(pathway_reactions):
             compounds[product.name].add_edge_head(reaction)
 
 
-# Print the compounds and how many reactions they are involved in
-for compound in compounds:
-    print(f"{compound} is involved is substrates in {len(compounds[compound].edges_tail)} reactions")
-    print(f" -> products in {len(compounds[compound].edges_head)} reactions")
-    if len(compounds[compound].edges_head) == 0 or len(compounds[compound].edges_tail) == 0:
-        print(f" -> is an external compound")
+    # Print the compounds and how many reactions they are involved in
+    for compound in compounds:
+        print(f"{compound} is involved is substrates in {len(compounds[compound].edges_tail)} reactions")
+        print(f" -> products in {len(compounds[compound].edges_head)} reactions")
+        if len(compounds[compound].edges_head) == 0 or len(compounds[compound].edges_tail) == 0:
+            print(f" -> is an external compound")
+
+
+    import gurobipy as gp
+    from gurobipy import GRB
+
+    # Base data
+    vertices = list(compounds.keys())
+    edges = []
+    out_edges = {}
+    in_edges = {}
+    for vertex in vertices:
+        out_edges[vertex] = []
+        in_edges[vertex] = []
+
+    for reaction in pr:
+        edges.append(reaction.name)
+        for substrate in reaction.substrates:
+            out_edges[substrate.name].append(reaction.name)
+        for product in reaction.products:
+            in_edges[product.name].append(reaction.name)
+        if reaction.type == "reversible":
+            edges.append(reaction.name + "_reverse")
+            for substrate in reaction.products:
+                out_edges[substrate.name].append(reaction.name + "_reverse")
+            for product in reaction.substrates:
+                in_edges[product.name].append(reaction.name + "_reverse")
+
+    edges = list(set(edges))
+
+    # Create a new model
+    m = gp.Model("reduceExternal")
+
+    # Create variables
+    x = m.addVars(edges, vtype=GRB.BINARY, name="x")
+
+    # Set objective
+    # have as few vertices wih only out edges or only in edges as possible
+    m.setObjective(gp.quicksum(x[edge] for edge in edges), GRB.MINIMIZE)
+
+    # Add constraints
+    # if a vertex has no reverse, it cannot be removed
+    for edge in edges:
+        if edge[-7:] == "_reverse":
+            continue
+        if (edge + "_reverse") not in edges:
+            m.addConstr(x[edge] >= 1)
+
+    # Compute optimal solution
+    m.optimize()
+
+    # Print solution
+    for v in m.getVars():
+        if v.x > 0.5:
+            print('%s %g' % (v.varName, v.x))
+
+    input("Press Enter to continue...")
