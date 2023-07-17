@@ -1,7 +1,7 @@
 import os
 from Bio.KEGG import REST
 from Bio.KEGG.KGML import KGML_parser
-from pathway_getter import get_pathway 
+from pathway_getter import get_pathway
 from kgml_downloader import kgml_download
 from HyperVertex import HyperVertex
 from functools import partial
@@ -15,7 +15,8 @@ def open_kgml(file_path):
 
 
 def lmap(f, l):
-    return list(map(f,l))
+    return list(map(f, l))
+
 
 def flip(func):
     return lambda x, y: func(y, x)
@@ -24,16 +25,14 @@ def flip(func):
 # # human_pathways = get_pathway(organism="hsa", filter_str="Fructose")
 # # human_pathways = human_pathways[0:1]
 # print(f"Using the first pathway {human_pathways[0]['entry']}")
-human_pathways =  [{"entry": "hsa00010", "description": "Glycolysis / Gluconeogenesis"}]
+human_pathways = [{"entry": "hsa00010", "description": "Glycolysis / Gluconeogenesis"}]
 
 for hp in human_pathways:
     if not os.path.exists("kgmls/" + hp['entry'] + ".kgml"):
         print(f"The kgml file for entry {hp['entry']} is being downloaded")
         kgml_download(hp['entry'])
 
-
-kgmls = lmap(lambda x: open_kgml("kgmls/"+ x['entry'] + ".kgml"), human_pathways)
-
+kgmls = lmap(lambda x: open_kgml("kgmls/" + x['entry'] + ".kgml"), human_pathways)
 
 pathways = map(KGML_parser.parse, kgmls)
 pathways = lmap(lambda x: list(x)[0], pathways)
@@ -53,14 +52,12 @@ for (i, pr) in enumerate(pathway_reactions):
                 compounds[product.name] = HyperVertex(product.name)
             compounds[product.name].add_edge_head(reaction)
 
-
     # Print the compounds and how many reactions they are involved in
     for compound in compounds:
         print(f"{compound} is involved is substrates in {len(compounds[compound].edges_tail)} reactions")
         print(f" -> products in {len(compounds[compound].edges_head)} reactions")
         if len(compounds[compound].edges_head) == 0 or len(compounds[compound].edges_tail) == 0:
             print(f" -> is an external compound")
-
 
     import gurobipy as gp
     from gurobipy import GRB
@@ -95,9 +92,20 @@ for (i, pr) in enumerate(pathway_reactions):
     # Create variables
     x = m.addVars(edges, vtype=GRB.BINARY, name="x")
 
+    def isEmpty(l):
+        return len(l) == 0
+
+    def is_vertex_external(v):
+        if isEmpty([oe for oe in out_edges[v] if x[oe]]) or isEmpty([ie for ie in in_edges[v] if x[ie]]):
+            return 1
+        return 0
+
+
     # Set objective
     # have as few vertices wih only out edges or only in edges as possible
-    m.setObjective(gp.quicksum(x[edge] for edge in edges), GRB.MINIMIZE)
+    m.setObjective(
+        gp.quicksum(x[edge] for edge in edges) * 100 +
+        gp.quicksum(is_vertex_external(v) for v in vertices), GRB.MINIMIZE)
 
     # Add constraints
     # if a vertex has no reverse, it cannot be removed
@@ -112,7 +120,6 @@ for (i, pr) in enumerate(pathway_reactions):
 
     # Print solution
     for v in m.getVars():
-        if v.x > 0.5:
-            print('%s %g' % (v.varName, v.x))
+        print('%s %g' % (v.varName, v.x))
 
     input("Press Enter to continue...")
