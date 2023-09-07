@@ -5,19 +5,19 @@
 ## is to chose an orientation for each edge such that we maximize the amount 
 ## off internal edges (edges with non-zero out-degree and non-zero in-degree).
 ############################################################################# 
-
+reset;
 ## param n is the amount of vertices 
 param n integer > 0;
 
 set V := 1..n;
-param E {(i,j) in (V cross V)} binary; # Input edge matrix (origin, destination)
-param E_single {(i,j) in (V cross V)} binary; # only the input edge matrix of directed edges
+param E {V cross V} binary; # Input edge matrix (origin, destination)
+param E_single {V cross V} binary; # only the input edge matrix of directed edges
 
 
-var x {(i,j) in (V cross V)} binary; # Resulting edge matrix (origin, destination)
+var x {V cross V} binary; # Resulting edge matrix (origin, destination)
 
-var has_out{i in V} binary; # 1 if x[i] has at least one outgoing edge, 0 otherwise
-var has_in{i in V}  binary; # 1 if x[i] has at least one incoming edge, 0 otherwise
+var has_out{V} binary; # 1 if x[i] has at least one outgoing edge, 0 otherwise
+var has_in{V}  binary; # 1 if x[i] has at least one incoming edge, 0 otherwise
 
 # The only problem I have is here... I need an "and" operation... I currently multiply. 
 maximize multiplying_in_out: sum{i in V} has_in[i] * has_out[i]; 
@@ -54,7 +54,7 @@ subject to has_in_smaller_than_sum_x{j in V}:
 ##################################################################################
 ##################################################################################
 
-data "C:\Users\zador\Documents\!!! UNIVERSITY\TFG\7node_v0_2.dat";
+data "C:\Users\zador\Documents\GitHub\tfg_python\AMPL\7node_v0_2.dat";
 
 
 option solver cplex;
