@@ -55,39 +55,7 @@ subject to not_product_at_all{i in V}:
 
 
 ###############################3
-data;
+data "ex1_v1.dat";
 
-param n := 7;
-param m := 4;
-
-set substrate_in[1] := 1;
-set substrate_in[2] := 2;
-set substrate_in[3] := 2;
-set substrate_in[4] := 3;
-set substrate_in[5] := 3 4;
-set substrate_in[6] := ;
-set substrate_in[7] := ;
-
-set product_in[1] := ;
-set product_in[2] := 1; 
-set product_in[3] := 1;
-set product_in[4] := 2;
-set product_in[5] := ;
-set product_in[6] := 3;
-set product_in[7] := 3 4;
-
-param invertible :=
-1 1
-2 0
-3 0
-4 1;
-
-
-option solver cplex;
-solve;
-display x;
-display has_in;
-display has_out;
-display _solve_user_time;
 reset;
 end;
