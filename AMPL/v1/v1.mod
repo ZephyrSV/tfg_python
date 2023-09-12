@@ -19,15 +19,18 @@ set product_in{i in V} := {j in E: i in Y[j]};
 #####################
 ## Variables
 #####################
-var inverted {i in E} binary; #determines whether an edge is inverted
+var inverted {E} binary; #determines whether an edge is inverted
 
-var has_out{i in V} binary;
-var has_in{i in V} binary;
+var has_out{V} binary;
+var has_in{V} binary;
+
+var is_internal{V} binary;
 
 #####################
 ## Rules
 #####################
-maximize multiplying_in_out: sum{i in V} has_in[i] * has_out[i];
+maximize internal_nodes: sum{i in V} is_internal[i];
+#maximize multiplying_in_out: sum{i in V} has_in[i] * has_out[i];
 
 subject to respect_invertability {i in E}:
 		inverted[i] <= invertible[i];
@@ -54,7 +57,8 @@ subject to not_product_at_all{i in V}:
 			sum{j in product_in[i]} (1-inverted[j]) + 
 			sum{j in substrate_in[i]} inverted[j];
 
-
+s.t. compute_is_internal{i in V}:
+		is_internal[i] <= has_in[i] + has_out[i] - 1;
 
 
 ###############################3
