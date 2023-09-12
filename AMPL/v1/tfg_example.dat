@@ -2,21 +2,15 @@
 param n := 7;
 param m := 4;
 
-set substrate_in[1] := 1;
-set substrate_in[2] := 2;
-set substrate_in[3] := 2;
-set substrate_in[4] := 3;
-set substrate_in[5] := 3 4;
-set substrate_in[6] := ;
-set substrate_in[7] := ;
+set X[1] := 1;
+set X[2] := 2 3;
+set X[3] := 4 5;
+set X[4] := 5;
 
-set product_in[1] := ;
-set product_in[2] := 1; 
-set product_in[3] := 1;
-set product_in[4] := 2;
-set product_in[5] := ;
-set product_in[6] := 3;
-set product_in[7] := 3 4;
+set Y[1] := 2 3;
+set Y[2] := 4;
+set Y[3] := 6 7;
+set Y[4] := 7;
 
 param invertible :=	
 1 1
@@ -27,7 +21,7 @@ param invertible :=
 
 option solver cplex;
 solve;
-display x;
+display inverted;
 display has_in;
 display has_out;
 display _solve_user_time;
