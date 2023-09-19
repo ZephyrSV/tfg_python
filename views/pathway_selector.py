@@ -2,10 +2,14 @@ import tkinter as tk
 from tkinter import ttk
 from pathway_getter import get_pathway
 
-def pad(x=10,y=10):
-    return {'padx':x, 'pady':y}
-def gridrc(r,c,rs=1,cs=1):
-    return {'row':r, 'column':c, 'rowspan':rs, 'columnspan':cs}
+
+def pad(x=10, y=10):
+    return {'padx': x, 'pady': y}
+
+
+def gridrc(r, c, rs=1, cs=1):
+    return {'row': r, 'column': c, 'rowspan': rs, 'columnspan': cs}
+
 
 class Pathway_selector(tk.Tk):
     def filter_button_click(self):
@@ -15,9 +19,19 @@ class Pathway_selector(tk.Tk):
             self.filter_entry.config(fg='red')
             return
         self.options = options
-        self.dropdown.config(values= [hp['entry'] for hp in self.options])
+        self.dropdown.config(values=[hp['entry'] for hp in self.options])
         self.dropdown_var.set(self.options[0]['entry'])
         self.description_label.config(text=f"Description:\n{self.options[0]['description']}")
+
+    def on_entry_filter_click(self, event):
+        if self.filter_entry.get() == "Enter filter here":
+            self.filter_entry.delete(0, "end")  # Clear the default text when clicked
+            self.filter_entry.config(fg="black")  # Change the text color to black
+
+    def on_entry_filter_leave(self, event):
+        if self.filter_entry.get() == "":
+            self.filter_entry.insert(0, "Enter filter here")  # Add the default text if nothing entered
+            self.filter_entry.config(fg="gray")  # Change the text color to gray
 
     def select_pathway_button_click(self):
         pass
@@ -36,26 +50,35 @@ class Pathway_selector(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title("Orienting Biochemical Reactions GUI App")
+        self.title("Orienting Biochemical Reactions")
+        self.resizable(False, False)
 
+        row = 0 ### First row ###
+
+        row += 1 ### Second row ###
         self.filter_entry = tk.Entry(self)
-        self.filter_entry.grid(**pad(), **gridrc(0,1))
-	
-        self.filter_button = tk.Button(self, text='Filter', command=self.filter_button_click)
-        self.filter_button.grid(**pad(), **gridrc(0,2))
+        self.filter_entry.insert(0, "Enter filter here")
+        self.filter_entry.config(fg="gray")
+        self.filter_entry.bind("<FocusIn>", self.on_entry_filter_click)
+        self.filter_entry.bind("<FocusOut>", self.on_entry_filter_leave)
+        self.filter_entry.grid(**pad(), **gridrc(row, 1))
 
-        self.label = tk.Label(self, text='Select pathway: ')
-        self.label.grid(**pad(y=0), **gridrc(1,0))
+        self.filter_button = tk.Button(self, text='Filter', command=self.filter_button_click)
+        self.filter_button.grid(**pad(), **gridrc(row, 2))
+
+        row += 1 ### Third row ###
+        self.label = tk.Label(self, text='Select pathway: ', font=("Arial", 12, "bold", "underline"))
+        self.label.grid(**pad(), **gridrc(row, 0))
 
         self.dropdown_var = tk.StringVar()
         self.dropdown = ttk.Combobox(self, textvariable=self.dropdown_var, state='readonly')
         self.dropdown_var.set("Downloading...")
-        self.dropdown.grid(**pad(y=0), **gridrc(1,1))
+        self.dropdown.grid(**pad(y=0), **gridrc(row, 1))
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
 
         self.button = tk.Button(self, text='Select', command=self.select_pathway_button_click)
-        self.button.grid(**pad(y=0), **gridrc(1,2))
+        self.button.grid(**pad(y=0), **gridrc(row, 2))
 
-        self.description_label = tk.Label(self, text='Description:\n', justify='left')
-        self.description_label.grid(**pad(), **gridrc(2,0, cs=3))
-
+        row += 1 ### Fourth row ###
+        self.description_label = tk.Label(self, text='Description:\n', justify='left', anchor='w')
+        self.description_label.grid(**pad(), **gridrc(row, 0, cs=3))
