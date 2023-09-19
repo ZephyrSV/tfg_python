@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
+from PIL import ImageTk, Image
+import requests
+from io import BytesIO
 from pathway_getter import get_pathway
 
 
@@ -26,14 +29,25 @@ class Pathway_selector(tk.Tk):
     def on_entry_filter_click(self, event):
         if self.filter_entry.get() == "Enter filter here":
             self.filter_entry.delete(0, "end")  # Clear the default text when clicked
-            self.filter_entry.config(fg="black")  # Change the text color to black
+        self.filter_entry.config(fg="black")  # Change the text color to black
 
     def on_entry_filter_leave(self, event):
         if self.filter_entry.get() == "":
             self.filter_entry.insert(0, "Enter filter here")  # Add the default text if nothing entered
             self.filter_entry.config(fg="gray")  # Change the text color to gray
 
+    def set_image(self):
+        i = self.dropdown.current()
+        url = f"http://rest.kegg.jp/get/{self.options[i]['entry']}/image"
+        response = requests.get(url)
+        img = Image.open(BytesIO(response.content))
+        img = img.resize((400, 400))
+        img = ImageTk.PhotoImage(img)
+        self.image_label.config(image=img)
+        self.image_label.image = img
+
     def select_pathway_button_click(self):
+        self.set_image()
         pass
 
     def on_dropdown_select(self, event):
@@ -76,9 +90,17 @@ class Pathway_selector(tk.Tk):
         self.dropdown.grid(**pad(y=0), **gridrc(row, 1))
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
 
-        self.button = tk.Button(self, text='Select', command=self.select_pathway_button_click)
-        self.button.grid(**pad(y=0), **gridrc(row, 2))
+        self.show_img_button = tk.Button(self, text='Show preview', command=self.set_image)
+        self.show_img_button.grid(**pad(y=0), **gridrc(row, 2))
+
+        self.select_button = tk.Button(self, text='Select', command=self.select_pathway_button_click)
+        self.select_button.grid(**pad(y=0), **gridrc(row, 3))
 
         row += 1 ### Fourth row ###
         self.description_label = tk.Label(self, text='Description:\n', justify='left', anchor='w')
-        self.description_label.grid(**pad(), **gridrc(row, 0, cs=3))
+        self.description_label.grid(**pad(), **gridrc(row, 0, cs=4))
+
+        row += 1 ### Fifth row ###
+        self.image_label = tk.Label(self)
+        self.image_label.grid(**pad(), **gridrc(row, 0, cs=4))
+
