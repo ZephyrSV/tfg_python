@@ -57,7 +57,13 @@ s.t. compute_is_internal{i in V}:
 
 
 ###############################3
-data "ex1_v1.dat";
+data "hsa00051.dat";
+
+option solver cplex;
+solve;
+display inverted;
+display is_internal;
+display _solve_user_time;
 
 reset;
 end;

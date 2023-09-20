@@ -1,0 +1,67 @@
+set E := rn_R01787 rn_R00875 rn_R00866 rn_R01326 rn_R00867 rn_R02731 rn_R01819 rn_R01818 rn_R01951 rn_R05692 rn_R00888 rn_R00885 rn_R04779 rn_R01015 rn_R02568 rn_R01059 rn_R01070 rn_R04780 rn_R03161 rn_R03688;
+set V := cpd_C00275 cpd_C01094 cpd_C01720 cpd_C00159 cpd_C00636 cpd_C01222 cpd_C00111 cpd_C00325 cpd_C00665 cpd_C00095 cpd_C02985 cpd_C00118 cpd_C01019 cpd_C05345 cpd_C00096 cpd_C00577 cpd_C03827 cpd_C00794 cpd_C05378 cpd_C00267;
+
+set X[rn_R01787] := cpd_C00794;
+set Y[rn_R01787] := cpd_C00267;
+set X[rn_R00875] := cpd_C00794;
+set Y[rn_R00875] := cpd_C00095;
+set X[rn_R00866] := cpd_C00095;
+set Y[rn_R00866] := cpd_C01094;
+set X[rn_R01326] := cpd_C00159;
+set Y[rn_R01326] := cpd_C00275;
+set X[rn_R00867] := cpd_C00095;
+set Y[rn_R00867] := cpd_C05345;
+set X[rn_R02731] := cpd_C00665;
+set Y[rn_R02731] := cpd_C05345;
+set X[rn_R01819] := cpd_C00275;
+set Y[rn_R01819] := cpd_C05345;
+set X[rn_R01818] := cpd_C00275;
+set Y[rn_R01818] := cpd_C00636;
+set X[rn_R01951] := cpd_C02985;
+set Y[rn_R01951] := cpd_C00325;
+set X[rn_R05692] := cpd_C01222;
+set Y[rn_R05692] := cpd_C00325;
+set X[rn_R00888] := cpd_C00096;
+set Y[rn_R00888] := cpd_C01222;
+set X[rn_R00885] := cpd_C00636;
+set Y[rn_R00885] := cpd_C00096;
+set X[rn_R04779] := cpd_C05345;
+set Y[rn_R04779] := cpd_C05378;
+set X[rn_R01015] := cpd_C00118;
+set Y[rn_R01015] := cpd_C00111;
+set X[rn_R02568] := cpd_C01094;
+set Y[rn_R02568] := cpd_C00577 cpd_C00111;
+set X[rn_R01059] := cpd_C00577;
+set Y[rn_R01059] := cpd_C00118;
+set X[rn_R01070] := cpd_C05378;
+set Y[rn_R01070] := cpd_C00118;
+set X[rn_R04780] := cpd_C05378;
+set Y[rn_R04780] := cpd_C05345;
+set X[rn_R03161] := cpd_C01019;
+set Y[rn_R03161] := cpd_C02985;
+set X[rn_R03688] := cpd_C01720;
+set Y[rn_R03688] := cpd_C03827;
+
+param invertible :=
+rn_R01787 1
+rn_R00875 1
+rn_R00866 0
+rn_R01326 0
+rn_R00867 0
+rn_R02731 0
+rn_R01819 1
+rn_R01818 1
+rn_R01951 1
+rn_R05692 0
+rn_R00888 0
+rn_R00885 0
+rn_R04779 0
+rn_R01015 1
+rn_R02568 1
+rn_R01059 0
+rn_R01070 1
+rn_R04780 0
+rn_R03161 0
+rn_R03688 0
+;
+
