@@ -15,10 +15,9 @@ def kgml_to_dat(entry, kgml):
         Replaces the colons in a string with underscores
         
         Stands for "substitute colons" 
-        :param string: 
-        :return: 
+        :param string: the string to be processed
         """
-        return string.replace(":", "_")
+        return string.replace("cpd:", "").replace("rn:", "").replace(" ", "_")
     
     dat_file = "kgmls/" + entry + ".dat"
     f = open(dat_file, "w")
