@@ -1,13 +1,8 @@
-# Trying to adapt v0.mod to hypergraphs
-reset;
 #####################
 ## Parameters
 #####################
-param n integer > 0; # number of nodes
-param m integer > 0; # number of edges 
-
-set V := 1..n;
-set E := 1..m;
+set V;
+set E;
 
 set X{E};
 set Y{E};
