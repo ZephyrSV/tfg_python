@@ -22,8 +22,8 @@ class Pathway_selector(tk.Tk):
             self.filter_entry.config(fg='red')
             return
         self.options = options
-        self.dropdown.config(values=[hp['entry'] for hp in self.options])
-        self.dropdown_var.set(self.options[0]['entry'])
+        self.dropdown.config(values=[hp['description'] for hp in self.options])
+        self.dropdown_var.set(self.options[0]['description'])
         self.description_label.config(text=f"Description:\n{self.options[0]['description']}")
 
     def on_entry_filter_click(self, event):
@@ -76,8 +76,8 @@ class Pathway_selector(tk.Tk):
 
         Updates the description label with the description of the selected pathway.
         """
-        i = self.dropdown.current()
-        self.description_label.config(text=f"Description:\n{self.human_pathways[i]['description']}")
+        self.description_label.config(text=f"Description:\n{self.options[self.dropdown.current()]['description']}")
+
 
     def initialize(self):
         """
@@ -87,8 +87,8 @@ class Pathway_selector(tk.Tk):
         """
         self.human_pathways = get_pathway(organism="hsa")
         self.options = self.human_pathways
-        self.dropdown.config(state='normal', values=[hp['entry'] for hp in self.options])
-        self.dropdown_var.set(self.options[0]['entry'])
+        self.dropdown.config(state='normal', values=[hp['description'] for hp in self.options])
+        self.dropdown_var.set(self.options[0]['description'])
         self.description_label.config(text=f"Description:\n{self.options[0]['description']}")
 
     def __init__(self):

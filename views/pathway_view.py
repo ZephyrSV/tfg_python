@@ -33,7 +33,7 @@ def download_conf(entry):
     if not os.path.exists("kgmls/conf/" + entry + ".conf"):
         print(f"The conf file for entry {entry} is being downloaded...", end="")
         f = open("kgmls/conf/" + entry + ".conf", "w")
-        f.write(REST.kegg_get(entry, 'xml').read())
+        f.write(REST.kegg_get(entry, 'conf').read())
         f.close()
         print("done!")
 
@@ -91,7 +91,7 @@ class Pathway_view(tk.Tk):
         super().__init__()
         self.entry = entry
         self.kgml = get_kgml(entry)
-        self.conf = download_conf(entry)
+        #self.conf = download_conf(entry)
         print(kgml_to_dat(entry, self.kgml))
 
         self.title(f"Pathway {entry}")
