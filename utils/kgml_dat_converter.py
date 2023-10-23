@@ -2,6 +2,9 @@ from functools import reduce
 import re
 from Bio.KEGG import REST
 
+from utils.functional_programming import flatten, compose
+
+
 def split_into_smaller_sublist(l, n):
     """ Splits a list into smaller sublists of size n
 
@@ -32,6 +35,9 @@ def get_full_reaction(reaction_ids):
     result = {}
     regexStr = r"^ENTRY\s*(?P<reaction>\S*)|EQUATION\s+(?P<substrates>.*) <=> (?P<products>.*)"
     regex = re.compile(regexStr, re.MULTILINE)
+    regexStr2 = r"\w\d+"
+    regex2 = re.compile(regexStr2, re.MULTILINE)
+    dropUntilC = lambda y: "C" + y.split("C",1)[-1]
 
     for sublist in split_into_smaller_sublist(reaction_ids, 10): # 10 is the maximum number of reactions that can be fetched at once
         print("Fetching reactions " + "+".join(sublist) + " from the KEGG API...", end="")
@@ -43,8 +49,10 @@ def get_full_reaction(reaction_ids):
             if match.group("reaction") is not None:
                 current_reaction_id = match.group("reaction")
             if match.group("substrates") is not None:
-                result[current_reaction_id] = (match.group("substrates").split(" + "), match.group("products").split(" + "))
-
+                result[current_reaction_id] = (
+                    regex2.findall(match.group("substrates")),
+                    regex2.findall(match.group("products"))
+                )
     return result
 
 
@@ -75,8 +83,6 @@ def kgml_to_dat(entry, kgml):
     get_name = lambda reaction: reaction.name
     isolate_reaction_id = lambda reaction_name: reaction_name.replace("rn:", "") # isolate_reaction_id("rn:R00001") = "R00001"
     separate_words = lambda string: string.split(" ") # separate_words("hello world") = ["hello", "world"]
-    flatten = lambda l: [item for sublist in l for item in sublist] # flatten([[1,2],[3,4]]) = [1,2,3,4]
-    compose = lambda *fs: lambda x: reduce(lambda acc, f: f(acc), fs, x) # compose(f, g)(x) = f(g(x))
 
     reaction_identifiers = flatten(map(compose(get_name, isolate_reaction_id, separate_words), kgml.reactions))
 
@@ -84,8 +90,10 @@ def kgml_to_dat(entry, kgml):
 
     substrates_products = set()
     for substrates, products in reactions.values():
-        substrates_products.update(substrates)
-        substrates_products.update(products)
+        for substrate in substrates:
+            substrates_products.add(substrate)
+        for product in products:
+            substrates_products.add(product)
 
     # write the sets (V,E)
     f.write("set E :=")
@@ -111,12 +119,21 @@ def kgml_to_dat(entry, kgml):
     f.write("\n")
 
     # determine the set of reversible reactions
+    seen  = {}
     f.write("param invertible :=\n")
     for reaction in kgml.reactions:
         if reaction.type == "reversible":
-            f.write(sc(reaction.name) + " 1\n")
+            for r in reaction.name.split(" "):
+                if r in seen:
+                    continue
+                f.write(sc(r) + " 1\n")
+                seen[r] = True
         else:
-            f.write(sc(reaction.name) + " 0\n")
+            for r in reaction.name.split(" "):
+                if r in seen:
+                    continue
+                f.write(sc(r) + " 0\n")
+                seen[r] = True
     f.write(";\n\n")
 
     f.close()
