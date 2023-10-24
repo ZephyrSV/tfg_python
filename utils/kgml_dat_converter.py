@@ -1,4 +1,4 @@
-from functools import reduce
+import math
 import re
 from Bio.KEGG import REST
 
@@ -37,10 +37,10 @@ def get_full_reaction(reaction_ids):
     regex = re.compile(regexStr, re.MULTILINE)
     regexStr2 = r"\w\d+"
     regex2 = re.compile(regexStr2, re.MULTILINE)
-    dropUntilC = lambda y: "C" + y.split("C",1)[-1]
+    sublist_size = 10 # 10 is the maximum number of reactions that can be fetched at once
 
-    for sublist in split_into_smaller_sublist(reaction_ids, 10): # 10 is the maximum number of reactions that can be fetched at once
-        print("Fetching reactions " + "+".join(sublist) + " from the KEGG API...", end="")
+    for i, sublist in enumerate(split_into_smaller_sublist(reaction_ids, sublist_size)):
+        print("Fetching reactions " + "+".join(sublist) + f" from the KEGG API... ({i+1}/{math.ceil(len(reaction_ids)/sublist_size)})", end="")
         response = REST.kegg_get("+".join(sublist)).read()
         print("Done")
         matches = regex.finditer(response)

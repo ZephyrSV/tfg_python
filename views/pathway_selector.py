@@ -10,9 +10,11 @@ from utils.ui_utils import *
 
 
 class Pathway_selector(tk.Tk):
-    def filter_button_click(self):
+    default_filter_text = "Search by description..."
+
+    def filter_enter_action(self, event):
         """
-        This function is called when the filter button is clicked.
+        This function is called when enter is pressed in the filter box.
 
         The filter Entry is used to filter the options in the dropdown based on their respective description.
         """
@@ -32,7 +34,7 @@ class Pathway_selector(tk.Tk):
 
         Serves to clear the default text in the filter entry when clicked.
         """
-        if self.filter_entry.get() == "Enter filter here":
+        if self.filter_entry.get() == self.default_filter_text:
             self.filter_entry.delete(0, "end")  # Clear the default text when clicked
         self.filter_entry.config(fg="black")  # Change the text color to black
 
@@ -43,7 +45,7 @@ class Pathway_selector(tk.Tk):
         Serves to add the default text in the filter entry if nothing is entered.
         """
         if self.filter_entry.get() == "":
-            self.filter_entry.insert(0, "Enter filter here")  # Add the default text if nothing entered
+            self.filter_entry.insert(0, self.default_filter_text)  # Add the default text if nothing entered
             self.filter_entry.config(fg="gray")  # Change the text color to gray
 
     def set_image(self):
@@ -100,14 +102,12 @@ class Pathway_selector(tk.Tk):
         row = 0 ### First row ###
 
         self.filter_entry = tk.Entry(self)
-        self.filter_entry.insert(0, "Enter filter here")
+        self.filter_entry.insert(0, self.default_filter_text)
         self.filter_entry.config(fg="gray")
         self.filter_entry.bind("<FocusIn>", self.on_entry_filter_click)
         self.filter_entry.bind("<FocusOut>", self.on_entry_filter_leave)
+        self.filter_entry.bind("<Return>", self.filter_enter_action)
         self.filter_entry.grid(**pad(), **gridrc(row, 1))
-
-        self.filter_button = tk.Button(self, text='Filter', command=self.filter_button_click)
-        self.filter_button.grid(**pad(), **gridrc(row, 2))
 
         row += 1 ### Second row ###
         self.label = tk.Label(self, text='Select pathway: ', font=("Arial", 12, "bold", "underline"))
@@ -119,7 +119,7 @@ class Pathway_selector(tk.Tk):
         self.dropdown.grid(**pad(y=0), **gridrc(row, 1))
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
 
-        self.show_img_button = tk.Button(self, text='Show preview', command=self.set_image)
+        self.show_img_button = tk.Button(self, text='Show Image', command=self.set_image)
         self.show_img_button.grid(**pad(y=0), **gridrc(row, 2))
 
         self.select_button = tk.Button(self, text='Select', command=self.select_pathway_button_click)
