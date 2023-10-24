@@ -1,12 +1,14 @@
 import os
+import time
 
 from Bio.KEGG import REST
 from Bio.KEGG.KGML import KGML_parser
-import re
+from amplpy import AMPL
 import tkinter as tk
 from tkinter import ttk
 
 from utils.kgml_dat_converter import kgml_to_dat
+from utils.ui_utils import pad, gridrc
 
 
 def get_kgml(entry):
@@ -38,52 +40,58 @@ def download_conf(entry):
         print("done!")
 
 class Pathway_view(tk.Tk):
+    ampl = AMPL()
+    models = {
+        "My model": "AMPL/models/my_model.mod",
+        "Teacher's Version": "AMPL/models/teacherversion.mod"
+    }
+    solvers = {
+        "CPLEX": "cplex",
+        "Gurobi": "gurobi",
+        "cbc": "cbc",
+    }
+
+    def solve(self):
+        """
+        Solves the pathway
+        """
+        self.ampl.read(self.models[self.model_selector.get()])
+        self.ampl.readData(self.dat)
+        self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
+        before_solve_time = time.time()
+        self.ampl.solve()
+        print("--- %s seconds ---" % (time.time() - before_solve_time))
+        print(self.ampl.getObjective("obj").value())
+        print(self.ampl.getVariable("inverted").getValues())
+
+
     def init_UI(self):
         """
         Initializes the UI
         """
-        self.label = ttk.Label(self, text="Pathway View")
-        self.label.pack()
-        self.canvas = tk.Canvas(self, width=2000, height=2000)
-        self.canvas.pack()
+        row = 0
+        self.title_label = ttk.Label(self, text="Select a model and a solver")
+        self.title_label.grid(**pad(), **gridrc(row, 0, cs = 2))
 
+        row += 1
+        self.model_label = ttk.Label(self, text="Model")
+        self.model_label.grid(**pad(), **gridrc(row, 0))
 
+        self.model_selector = ttk.Combobox(self, values=[key for key in self.models.keys()])
+        self.model_selector.grid(**pad(), **gridrc(row, 1))
 
-    def draw_graphics_object(self, g, circle_x_offset=23, circle_y_offset=8.5, text=None):
-        if g.type == "rectangle":
-            self.canvas.create_rectangle(
-                g.x,
-                g.y,
-                g.x + g.width,
-                g.y + g.height,
-                width=1,
-                fill="lightgreen",
-            )
-        elif g.type == "circle":
-            self.canvas.create_oval(
-                g.x + circle_x_offset,
-                g.y + circle_y_offset,
-                g.x + g.width + circle_x_offset,
-                g.y + g.height + circle_y_offset,
-                width=1,
-                fill=g.fgcolor)
-        if text is not None:
-            self.canvas.create_text(
-                g.x + g.width / 2,
-                g.y + g.height / 2,
-                text=text,
-                font=("Arial", 8),
-                fill="black",
-            )
+        row += 1
 
+        self.solver_label = ttk.Label(self, text="Solver")
+        self.solver_label.grid(**pad(), **gridrc(row, 0))
 
-    def draw_pathway(self):
-        for reaction in self.kgml.reactions:
-            self.draw_graphics_object(reaction.entry.graphics[0], text=reaction.name.replace("rn:", ""))
-            for substrate in reaction.substrates:
-                self.draw_graphics_object(substrate.graphics[0])
-            for product in reaction.products:
-                self.draw_graphics_object(product.graphics[0])
+        self.solver_selector = ttk.Combobox(self, values=[key for key in self.solvers.keys()])
+        self.solver_selector.grid(**pad(), **gridrc(row, 1))
+
+        row += 1
+
+        self.solve_button = ttk.Button(self, text="Solve", command=self.solve)
+        self.solve_button.grid(**pad(), **gridrc(row, 0, cs = 2))
 
 
 
@@ -91,21 +99,13 @@ class Pathway_view(tk.Tk):
         super().__init__()
         self.entry = entry
         self.kgml = get_kgml(entry)
-        #self.conf = download_conf(entry)
-        print(kgml_to_dat(entry, self.kgml))
+
+        self.dat = kgml_to_dat(entry, self.kgml)
 
         self.title(f"Pathway {entry}")
 
 
         self.init_UI()
-        self.draw_pathway()
 
 
 
-
-if __name__ == "__main__":
-    print("Running App.py")
-    os.chdir("..")
-    app = Pathway_view("hsa00051")
-    app.mainloop()
-        
