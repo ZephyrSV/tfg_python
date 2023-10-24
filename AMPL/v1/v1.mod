@@ -2,11 +2,12 @@ reset;
 #####################
 ## Parameters
 #####################
-set V;
-set E;
 
-set X{E};
-set Y{E};
+set V; # nodes
+set E; # hyperedges
+
+set X{E}; # for each hyperedge, its tail set
+set Y{E}; # for each hyperedge, its head set
 
 param invertible{E} binary; # determines whether an edge is invertible
 set substrate_in{i in V} := {j in E: i in X[j]}; 
@@ -25,8 +26,8 @@ var is_internal{V} binary;
 #####################
 ## Rules
 #####################
+
 maximize internal_nodes: sum{i in V} is_internal[i];
-#maximize multiplying_in_out: sum{i in V} has_in[i] * has_out[i];
 
 subject to respect_invertability {i in E}:
 		inverted[i] <= invertible[i];
@@ -57,14 +58,3 @@ s.t. compute_is_internal{i in V}:
 		is_internal[i] <= has_in[i] + has_out[i] - 1;
 
 
-###############################3
-data "hsa00051.dat";
-
-option solver cplex;
-solve;
-display inverted;
-display is_internal;
-display _solve_user_time;
-
-reset;
-end;
