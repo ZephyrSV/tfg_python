@@ -25,20 +25,6 @@ def get_kgml(entry):
         print("done!")
     return next(KGML_parser.parse(open("kgmls/" + entry + ".kgml", "r")))
 
-def download_conf(entry):
-    """
-    Downloads the conf files associated to the entries, stores them in kgmls/conf/
-    in the case they are not already downloaded
-    :param entry: the KEGG identifier of the pathway
-    :return: the path to the conf file
-    """
-    if not os.path.exists("kgmls/conf/" + entry + ".conf"):
-        print(f"The conf file for entry {entry} is being downloaded...", end="")
-        f = open("kgmls/conf/" + entry + ".conf", "w")
-        f.write(REST.kegg_get(entry, 'conf').read())
-        f.close()
-        print("done!")
-
 class Pathway_view(tk.Tk):
     ampl = AMPL()
     models = {
