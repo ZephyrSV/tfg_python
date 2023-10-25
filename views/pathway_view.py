@@ -29,6 +29,7 @@ class Pathway_view(tk.Tk):
     ampl = AMPL()
     models = {
         "My model": "AMPL/models/my_model.mod",
+        "My model 2": "AMPL/models/my_model2.mod",
         "Teacher's Version": "AMPL/models/teacherversion.mod"
     }
     solvers = {
