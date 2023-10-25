@@ -38,3 +38,6 @@ subject to not_product_at_all{i in V}:
 		is_internal[i] <=
 			sum{j in product_in[i]} (1-inverted[j]) + 
 			sum{j in substrate_in[i]} inverted[j];
+
+
+
