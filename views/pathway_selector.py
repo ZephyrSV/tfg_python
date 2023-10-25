@@ -12,7 +12,7 @@ from utils.ui_utils import *
 class Pathway_selector(tk.Tk):
     default_filter_text = "Search by description..."
 
-    def filter_enter_action(self, event):
+    def filter_enter_action(self, event=None):
         """
         This function is called when enter is pressed in the filter box.
 
@@ -108,6 +108,9 @@ class Pathway_selector(tk.Tk):
         self.filter_entry.bind("<FocusOut>", self.on_entry_filter_leave)
         self.filter_entry.bind("<Return>", self.filter_enter_action)
         self.filter_entry.grid(**pad(), **gridrc(row, 1))
+
+        self.filter_button = tk.Button(self, text='Filter', command=self.filter_enter_action)
+        self.filter_button.grid(**pad(y=0), **gridrc(row, 2))
 
         row += 1 ### Second row ###
         self.label = tk.Label(self, text='Select pathway: ', font=("Arial", 12, "bold", "underline"))
