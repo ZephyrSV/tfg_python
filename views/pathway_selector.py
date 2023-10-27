@@ -95,11 +95,12 @@ class Pathway_selector(tk.Tk):
 
     def __init__(self):
         super().__init__()
+        g = GridUtil()
 
         self.title("Orienting Biochemical Reactions")
         self.resizable(False, False)
 
-        row = 0 ### First row ###
+        g.set_column(1)
 
         self.filter_entry = tk.Entry(self)
         self.filter_entry.insert(0, self.default_filter_text)
@@ -107,32 +108,33 @@ class Pathway_selector(tk.Tk):
         self.filter_entry.bind("<FocusIn>", self.on_entry_filter_click)
         self.filter_entry.bind("<FocusOut>", self.on_entry_filter_leave)
         self.filter_entry.bind("<Return>", self.filter_enter_action)
-        self.filter_entry.grid(**pad(), **gridrc(row, 1))
+        self.filter_entry.grid(**pad(), **g.place())
 
         self.filter_button = tk.Button(self, text='Filter', command=self.filter_enter_action)
-        self.filter_button.grid(**pad(y=0), **gridrc(row, 2))
+        self.filter_button.grid(**pad(y=0), **g.place())
 
-        row += 1 ### Second row ###
+        g.next_row()
+
         self.label = tk.Label(self, text='Select pathway: ', font=("Arial", 12, "bold", "underline"))
-        self.label.grid(**pad(), **gridrc(row, 0))
+        self.label.grid(**pad(), **g.place())
 
         self.dropdown_var = tk.StringVar()
         self.dropdown = ttk.Combobox(self, textvariable=self.dropdown_var, state='readonly')
         self.dropdown_var.set("Downloading...")
-        self.dropdown.grid(**pad(y=0), **gridrc(row, 1))
+        self.dropdown.grid(**pad(y=0), **g.place())
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
 
         self.show_img_button = tk.Button(self, text='Show Image', command=self.set_image)
-        self.show_img_button.grid(**pad(y=0), **gridrc(row, 2))
+        self.show_img_button.grid(**pad(y=0),**g.place())
 
         self.select_button = tk.Button(self, text='Select', command=self.select_pathway_button_click)
-        self.select_button.grid(**pad(y=0), **gridrc(row, 3))
+        self.select_button.grid(**pad(y=0), **g.place())
 
-        row += 1  ### Third row ###
+        g.next_row()
         self.description_label = tk.Label(self, text='Description:\n', justify='left', anchor='w')
-        self.description_label.grid(**pad(), **gridrc(row, 0, cs=4))
+        self.description_label.grid(**pad(), **g.place(cs=4))
 
-        row += 1  ### Fourth row ###
+        g.next_row()
         self.image_label = tk.Label(self)
-        self.image_label.grid(**pad(), **gridrc(row, 0, cs=4))
+        self.image_label.grid(**pad(), **g.place(cs=4))
 

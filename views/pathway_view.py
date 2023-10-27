@@ -8,7 +8,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from utils.kgml_dat_converter import kgml_to_dat
-from utils.ui_utils import pad, gridrc
+from utils.ui_utils import pad, GridUtil
 
 
 def get_kgml(entry):
@@ -30,7 +30,7 @@ class Pathway_view(tk.Tk):
     models = {
         "My model": "AMPL/models/my_model.mod",
         "My model 2": "AMPL/models/my_model2.mod",
-        "Teacher's Version": "AMPL/models/teacherversion.mod"
+        "Teacher's Version": "AMPL/models/nasini.mod"
     }
     solvers = {
         "CPLEX": "cplex",
@@ -49,36 +49,37 @@ class Pathway_view(tk.Tk):
         self.ampl.solve()
         print("--- %s seconds ---" % (time.time() - before_solve_time))
         print(self.ampl.getObjective("obj").value())
-        print(self.ampl.getVariable("inverted").getValues())
+        print(type(self.ampl.getVariable("inverted").getValues()))
 
 
     def init_UI(self):
         """
         Initializes the UI
         """
-        row = 0
-        self.title_label = ttk.Label(self, text="Select a model and a solver")
-        self.title_label.grid(**pad(), **gridrc(row, 0, cs = 2))
+        g = GridUtil()
 
-        row += 1
+        self.title_label = ttk.Label(self, text="Select a model and a solver")
+        self.title_label.grid(**pad(), **g.place(cs = 2))
+
+        g.next_row()
         self.model_label = ttk.Label(self, text="Model")
-        self.model_label.grid(**pad(), **gridrc(row, 0))
+        self.model_label.grid(**pad(), **g.place())
 
         self.model_selector = ttk.Combobox(self, values=[key for key in self.models.keys()])
-        self.model_selector.grid(**pad(), **gridrc(row, 1))
+        self.model_selector.grid(**pad(), **g.place())
 
-        row += 1
+        g.next_row()
 
         self.solver_label = ttk.Label(self, text="Solver")
-        self.solver_label.grid(**pad(), **gridrc(row, 0))
+        self.solver_label.grid(**pad(), **g.place())
 
         self.solver_selector = ttk.Combobox(self, values=[key for key in self.solvers.keys()])
-        self.solver_selector.grid(**pad(), **gridrc(row, 1))
+        self.solver_selector.grid(**pad(), **g.place())
 
-        row += 1
+        g.next_row()
 
         self.solve_button = ttk.Button(self, text="Solve", command=self.solve)
-        self.solve_button.grid(**pad(), **gridrc(row, 0, cs = 2))
+        self.solve_button.grid(**pad(), **g.place(cs = 2))
 
 
 

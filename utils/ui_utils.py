@@ -20,3 +20,42 @@ def gridrc(r, c, rs=1, cs=1):
     :return: {'row': r, 'column': c, 'rowspan': rs, 'columnspan': cs}
     """
     return {'row': r, 'column': c, 'rowspan': rs, 'columnspan': cs}
+
+
+class GridUtil:
+    current_row = 0
+    current_column = 0
+
+    def __init__(self, row=0, column=0):
+        self.current_row = row
+        self.current_column = column
+
+    def set_row(self, row):
+        self.current_row = row
+        return self.current_row
+
+    def set_column(self, column):
+        self.current_column = column
+        return self.current_column
+
+    def next_row(self):
+        self.current_row += 1
+        self.current_column = 0
+        return self.current_row
+
+    def place(self, rs=1, cs=1):
+        """
+        Returns a dictionary with the grid parameters to use for tkinter widgets
+        Advances the current column by cs
+        :param rs: row span
+        :param cs: column span
+        :return: {'row': r, 'column': c, 'rowspan': rs, 'columnspan': cs}
+        """
+        result = {
+            'row': self.current_row,
+            'column': self.current_column,
+            'rowspan': rs,
+            'columnspan': cs
+        }
+        self.current_column += cs
+        return result
