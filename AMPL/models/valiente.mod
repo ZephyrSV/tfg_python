@@ -1,12 +1,11 @@
 reset;
-
 set V;
 set E;
 
 param M = card(V);
 
-set Y {E} within V;
 set X {E} within V;
+set Y {E} within V;
 
 param invertible{E} binary; # determines whether an edge is invertible
 
@@ -16,7 +15,7 @@ var source {V} binary;
 var sink {V} binary;
 var is_internal{V} binary;
 
-maximize target: sum {j in V} is_internal[j];
+maximize obj: sum {j in V} is_internal[j];
 
 #############
 
@@ -53,8 +52,4 @@ s.t. internal_1 {j in V}:
 
 s.t. internal_2 {j in V}:
 	source[j] + sink[j] -1 - 0.5 * is_internal[j] >= 0;
-
-subject to respect_invertability {i in E}:
-	inverted[i] <= invertible[i];
-
 

@@ -1,6 +1,8 @@
 import math
+import os
 import re
 from Bio.KEGG import REST
+from Bio.KEGG.KGML import KGML_parser
 
 from utils.functional_programming import flatten, compose
 
@@ -56,13 +58,11 @@ def get_full_reaction(reaction_ids):
     return result
 
 
-def kgml_to_dat(entry, kgml):
+def get_or_generate_dat(entry):
     """
-    Converts a kgml file to a dat file that can be used by the solver
+    Gets or generates the dat file asscociated with the entry that can be used by the solver
     :param entry: the KEGG identifier of the pathway
     :type entry: str
-    :param kgml: the kgml file to be converted
-    :type kgml: Bio.KEGG.KGML.KGML_pathway.Pathway
     :return: the path to the dat file
     :rtype: str
     """
@@ -75,9 +75,13 @@ def kgml_to_dat(entry, kgml):
         """
         return string.replace("cpd:", "").replace("rn:", "").replace(" ", "_")
 
+    if os.path.isfile("kgmls/" + entry + ".dat"):
+        return "kgmls/" + entry + ".dat"
+
+    kgml = next(KGML_parser.parse(REST.kegg_get(entry, 'kgml').read()))
+
     dat_file = "kgmls/" + entry + ".dat"
     f = open(dat_file, "w")
-
 
     # fetch the actual reactions from the KEGG API
     get_name = lambda reaction: reaction.name
