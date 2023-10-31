@@ -3,7 +3,7 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 import requests
 from io import BytesIO
-from pathway_getter import get_pathway
+from utils.pathway_getter import get_pathway
 from views.pathway_view import Pathway_view
 from utils.ui_utils import *
 
