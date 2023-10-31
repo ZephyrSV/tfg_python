@@ -49,13 +49,14 @@ class GridUtil:
         Advances the current column by cs
         :param rs: row span
         :param cs: column span
-        :return: {'row': r, 'column': c, 'rowspan': rs, 'columnspan': cs}
+        :return: {'row': self.current_row, 'column': self.current_column, 'rowspan': rs, 'columnspan': cs}
         """
         result = {
             'row': self.current_row,
             'column': self.current_column,
             'rowspan': rs,
-            'columnspan': cs
+            'columnspan': cs,
+            'sticky': 'we'
         }
         self.current_column += cs
         return result

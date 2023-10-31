@@ -1,3 +1,5 @@
+reset;
+
 param n integer > 0;
 
 set V := 1..n;

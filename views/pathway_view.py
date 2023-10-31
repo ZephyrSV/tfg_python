@@ -30,7 +30,8 @@ class Pathway_view(tk.Tk):
     models = {
         "My model": "AMPL/models/my_model.mod",
         "My model 2": "AMPL/models/my_model2.mod",
-        "Teacher's Version": "AMPL/models/nasini.mod"
+        "Nasini's": "AMPL/models/nasini.mod"
+        "Valiente": "AMPL/models/valiente.mod"
     }
     solvers = {
         "CPLEX": "cplex",
