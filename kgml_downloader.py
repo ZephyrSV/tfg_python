@@ -2,7 +2,7 @@ from Bio.KEGG import REST
 
 
 def kgml_download(entries):
-    """ Fetches and downloads the kgml files associated to the entries, stores them in kgmls/
+    """ Fetches and downloads the kgml files associated to the entries, stores them in dats/
 
     Parameters
     ---------
@@ -13,7 +13,7 @@ def kgml_download(entries):
     entries = entries if isinstance(entries, list) else [entries]
 
     for entry in entries:
-        f = open("kgmls/" + entry + ".kgml", "w")
+        f = open("dats/" + entry + ".kgml", "w")
         f.write(REST.kegg_get(entry, 'kgml').read())
         f.close()
 

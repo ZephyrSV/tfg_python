@@ -75,12 +75,12 @@ def get_or_generate_dat(entry):
         """
         return string.replace("cpd:", "").replace("rn:", "").replace(" ", "_")
 
-    if os.path.isfile("kgmls/" + entry + ".dat"):
-        return "kgmls/" + entry + ".dat"
+    if os.path.isfile("dats/" + entry + ".dat"):
+        return "dats/" + entry + ".dat"
 
     kgml = next(KGML_parser.parse(REST.kegg_get(entry, 'kgml').read()))
 
-    dat_file = "kgmls/" + entry + ".dat"
+    dat_file = "dats/" + entry + ".dat"
     f = open(dat_file, "w")
 
     # fetch the actual reactions from the KEGG API

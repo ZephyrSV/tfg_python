@@ -28,11 +28,11 @@ def flip(func):
 human_pathways = [{"entry": "hsa00010", "description": "Glycolysis / Gluconeogenesis"}]
 
 for hp in human_pathways:
-    if not os.path.exists("kgmls/" + hp['entry'] + ".kgml"):
+    if not os.path.exists("dats/" + hp['entry'] + ".kgml"):
         print(f"The kgml file for entry {hp['entry']} is being downloaded")
         kgml_download(hp['entry'])
 
-kgmls = lmap(lambda x: open_kgml("kgmls/" + x['entry'] + ".kgml"), human_pathways)
+kgmls = lmap(lambda x: open_kgml("dats/" + x['entry'] + ".kgml"), human_pathways)
 
 pathways = map(KGML_parser.parse, kgmls)
 pathways = lmap(lambda x: list(x)[0], pathways)
