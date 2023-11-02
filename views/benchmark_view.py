@@ -48,14 +48,13 @@ class Benchmark_view(tkinter.Tk):
         for entry, dat in self.dats.items():
             self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
             self.ampl.read(self.models["Nasini's"])
+            print(f"Reading dat for {entry} at {dat}")
             self.ampl.readData(dat)
             before_solve_time = time.time()
             self.ampl.solve()
             self.append_to_results(f"{entry} - {self.ampl.getObjective('obj').value()} - {time.time() - before_solve_time}")
 
 
-
-    @print_thread_name
     def prepare_dats(self):
         """
         Prepares the dats for the benchmark and blocks until all dats are prepared
@@ -69,8 +68,6 @@ class Benchmark_view(tkinter.Tk):
     def run_benchmark(self):
         self.prepare_dats()
         self.solve_all_entries()
-
-
 
     def start_button_click(self):
         """
