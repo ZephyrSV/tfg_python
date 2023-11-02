@@ -35,7 +35,6 @@ class Pathway_view(tk.Tk):
         print(self.ampl.getObjective("obj").value())
         print(type(self.ampl.getVariable("inverted").getValues()))
 
-
     def init_UI(self):
         """
         Initializes the UI
@@ -43,7 +42,7 @@ class Pathway_view(tk.Tk):
         g = GridUtil()
 
         self.title_label = ttk.Label(self, text="Select a model and a solver")
-        self.title_label.grid(**pad(), **g.place(cs = 2))
+        self.title_label.grid(**pad(), **g.place(cs=2))
 
         g.next_row()
         self.model_label = ttk.Label(self, text="Model")
@@ -63,20 +62,11 @@ class Pathway_view(tk.Tk):
         g.next_row()
 
         self.solve_button = ttk.Button(self, text="Solve", command=self.solve)
-        self.solve_button.grid(**pad(), **g.place(cs = 2))
-
-
+        self.solve_button.grid(**pad(), **g.place(cs=2))
 
     def __init__(self, entry):
         super().__init__()
         self.entry = entry
-
         self.dat = get_or_generate_dat(entry)
-
         self.title(f"Pathway {entry}")
-
-
         self.init_UI()
-
-
-

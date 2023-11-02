@@ -5,7 +5,9 @@ import requests
 from io import BytesIO
 from utils.pathway_getter import get_pathway
 from views.pathway_view import Pathway_view
+from views.benchmark_view import Benchmark_view
 from utils.ui_utils import *
+import concurrent.futures
 
 
 
@@ -52,8 +54,6 @@ class Pathway_selector(tk.Tk):
         Sets the image in the image_label to the selected pathway.
         """
         i = self.dropdown.current()
-        self.image_label.config(text="Loading image...")
-        self.image_label.image = None
         url = f"http://rest.kegg.jp/get/{self.options[i]['entry']}/image"
         response = requests.get(url)
         img = Image.open(BytesIO(response.content))
@@ -61,6 +61,13 @@ class Pathway_selector(tk.Tk):
         img = ImageTk.PhotoImage(img)
         self.image_label.config(image=img)
         self.image_label.image = img
+        self.show_img_button.config(state="normal")
+
+    def show_image_button_click(self):
+        self.image_label.config(text="Loading image...")
+        self.image_label.image = None
+        self.show_img_button.config(state="disabled")
+        self.executor.submit(self.set_image)
 
     def select_pathway_button_click(self):
         """
@@ -70,6 +77,15 @@ class Pathway_selector(tk.Tk):
         This function is called when the select pathway button is clicked.
         """
         Pathway_view(self.options[self.dropdown.current()]['entry'])
+
+    def benchmark_button_click(self):
+        """
+        **Opens a new window with the selected pathway.**
+
+        This function is called when the benchmark button is clicked.
+        """
+        Benchmark_view([x['entry'] for x in self.options])
+
 
     def on_dropdown_select(self, event):
         """
@@ -102,6 +118,7 @@ class Pathway_selector(tk.Tk):
 
     def __init__(self):
         super().__init__()
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         g = GridUtil()
 
         self.title("Orienting Biochemical Reactions")
@@ -131,11 +148,16 @@ class Pathway_selector(tk.Tk):
         self.dropdown.grid(**pad(y=0), **g.place())
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
 
-        self.show_img_button = tk.Button(self, text='Show Image', command=self.set_image)
+        self.show_img_button = tk.Button(self, text='Show Image', command=self.show_image_button_click)
         self.show_img_button.grid(**pad(y=0),**g.place())
 
         self.select_button = tk.Button(self, text='Select', command=self.select_pathway_button_click)
         self.select_button.grid(**pad(y=0), **g.place())
+
+        g.next_row()
+        g.set_column(3)
+        self.benchmark_button = tk.Button(self, text='Benchmark', command=self.benchmark_button_click)
+        self.benchmark_button.grid(**pad(y=0), **g.place())
 
         g.next_row()
         self.description_label = tk.Label(self, text='Description:\n', justify='left', anchor='w')
@@ -144,4 +166,6 @@ class Pathway_selector(tk.Tk):
         g.next_row()
         self.image_label = tk.Label(self)
         self.image_label.grid(**pad(), **g.place(cs=4))
+
+
 
