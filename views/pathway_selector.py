@@ -151,12 +151,12 @@ class Pathway_selector(tk.Tk):
         self.show_img_button = tk.Button(self, text='Show Image', command=self.show_image_button_click)
         self.show_img_button.grid(**pad(y=0),**g.place())
 
-        self.select_button = tk.Button(self, text='Select', command=self.select_pathway_button_click)
+        self.select_button = tk.Button(self, text='Select 🡕', command=self.select_pathway_button_click)
         self.select_button.grid(**pad(y=0), **g.place())
 
         g.next_row()
         g.set_column(3)
-        self.benchmark_button = tk.Button(self, text='Benchmark', command=self.benchmark_button_click)
+        self.benchmark_button = tk.Button(self, text='Benchmark 🡕', command=self.benchmark_button_click)
         self.benchmark_button.grid(**pad(y=0), **g.place())
 
         g.next_row()
