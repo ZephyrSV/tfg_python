@@ -43,7 +43,7 @@ class GridUtil:
         self.current_column = 0
         return self.current_row
 
-    def place(self, rs=1, cs=1):
+    def place(self, rs=1, cs=1, sticky="we"):
         """
         Returns a dictionary with the grid parameters to use for tkinter widgets
         Advances the current column by cs
@@ -56,7 +56,7 @@ class GridUtil:
             'column': self.current_column,
             'rowspan': rs,
             'columnspan': cs,
-            'sticky': 'we'
+            'sticky': sticky
         }
         self.current_column += cs
         return result

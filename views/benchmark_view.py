@@ -1,11 +1,12 @@
 import time
 import tkinter
+from tkinter import ttk
 import concurrent.futures
 
 from amplpy import AMPL
 
 from utils.kgml_dat_converter import get_or_generate_dat
-from utils.ui_utils import GridUtil
+from utils.ui_utils import GridUtil, pad
 
 import threading
 
@@ -32,10 +33,11 @@ class Benchmark_view(tkinter.Tk):
     }
     results_text = ""
     dats = {}
+    result_count = 0
 
-    def append_to_results(self, text):
-        self.results_text += text + "\n"
-        self.results_label["text"] = self.results_text
+    def insert_to_treeview(self, entry, obj_value, solve_time):
+        self.result_count += 1
+        self.treeview.insert("", "end", text=self.result_count, values=(entry, obj_value, solve_time))
 
     def add_to_dats(self, entry, dat):
         self.dats[entry] = dat
@@ -52,7 +54,9 @@ class Benchmark_view(tkinter.Tk):
             self.ampl.readData(dat)
             before_solve_time = time.time()
             self.ampl.solve()
-            self.append_to_results(f"{entry} - {self.ampl.getObjective('obj').value()} - {time.time() - before_solve_time}")
+            objective_value = self.ampl.getObjective('obj').value()
+            solve_duration = time.time() - before_solve_time
+            self.after(0, self.insert_to_treeview, entry, objective_value, solve_duration)
 
 
     def prepare_dats(self):
@@ -61,20 +65,21 @@ class Benchmark_view(tkinter.Tk):
         :return:
         """
         futures = [self.executor.submit(self.prepare_dat, entry) for entry in self.entries]
-        print("Waiting for futures to finish")
         concurrent.futures.wait(futures)
-        print("Futures finished")
+
 
     def run_benchmark(self):
+        self.start_button.config(text="Generating dats...", state=tkinter.DISABLED)
         self.prepare_dats()
+        self.start_button.config(text="Solving...")
         self.solve_all_entries()
+        self.start_button.config(text="Start benchmark", state=tkinter.NORMAL)
 
     def start_button_click(self):
         """
         Starts the benchmark
         """
         self.executor.submit(self.run_benchmark)
-        print("main thread is not blocked")
 
 
     def init_UI(self):
@@ -83,20 +88,24 @@ class Benchmark_view(tkinter.Tk):
         """
         g = GridUtil()
         self.select_solver_label = tkinter.Label(self, text="Select a solver")
-        self.select_solver_label.grid(**g.place())
+        self.select_solver_label.grid(**g.place(), **pad())
         self.solver_selector = tkinter.ttk.Combobox(self, values=[key for key in self.solvers.keys()])
-        self.solver_selector.grid(**g.place())
+        self.solver_selector.grid(**g.place(), **pad())
         self.solver_selector.current(0)
 
         g.next_row()
         self.start_button = tkinter.Button(self, text="Start benchmark", command=self.start_button_click)
-        self.start_button.grid(**g.place(cs=2))
+        self.start_button.grid(**g.place(cs=2), **pad())
 
         g.next_row()
-        self.results_label = tkinter.Label(self, text="Results")
-        self.results_label.grid(**g.place(cs=2))
+        self.treeview = ttk.Treeview(self, columns=("Entry", "Objective value", "Solve time"))
+        self.treeview.heading("Entry", text="Entry")
+        self.treeview.heading("Objective value", text="Objective value")
+        self.treeview.heading("Solve time", text="Solve time")
+        self.treeview.grid(**g.place(cs=2))
 
-
+        self.verticalScrollbar = ttk.Scrollbar(self, orient="vertical", command=self.treeview.yview)
+        self.verticalScrollbar.grid(**g.place(sticky="ns"))
 
 
     def __init__(self, entries):
