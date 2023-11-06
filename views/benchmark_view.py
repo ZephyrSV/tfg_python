@@ -1,5 +1,6 @@
 import time
 import tkinter
+from datetime import datetime
 from tkinter import ttk
 import concurrent.futures
 
@@ -34,12 +35,14 @@ class Benchmark_view(tkinter.Tk):
     results_text = ""
     dats = {}
     result_count = 0
+    current_test_id = ""
 
-    def insert_to_treeview(self, *values):
+    def insert_to_treeview(self, parent, *values):
         self.result_count += 1
-        self.treeview.insert("", "end", text=self.result_count.__str__(), values=tuple(values))
-        new_height = self.treeview.bbox("end")[3]  # Get the bottom y-coordinate of the last row
-        self.treeview.config(height=new_height // 20 + 1)  # 20 is the average row height, adjust as needed
+        self.treeview.insert(parent, "end", self.result_count.__str__(), values=tuple(values))
+
+    def get_last_entry_treeview_id(self):
+        return self.result_count.__str__()
 
     def add_to_dats(self, entry, dat):
         self.dats[entry] = dat
@@ -64,7 +67,7 @@ class Benchmark_view(tkinter.Tk):
             else:
                 objective_value = self.ampl.getObjective('obj').value()
                 solve_duration = time.time() - before_solve_time
-            self.after(0, self.insert_to_treeview, entry, solver_id, model_id, objective_value, solve_duration)
+            self.after(0, self.insert_to_treeview, self.current_test_id, entry, solver_id, model_id, objective_value, solve_duration)
 
 
     def prepare_dats(self):
@@ -87,6 +90,16 @@ class Benchmark_view(tkinter.Tk):
         """
         Starts the benchmark
         """
+        now = datetime.now()
+        self.insert_to_treeview(
+            "",                                         # parent
+            now.strftime("Benchmark %d/%m/%Y %H:%M"),   # entry name
+            self.solver_selector.get(),                 # solver
+            self.model_selector.get(),                  # model
+            "",                                         # objective value
+            ""                                          # solve duration
+        )
+        self.current_test_id = self.get_last_entry_treeview_id()
         self.executor.submit(self.run_benchmark)
 
 
@@ -113,18 +126,20 @@ class Benchmark_view(tkinter.Tk):
         self.start_button.grid(**g.place(cs=2), **pad())
 
         g.next_row()
-        self.treeview = ttk.Treeview(self, columns=("Entry", "Solver", "Model", "Objective value", "Solve time"), show="headings")
+        self.treeview = ttk.Treeview(self, columns=("Entry", "Solver", "Model", "Objective value", "Solve time"))
         self.treeview.heading("Entry", text="Entry")
         self.treeview.heading("Solver", text="Solver")
         self.treeview.heading("Model", text="Model")
         self.treeview.heading("Objective value", text="Objective value")
         self.treeview.heading("Solve time", text="Solve time (ms)")
-        self.treeview.grid(**g.place(cs=2))
+        self.treeview.grid(**g.place(cs=2, sticky="nsew"))
 
         self.verticalScrollbar = ttk.Scrollbar(self, orient="vertical", command=self.treeview.yview)
         self.verticalScrollbar.grid(**g.place(sticky="ns"))
         self.treeview.configure(yscrollcommand=self.verticalScrollbar.set)
 
+        self.grid_rowconfigure(g.current_row, weight=1)
+        self.grid_columnconfigure(g.current_row, weight=1)
 
     def __init__(self, entries):
         super().__init__()
