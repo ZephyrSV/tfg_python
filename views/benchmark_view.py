@@ -11,16 +11,17 @@ from utils.ui_utils import GridUtil, pad
 
 import threading
 
+
 def print_thread_name(func):
     def wrapper(*args, **kwargs):
         current_thread = threading.current_thread()
         print(f"Thread name: {current_thread.name}, Function name: {func.__name__}")
         return func(*args, **kwargs)
+
     return wrapper
 
 
 class Benchmark_view(tkinter.Tk):
-    ampl = AMPL()
     solvers = {
         "CPLEX": "cplex",
         "Gurobi": "gurobi",
@@ -32,7 +33,7 @@ class Benchmark_view(tkinter.Tk):
         "Nasini's": "AMPL/models/nasini.mod",
         "Valiente": "AMPL/models/valiente.mod"
     }
-    results_text = ""
+    ampls = {k: AMPL() for k in models.keys()}  # One ampl instance per model
     dats = {}
     _dats_lock = threading.Lock()
     result_count = 0
@@ -48,30 +49,30 @@ class Benchmark_view(tkinter.Tk):
     def add_to_dats(self, entry, dat):
         with self._dats_lock:
             self.dats[entry] = dat
+
     def prepare_dat(self, entry):
         dat = get_or_generate_dat(entry)
-        self.dats[entry] = dat
         self.add_to_dats(entry, dat)
 
     def solve_all_entries(self):
-        print(len(self.dats.items()))
-        for entry, dat in self.dats.items():
-            solver_id = self.solver_selector.get()
-            self.ampl.option["solver"] = self.solvers[solver_id]
-            model_id = self.model_selector.get()
-            self.ampl.read(self.models[model_id])
-            print(f"Reading dat for {entry} at {dat}")
-            self.ampl.readData(dat)
-            before_solve_time = time.time()
-            text_output = self.ampl.getOutput("solve;")
-            if "Sorry, a demo license" in text_output:
-                objective_value = "Unavailable using demo license"
-                solve_duration = "NA"
-            else:
-                objective_value = self.ampl.getObjective('obj').value()
-                solve_duration = time.time() - before_solve_time
-            self.after(0, self.insert_to_treeview, self.current_test_id, entry, solver_id, model_id, objective_value, solve_duration)
-
+        solver_id = self.solver_selector.get()
+        solver = self.solvers[solver_id]
+        for entry, dat in self.dats.items(): # for each entry
+            solve_duration_list = []
+            for k, ampl in self.ampls.items(): # for each model
+                ampl.read(self.models[k])  # prepare ampl instances
+                ampl.option["solver"] = solver
+                print(f"Reading dat for {entry} at {dat}")
+                ampl.readData(dat)
+                before_solve_time = time.time()
+                text_output = ampl.getOutput("solve;")
+                if "Sorry, a demo license" in text_output:
+                    solve_duration = "Unavailable using demo license"
+                else:
+                    solve_duration = (time.time() - before_solve_time).__str__()
+                solve_duration_list.append(solve_duration)
+            print(solve_duration_list)
+            self.after(0, self.insert_to_treeview, self.current_test_id, entry, solver_id, *solve_duration_list)
 
     def prepare_dats(self):
         """
@@ -80,7 +81,6 @@ class Benchmark_view(tkinter.Tk):
         """
         futures = [self.executor.submit(self.prepare_dat, entry) for entry in self.entries]
         concurrent.futures.wait(futures)
-
 
     def run_benchmark(self):
         print(f"Running benchmark with {self.entries.__len__()} entries")
@@ -97,17 +97,13 @@ class Benchmark_view(tkinter.Tk):
         """
         now = datetime.now()
         self.insert_to_treeview(
-            "",                                         # parent
-            now.strftime("Benchmark %d/%m/%Y %H:%M"),   # entry name
-            self.solver_selector.get(),                 # solver
-            self.model_selector.get(),                  # model
-            "",                                         # objective value
-            ""                                          # solve duration
+            "",  # parent
+            now.strftime("Benchmark %d/%m/%Y %H:%M"),  # entry name
+            self.solver_selector.get(),  # solver
         )
         self.current_test_id = self.get_last_entry_treeview_id()
         print(f"Current test id: {self.current_test_id}")
         self.executor.submit(self.run_benchmark)
-
 
     def init_UI(self):
         """
@@ -121,22 +117,15 @@ class Benchmark_view(tkinter.Tk):
         self.solver_selector.current(0)
 
         g.next_row()
-        self.select_model_label = tkinter.Label(self, text="Select a model")
-        self.select_model_label.grid(**g.place(), **pad())
-        self.model_selector = tkinter.ttk.Combobox(self, values=[key for key in self.models.keys()])
-        self.model_selector.grid(**g.place(), **pad())
-        self.model_selector.current(0)
-
-        g.next_row()
         self.start_button = tkinter.Button(self, text="Start benchmark", command=self.start_button_click)
         self.start_button.grid(**g.place(cs=2), **pad())
 
         g.next_row()
-        self.treeview = ttk.Treeview(self, columns=("Solver", "Model", "Objective value", "Solve time"))
+
+        self.treeview = ttk.Treeview(self, columns=["Solver"] + list(self.models.keys()))
         self.treeview.heading("Solver", text="Solver")
-        self.treeview.heading("Model", text="Model")
-        self.treeview.heading("Objective value", text="Objective value")
-        self.treeview.heading("Solve time", text="Solve time (ms)")
+        for k in self.models.keys():
+            self.treeview.heading(k, text=f" {k}'s solve duration")
         self.treeview.grid(**g.place(cs=2, sticky="nsew"))
 
         self.verticalScrollbar = ttk.Scrollbar(self, orient="vertical", command=self.treeview.yview)
