@@ -34,24 +34,27 @@ class Benchmark_view(tkinter.Tk):
     }
     results_text = ""
     dats = {}
+    _dats_lock = threading.Lock()
     result_count = 0
     current_test_id = ""
 
-    def insert_to_treeview(self, parent, *values):
+    def insert_to_treeview(self, parent, text, *values):
         self.result_count += 1
-        self.treeview.insert(parent, "end", self.result_count.__str__(), values=tuple(values))
+        self.treeview.insert(parent, "end", self.result_count.__str__(), text=text, values=tuple(values))
 
     def get_last_entry_treeview_id(self):
         return self.result_count.__str__()
 
     def add_to_dats(self, entry, dat):
-        self.dats[entry] = dat
-
+        with self._dats_lock:
+            self.dats[entry] = dat
     def prepare_dat(self, entry):
         dat = get_or_generate_dat(entry)
-        self.after(0, self.add_to_dats, entry, dat)
+        self.dats[entry] = dat
+        self.add_to_dats(entry, dat)
 
     def solve_all_entries(self):
+        print(len(self.dats.items()))
         for entry, dat in self.dats.items():
             solver_id = self.solver_selector.get()
             self.ampl.option["solver"] = self.solvers[solver_id]
@@ -80,11 +83,13 @@ class Benchmark_view(tkinter.Tk):
 
 
     def run_benchmark(self):
+        print(f"Running benchmark with {self.entries.__len__()} entries")
         self.start_button.config(text="Generating dats...", state=tkinter.DISABLED)
         self.prepare_dats()
         self.start_button.config(text="Solving...")
         self.solve_all_entries()
         self.start_button.config(text="Start benchmark", state=tkinter.NORMAL)
+        print("Benchmark finished")
 
     def start_button_click(self):
         """
@@ -100,6 +105,7 @@ class Benchmark_view(tkinter.Tk):
             ""                                          # solve duration
         )
         self.current_test_id = self.get_last_entry_treeview_id()
+        print(f"Current test id: {self.current_test_id}")
         self.executor.submit(self.run_benchmark)
 
 
@@ -126,8 +132,7 @@ class Benchmark_view(tkinter.Tk):
         self.start_button.grid(**g.place(cs=2), **pad())
 
         g.next_row()
-        self.treeview = ttk.Treeview(self, columns=("Entry", "Solver", "Model", "Objective value", "Solve time"))
-        self.treeview.heading("Entry", text="Entry")
+        self.treeview = ttk.Treeview(self, columns=("Solver", "Model", "Objective value", "Solve time"))
         self.treeview.heading("Solver", text="Solver")
         self.treeview.heading("Model", text="Model")
         self.treeview.heading("Objective value", text="Objective value")
