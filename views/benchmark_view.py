@@ -35,9 +35,11 @@ class Benchmark_view(tkinter.Tk):
     dats = {}
     result_count = 0
 
-    def insert_to_treeview(self, entry, obj_value, solve_time):
+    def insert_to_treeview(self, *values):
         self.result_count += 1
-        self.treeview.insert("", "end", text=self.result_count, values=(entry, obj_value, solve_time))
+        self.treeview.insert("", "end", text=self.result_count.__str__(), values=tuple(values))
+        new_height = self.treeview.bbox("end")[3]  # Get the bottom y-coordinate of the last row
+        self.treeview.config(height=new_height // 20 + 1)  # 20 is the average row height, adjust as needed
 
     def add_to_dats(self, entry, dat):
         self.dats[entry] = dat
@@ -48,15 +50,21 @@ class Benchmark_view(tkinter.Tk):
 
     def solve_all_entries(self):
         for entry, dat in self.dats.items():
-            self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
-            self.ampl.read(self.models["Nasini's"])
+            solver_id = self.solver_selector.get()
+            self.ampl.option["solver"] = self.solvers[solver_id]
+            model_id = self.model_selector.get()
+            self.ampl.read(self.models[model_id])
             print(f"Reading dat for {entry} at {dat}")
             self.ampl.readData(dat)
             before_solve_time = time.time()
-            self.ampl.solve()
-            objective_value = self.ampl.getObjective('obj').value()
-            solve_duration = time.time() - before_solve_time
-            self.after(0, self.insert_to_treeview, entry, objective_value, solve_duration)
+            text_output = self.ampl.getOutput("solve;")
+            if "Sorry, a demo license" in text_output:
+                objective_value = "Unavailable using demo license"
+                solve_duration = "NA"
+            else:
+                objective_value = self.ampl.getObjective('obj').value()
+                solve_duration = time.time() - before_solve_time
+            self.after(0, self.insert_to_treeview, entry, solver_id, model_id, objective_value, solve_duration)
 
 
     def prepare_dats(self):
@@ -94,18 +102,28 @@ class Benchmark_view(tkinter.Tk):
         self.solver_selector.current(0)
 
         g.next_row()
+        self.select_model_label = tkinter.Label(self, text="Select a model")
+        self.select_model_label.grid(**g.place(), **pad())
+        self.model_selector = tkinter.ttk.Combobox(self, values=[key for key in self.models.keys()])
+        self.model_selector.grid(**g.place(), **pad())
+        self.model_selector.current(0)
+
+        g.next_row()
         self.start_button = tkinter.Button(self, text="Start benchmark", command=self.start_button_click)
         self.start_button.grid(**g.place(cs=2), **pad())
 
         g.next_row()
-        self.treeview = ttk.Treeview(self, columns=("Entry", "Objective value", "Solve time"))
+        self.treeview = ttk.Treeview(self, columns=("Entry", "Solver", "Model", "Objective value", "Solve time"), show="headings")
         self.treeview.heading("Entry", text="Entry")
+        self.treeview.heading("Solver", text="Solver")
+        self.treeview.heading("Model", text="Model")
         self.treeview.heading("Objective value", text="Objective value")
-        self.treeview.heading("Solve time", text="Solve time")
+        self.treeview.heading("Solve time", text="Solve time (ms)")
         self.treeview.grid(**g.place(cs=2))
 
         self.verticalScrollbar = ttk.Scrollbar(self, orient="vertical", command=self.treeview.yview)
         self.verticalScrollbar.grid(**g.place(sticky="ns"))
+        self.treeview.configure(yscrollcommand=self.verticalScrollbar.set)
 
 
     def __init__(self, entries):
