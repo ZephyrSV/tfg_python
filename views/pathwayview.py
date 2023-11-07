@@ -8,12 +8,12 @@ from utils.kgml_dat_converter import get_or_generate_dat
 from utils.ui_utils import pad, GridUtil
 
 
-class Pathway_view(tk.Tk):
+class PathwayView(tk.Tk):
     ampl = AMPL()
     models = {
-        "My model": "AMPL/models/my_model.mod",
-        "My model 2": "AMPL/models/my_model2.mod",
-        "Nasini's": "AMPL/models/nasini.mod",
+        "Zephyr": "AMPL/models/my_model.mod",
+        "Zephyr Optimized": "AMPL/models/my_model2.mod",
+        "Nasini": "AMPL/models/nasini.mod",
         "Valiente": "AMPL/models/valiente.mod"
     }
     solvers = {
@@ -21,6 +21,13 @@ class Pathway_view(tk.Tk):
         "Gurobi": "gurobi",
         "cbc": "cbc",
     }
+    tickbox_labels = [
+        "respect invertability",
+        "force sources",
+        "force sinks",
+    ]
+    tickbox_vars = {}
+    tickbox_elements = {}
 
     def solve(self):
         """
@@ -42,7 +49,7 @@ class Pathway_view(tk.Tk):
         g = GridUtil()
 
         self.title_label = ttk.Label(self, text="Select a model and a solver")
-        self.title_label.grid(**pad(), **g.place(cs=2))
+        self.title_label.grid(**pad(), **g.place(cs=3))
 
         g.next_row()
         self.model_label = ttk.Label(self, text="Model")
@@ -60,9 +67,15 @@ class Pathway_view(tk.Tk):
         self.solver_selector.grid(**pad(), **g.place())
 
         g.next_row()
+        self.tickbox_vars = {k: tk.IntVar() for k in self.tickbox_labels}
+        self.tickbox_elements = {k: ttk.Checkbutton(self, text=k, variable=self.tickbox_vars[k]) for k in self.tickbox_labels}
+        for te in self.tickbox_elements.values():
+            te.grid(**pad(), **g.place())
+            te.state(['!alternate'])  # deselects the alternate state, starts off the tick-boxes as unticked
+        g.next_row()
 
         self.solve_button = ttk.Button(self, text="Solve", command=self.solve)
-        self.solve_button.grid(**pad(), **g.place(cs=2))
+        self.solve_button.grid(**pad(), **g.place(cs=3))
 
     def __init__(self, entry):
         super().__init__()
@@ -70,3 +83,4 @@ class Pathway_view(tk.Tk):
         self.dat = get_or_generate_dat(entry)
         self.title(f"Pathway {entry}")
         self.init_UI()
+        self.mainloop()

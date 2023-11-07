@@ -4,7 +4,7 @@ from PIL import ImageTk, Image
 import requests
 from io import BytesIO
 from utils.pathway_getter import get_pathway
-from views.pathway_view import Pathway_view
+from views.pathwayview import PathwayView
 from views.benchmark_view import Benchmark_view
 from utils.ui_utils import *
 import concurrent.futures
@@ -76,7 +76,7 @@ class Pathway_selector(tk.Tk):
 
         This function is called when the select pathway button is clicked.
         """
-        Pathway_view(self.options[self.dropdown.current()]['entry'])
+        PathwayView(self.options[self.dropdown.current()]['entry'])
 
     def benchmark_button_click(self):
         """
