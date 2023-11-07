@@ -127,20 +127,16 @@ def get_or_generate_dat(entry):
     f.write("\n")
 
     # determine the set of reversible reactions
-    seen  = {}
-    f.write("param invertible :=\n")
+    seen = {}
+    f.write("set uninvertible :=\n")
     for reaction in kgml.reactions:
         if reaction.type == "reversible":
-            for r in reaction.name.split(" "):
-                if r in seen:
-                    continue
-                f.write(sc(r) + " 1\n")
-                seen[r] = True
+            continue
         else:
             for r in reaction.name.split(" "):
                 if r in seen:
                     continue
-                f.write(sc(r) + " 0\n")
+                f.write(sc(r)+ " ")
                 seen[r] = True
     f.write(";\n\n")
 

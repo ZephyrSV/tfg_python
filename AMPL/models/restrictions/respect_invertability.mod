@@ -1,2 +1,2 @@
-subject to respect_invertibility {i in E}:
-		inverted[i] <= invertible[i];
+subject to respect_invertibility {i in uninvertible}:
+		inverted[i] = 0;

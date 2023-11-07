@@ -9,7 +9,7 @@ set E; # hyperedges
 set X{E}; # for each hyperedge, its tail set
 set Y{E}; # for each hyperedge, its head set
 
-param invertible{E} binary; # determines whether an edge is invertible
+set uninvertible within E; # set of edges that cannot be inverted
 set forced_sinks within V; # set of nodes that must be sinks
 set forced_sources within V; # set of nodes that must be sources
 

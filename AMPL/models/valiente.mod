@@ -7,7 +7,7 @@ param M = card(V);
 set X {E} within V;
 set Y {E} within V;
 
-param invertible{E} binary; # determines whether an edge is invertible
+set uninvertible within E; # set of edges that cannot be inverted
 set forced_sinks within V; # set of nodes that must be sinks
 set forced_sources within V; # set of nodes that must be sources
 
