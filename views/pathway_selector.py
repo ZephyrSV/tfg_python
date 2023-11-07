@@ -4,7 +4,7 @@ from PIL import ImageTk, Image
 import requests
 from io import BytesIO
 from utils.pathway_getter import get_pathway
-from views.pathwayview import PathwayView
+from views.pathway_view import PathwayView
 from views.benchmark_view import Benchmark_view
 from utils.ui_utils import *
 import concurrent.futures
