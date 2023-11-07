@@ -1,8 +1,9 @@
-data "hsa00051.dat";
+#data "hsa00051.dat";
 
 option solver cbc;
 solve;
 display inverted;
-display is_internal;
+display source;
+display sink;
 display _solve_user_time;
 end;

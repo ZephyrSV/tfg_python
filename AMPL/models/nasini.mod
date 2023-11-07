@@ -33,6 +33,3 @@ subject to incoming_half_implies_internal {j in V}: # for each node 'j'
 		sum {i in E: j in Y[i]} (1-inverted[i]) +	# for every hyperedge 'i', sum 1 iff 'j' belongs to its *head* set and is *not* inverted
 		sum {i in E: j in X[i]} inverted[i] 		# for every hyperedge 'i', sum 1 iff 'j' belongs to its *tail* set and is *inverted*
 		>= is_internal[j]; # will only allow is_internal to be one iff there's an incoming edge.
-
-subject to respect_invertability {i in E}:
-		inverted[i] <= invertible[i];

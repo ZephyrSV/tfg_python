@@ -22,12 +22,17 @@ class PathwayView(tk.Tk):
         "cbc": "cbc",
     }
     tickbox_labels = [
-        "respect invertability",
+        "respect invertibility",
         "force sources",
         "force sinks",
     ]
     tickbox_vars = {}
     tickbox_elements = {}
+    tickbox_models = {
+        "respect invertability": "AMPL/models/restrictions/respect_invertability.mod",
+        "force sources": "AMPL/models/restrictions/force_sources.mod.mod",
+        "force sinks": "AMPL/models/restrictions/force_sinks.mod",
+    }
 
     def solve(self):
         """

@@ -64,3 +64,6 @@ R00762 0
 R03161 0
 R03688 0
 ;
+
+set forced_sinks := ;
+set forced_sources := C00665;

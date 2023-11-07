@@ -54,7 +54,7 @@ s.t. internal_1 {j in V}:
 s.t. internal_2 {j in V}:
 	source[j] + sink[j] -1 - 0.5 * is_internal[j] >= 0;
 	
-subject to respect_invertability {i in E}:
+subject to respect_invertibility {i in E}:
 	inverted[i] <= invertible[i];
 	
 	

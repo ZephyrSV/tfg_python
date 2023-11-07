@@ -29,8 +29,6 @@ var is_internal{V} binary;
 
 maximize obj: sum{i in V} is_internal[i];
 
-subject to respect_invertability {i in E}:
-		inverted[i] <= invertible[i];
 
 subject to substrates_not_inverted{i in V, j in substrate_in[i]}:
 		has_in[i] >= 1-inverted[j];
