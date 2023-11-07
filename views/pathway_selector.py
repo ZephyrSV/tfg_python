@@ -76,7 +76,7 @@ class Pathway_selector(tk.Tk):
 
         This function is called when the select pathway button is clicked.
         """
-        PathwayView(self.options[self.dropdown.current()]['entry'])
+        PathwayView(self, self.options[self.dropdown.current()]['entry'])
 
     def benchmark_button_click(self):
         """
@@ -84,7 +84,7 @@ class Pathway_selector(tk.Tk):
 
         This function is called when the benchmark button is clicked.
         """
-        Benchmark_view([x['entry'] for x in self.options])
+        Benchmark_view(self, [x['entry'] for x in self.options])
 
 
     def on_dropdown_select(self, event):

@@ -1,6 +1,7 @@
 import time
 import tkinter
 from datetime import datetime
+import tkinter as tk
 from tkinter import ttk
 import concurrent.futures
 import numpy as np
@@ -22,7 +23,7 @@ def print_thread_name(func):
     return wrapper
 
 
-class Benchmark_view(tkinter.Tk):
+class Benchmark_view(tk.Toplevel):
     solvers = {
         "CPLEX": "cplex",
         "Gurobi": "gurobi",
@@ -146,8 +147,8 @@ class Benchmark_view(tkinter.Tk):
         self.grid_rowconfigure(g.current_row, weight=1)
         self.grid_columnconfigure(g.current_row, weight=1)
 
-    def __init__(self, entries):
-        super().__init__()
+    def __init__(self, master,  entries):
+        super().__init__(master)
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.title("Benchmark")
         self.entries = entries[:25]
