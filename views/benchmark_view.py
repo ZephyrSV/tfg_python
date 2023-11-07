@@ -3,6 +3,7 @@ import tkinter
 from datetime import datetime
 from tkinter import ttk
 import concurrent.futures
+import numpy as np
 
 from amplpy import AMPL
 
@@ -28,9 +29,9 @@ class Benchmark_view(tkinter.Tk):
         "cbc": "cbc",
     }
     models = {
-        "My model": "AMPL/models/my_model.mod",
-        "My model 2": "AMPL/models/my_model2.mod",
-        "Nasini's": "AMPL/models/nasini.mod",
+        "Zephyr": "AMPL/models/my_model.mod",
+        "Zephyr Optimized": "AMPL/models/my_model2.mod",
+        "Nasini": "AMPL/models/nasini.mod",
         "Valiente": "AMPL/models/valiente.mod"
     }
     ampls = {k: AMPL() for k in models.keys()}  # One ampl instance per model
@@ -50,6 +51,11 @@ class Benchmark_view(tkinter.Tk):
         with self._dats_lock:
             self.dats[entry] = dat
 
+    def set_benchmark_average(self, entry, solver_id, valid_duration_lists):
+        print(f"Setting benchmark average of {len(valid_duration_lists)} entries with solver {solver_id}")
+        self.treeview.item(entry, values=[solver_id] + list(np.average(valid_duration_lists, axis=0)))
+
+
     def prepare_dat(self, entry):
         dat = get_or_generate_dat(entry)
         self.add_to_dats(entry, dat)
@@ -57,9 +63,11 @@ class Benchmark_view(tkinter.Tk):
     def solve_all_entries(self):
         solver_id = self.solver_selector.get()
         solver = self.solvers[solver_id]
-        for entry, dat in self.dats.items(): # for each entry
+        valid_duration_lists = []
+        for entry, dat in self.dats.items():  # for each entry
             solve_duration_list = []
-            for k, ampl in self.ampls.items(): # for each model
+            is_valid = True
+            for k, ampl in self.ampls.items():  # for each model
                 ampl.read(self.models[k])  # prepare ampl instances
                 ampl.option["solver"] = solver
                 print(f"Reading dat for {entry} at {dat}")
@@ -68,11 +76,14 @@ class Benchmark_view(tkinter.Tk):
                 text_output = ampl.getOutput("solve;")
                 if "Sorry, a demo license" in text_output:
                     solve_duration = "Unavailable using demo license"
+                    is_valid = False
                 else:
-                    solve_duration = (time.time() - before_solve_time).__str__()
+                    solve_duration = (time.time() - before_solve_time)
                 solve_duration_list.append(solve_duration)
-            print(solve_duration_list)
+            if is_valid:
+                valid_duration_lists.append(solve_duration_list)
             self.after(0, self.insert_to_treeview, self.current_test_id, entry, solver_id, *solve_duration_list)
+        self.after(0, self.set_benchmark_average, self.current_test_id, solver_id, valid_duration_lists)
 
     def prepare_dats(self):
         """
@@ -82,6 +93,7 @@ class Benchmark_view(tkinter.Tk):
         futures = [self.executor.submit(self.prepare_dat, entry) for entry in self.entries]
         concurrent.futures.wait(futures)
 
+    @print_thread_name
     def run_benchmark(self):
         print(f"Running benchmark with {self.entries.__len__()} entries")
         self.start_button.config(text="Generating dats...", state=tkinter.DISABLED)
@@ -125,9 +137,8 @@ class Benchmark_view(tkinter.Tk):
         self.treeview = ttk.Treeview(self, columns=["Solver"] + list(self.models.keys()))
         self.treeview.heading("Solver", text="Solver")
         for k in self.models.keys():
-            self.treeview.heading(k, text=f" {k}'s solve duration")
+            self.treeview.heading(k, text=f"{k}'s solve duration")
         self.treeview.grid(**g.place(cs=2, sticky="nsew"))
-
         self.verticalScrollbar = ttk.Scrollbar(self, orient="vertical", command=self.treeview.yview)
         self.verticalScrollbar.grid(**g.place(sticky="ns"))
         self.treeview.configure(yscrollcommand=self.verticalScrollbar.set)
@@ -139,6 +150,6 @@ class Benchmark_view(tkinter.Tk):
         super().__init__()
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.title("Benchmark")
-        self.entries = entries[:10]
+        self.entries = entries[:25]
         self.init_UI()
         self.mainloop()
