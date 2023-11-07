@@ -10,6 +10,9 @@ set X{E}; # for each hyperedge, its tail set
 set Y{E}; # for each hyperedge, its head set
 
 param invertible{E} binary; # determines whether an edge is invertible
+set forced_sinks within V; # set of nodes that must be sinks
+set forced_sources within V; # set of nodes that must be sources
+
 set substrate_in{i in V} := {j in E: i in X[j]}; 
 set product_in{i in V} := {j in E: i in Y[j]};
 

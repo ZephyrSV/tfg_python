@@ -8,7 +8,8 @@ set X {E} within V;
 set Y {E} within V;
 
 param invertible{E} binary; # determines whether an edge is invertible
-
+set forced_sinks within V; # set of nodes that must be sinks
+set forced_sources within V; # set of nodes that must be sources
 
 var inverted {E} binary;
 var source {V} binary;

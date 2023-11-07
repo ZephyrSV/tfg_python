@@ -9,6 +9,8 @@ set E;
 set X{E} within V; # The tail set for each hyperedge
 set Y{E} within V; # The head set for each hyperedge
 param invertible{E} binary; # determines whether an edge is invertible
+set forced_sinks within V; # set of nodes that must be sinks
+set forced_sources within V; # set of nodes that must be sources
 
 #####################
 ## Variables
