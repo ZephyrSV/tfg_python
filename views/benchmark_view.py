@@ -8,7 +8,7 @@ import numpy as np
 
 from amplpy import AMPL
 
-from utils.kgml_dat_converter import get_or_generate_dat
+from utils.kgml_dat_converter import get_or_generate_dat, DatGenerator
 from utils.ui_utils import GridUtil, pad
 
 import threading
@@ -92,8 +92,11 @@ class Benchmark_view(tk.Toplevel):
         Prepares the dats for the benchmark and blocks until all dats are prepared
         :return:
         """
-        futures = [self.executor.submit(self.prepare_dat, entry) for entry in self.entries]
-        concurrent.futures.wait(futures)
+        #futures = [self.executor.submit(self.prepare_dat, entry) for entry in self.entries]
+        #concurrent.futures.wait(futures)
+        d = DatGenerator()
+        for entry, dat in d.generate_dats(self.entries):
+            self.add_to_dats(entry, dat)
 
     @print_thread_name
     def run_benchmark(self):
