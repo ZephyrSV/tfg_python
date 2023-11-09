@@ -6,7 +6,7 @@ def fetch_all_pathways(organism=None):
     Parameters
     ----------
     organism : str, optional
-        An identifier declared by KEGG database that identifies a specific organism (default is 'hsa' for humans)
+        An identifier declared by KEGG database that identifies a specific organism ('hsa' for humans)
     """
     pathways = REST.kegg_list("pathway", org=organism).read().split("\n")
     pathways = [x.split("\t") for x in pathways]
