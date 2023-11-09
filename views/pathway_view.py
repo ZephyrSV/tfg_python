@@ -4,7 +4,7 @@ from amplpy import AMPL
 import tkinter as tk
 from tkinter import ttk
 
-from utils.kgml_dat_converter import DatGenerator
+from utils.DatGenerator import DatGenerator
 from utils.ui_utils import pad, GridUtil
 
 
