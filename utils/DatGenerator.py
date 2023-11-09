@@ -165,5 +165,5 @@ class DatGenerator:
         return [(entry, "dats/" + entry + ".dat") for entry in entries]
 
 if __name__ == "__main__":
-    d = DatGenerator()
+    d = DatGenerator()#test case
     d.generate_dats(["hsa00010", "hsa00020"])
