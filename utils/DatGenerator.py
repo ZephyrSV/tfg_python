@@ -12,39 +12,39 @@ import concurrent.futures
 
 
 class DatGenerator:
-    reactions = {}
+    _reactions = {}
     _reactions_lock = threading.Lock()
-    unfetched_reactions = set()
+    _unfetched_reactions = set()
     _unfetched_reactions_lock = threading.Lock()
-    pathway_reactions_kgml = {}
+    _pathway_reactions_kgml = {}
     _pathway_reactions_kgml_lock = threading.Lock()
 
     def __init__(self, reactions=None):
         if reactions is None:
             reactions = {}
-        self.reactions = reactions
+        self._reactions = reactions
         self.executor = concurrent.futures.ThreadPoolExecutor()
 
-    def add_unfetched_reaction(self, reaction):
+    def _add_unfetched_reaction(self, reaction):
         with self._unfetched_reactions_lock:
-            self.unfetched_reactions.add(reaction)
+            self._unfetched_reactions.add(reaction)
 
-    def add_pathway_reaction_kgml(self, pathway, reactions, kgml):
+    def _add_pathway_reaction_kgml(self, pathway, reactions, kgml):
         with self._pathway_reactions_kgml_lock:
-            self.pathway_reactions_kgml[pathway] = (reactions, kgml)
+            self._pathway_reactions_kgml[pathway] = (reactions, kgml)
 
-    def add_reaction(self, reaction_id, substrates, products):
+    def _add_reaction(self, reaction_id, substrates, products):
         with self._reactions_lock:
-            self.reactions[reaction_id] = (substrates, products)
+            self._reactions[reaction_id] = (substrates, products)
 
-    def get_reaction_ids_from_kgml(self, entry):
+    def _get_reaction_ids_from_kgml(self, entry):
         kgml = next(KGML_parser.parse(REST.kegg_get(entry, 'kgml').read()))
         # fetch the actual reactions from the KEGG API
         reaction_identifiers = flatten([r.name.replace("rn:", "").split(" ") for r in kgml.reactions])
-        self.add_pathway_reaction_kgml(entry, reaction_identifiers, kgml)
-        unfetched = filter(lambda r_id: r_id not in self.reactions.keys(), reaction_identifiers)
+        self._add_pathway_reaction_kgml(entry, reaction_identifiers, kgml)
+        unfetched = filter(lambda r_id: r_id not in self._reactions.keys(), reaction_identifiers)
         for reaction_id in unfetched:
-            self.add_unfetched_reaction(reaction_id)
+            self._add_unfetched_reaction(reaction_id)
         print(f"Fetching {len(reaction_identifiers)} reactions for {entry}")
 
     @staticmethod
@@ -62,7 +62,7 @@ class DatGenerator:
         for i in range(0, len(l), n):
             yield l[i:i + n]
 
-    def get_full_reactions(self, reaction_ids):
+    def _get_full_reactions(self, reaction_ids):
         if len(reaction_ids) == 0:
             raise ValueError("reaction_ids must not be empty")
         if len(reaction_ids) > 10:
@@ -82,7 +82,7 @@ class DatGenerator:
             if match.group("reaction") is not None:
                 current_reaction_id = match.group("reaction")
             if match.group("substrates") is not None:
-                self.add_reaction(
+                self._add_reaction(
                     current_reaction_id,
                     regex2.findall(match.group("substrates")),
                     regex2.findall(match.group("products"))
@@ -92,7 +92,7 @@ class DatGenerator:
         dat_file = "dats/" + entry + ".dat"
         f = open(dat_file, "w")
 
-        reactions = {r_id: self.reactions[r_id] for r_id in reaction_ids}
+        reactions = {r_id: self._reactions[r_id] for r_id in reaction_ids}
 
         substrates_products = set()
         for substrates, products in reactions.values():
@@ -151,14 +151,14 @@ class DatGenerator:
             A list of entry IDs
         """
         new_entries = [entry for entry in entries if not os.path.isfile("dats/" + entry + ".dat")]
-        futures = [self.executor.submit(self.get_reaction_ids_from_kgml, entry) for entry in new_entries]
+        futures = [self.executor.submit(self._get_reaction_ids_from_kgml, entry) for entry in new_entries]
         concurrent.futures.wait(futures)
 
-        lists_of_10_reactions = list(DatGenerator.split_into_smaller_sublist(list(self.unfetched_reactions), 10))
-        futures = [self.executor.submit(self.get_full_reactions, l) for l in lists_of_10_reactions]
+        lists_of_10_reactions = list(DatGenerator.split_into_smaller_sublist(list(self._unfetched_reactions), 10))
+        futures = [self.executor.submit(self._get_full_reactions, l) for l in lists_of_10_reactions]
         concurrent.futures.wait(futures)
 
-        futures = [self.executor.submit(self._generate_dat, entry, *self.pathway_reactions_kgml[entry])
+        futures = [self.executor.submit(self._generate_dat, entry, *self._pathway_reactions_kgml[entry])
                    for entry in new_entries]
         concurrent.futures.wait(futures)
 
