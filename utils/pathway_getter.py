@@ -13,5 +13,3 @@ def fetch_all_pathways(organism=None):
     pathways = filter(lambda x: x[0] != '', pathways)  # remove empty entries
     pathways = [{'entry': x[0], 'description': x[1]} for x in pathways]
     return pathways
-
-
