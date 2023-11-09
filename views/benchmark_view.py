@@ -155,6 +155,6 @@ class Benchmark_view(tk.Toplevel):
         super().__init__(master)
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.title("Benchmark")
-        self.entries = entries[:50]
+        self.entries = entries[:25]
         self.init_UI()
         self.mainloop()
