@@ -1,7 +1,6 @@
 from Bio.KEGG import REST
-from utils.functional_programming import lmap
 
-def get_pathway(organism=None):
+def fetch_all_pathways(organism=None):
     """ Returns pathways in the form of a list of dictionaries [{'entry' = STRING, 'description' = STRING}, ... ]
 
     Parameters
@@ -10,9 +9,9 @@ def get_pathway(organism=None):
         An identifier declared by KEGG database that identifies a specific organism (default is 'hsa' for humans)
     """
     pathways = REST.kegg_list("pathway", org=organism).read().split("\n")
-    pathways = map(lambda x: x.split("\t"), pathways)
-    pathways = filter(lambda x: x[0] != '', pathways) # remove empty entries
-    pathways = lmap(lambda x: {'entry': x[0], 'description': x[1]}, pathways) # entry - description  dictionar
+    pathways = [x.split("\t") for x in pathways]
+    pathways = filter(lambda x: x[0] != '', pathways)  # remove empty entries
+    pathways = [{'entry': x[0], 'description': x[1]} for x in pathways]
     return pathways
 
 

@@ -3,7 +3,7 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 import requests
 from io import BytesIO
-from utils.pathway_getter import get_pathway
+from utils.pathway_getter import fetch_all_pathways
 from views.pathway_view import PathwayView
 from views.benchmark_view import Benchmark_view
 from utils.ui_utils import *
@@ -110,7 +110,7 @@ class Pathway_selector(tk.Tk):
         :todo: remove this function and call the functions directly
         :return:
         """
-        self.human_pathways = get_pathway(organism="hsa")
+        self.human_pathways = fetch_all_pathways(organism="hsa")
         self.options = self.human_pathways
         self.dropdown.config(state='normal')
         self.dropdown_set_values([hp['description'] for hp in self.options])
