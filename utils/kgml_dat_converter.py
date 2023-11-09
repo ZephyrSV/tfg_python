@@ -140,7 +140,7 @@ def get_or_generate_dat(entry):
                 seen[r] = True
     f.write(";\n\n")
 
-    f.write("set forced_sinks := ;\n\nset forced_sources := ;\n\n")
+    f.write("set forced_externals := ;\n\nset forced_internals := ;\n\n")
 
     f.close()
     return dat_file

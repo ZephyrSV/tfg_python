@@ -65,5 +65,5 @@ R03161 0
 R03688 0
 ;
 
-set forced_sinks := ;
-set forced_sources := ;
+set forced_externals := ;
+set forced_internals := ;

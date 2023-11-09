@@ -8,8 +8,8 @@ set X {E} within V;
 set Y {E} within V;
 
 set uninvertible within E; # set of edges that cannot be inverted
-set forced_sinks within V; # set of nodes that must be sinks
-set forced_sources within V; # set of nodes that must be sources
+set forced_externals within V; # set of nodes that must be sinks
+set forced_internals within V; # set of nodes that must be sources
 
 var inverted {E} binary;
 var source {V} binary;

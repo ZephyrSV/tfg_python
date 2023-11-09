@@ -46,14 +46,3 @@ subject to has_outgoing_implies_outgoing {j in V}:
         sum {i in E: j in X[i]} inverted[i] + 
         sum {i in E: j in Y[i]} (1-inverted[i])  
         <= M * has_incoming[j];
-
-
-subject to force_internal {j in {}}:
-        has_incoming[j] + has_outgoing[j] = 2;
-
-subject to force_external {j in {}}:
-        has_incoming[j] + has_outgoing[j] <= 1;
-
-subject to force_orientation {i in {1}}:
-        inverted[i] = 0;
-

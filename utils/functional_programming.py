@@ -23,3 +23,13 @@ def dropWhile(f, l):
         return dropWhile(f, l[1:])
     else:
         return l
+
+class Maybe:
+    def __init__(self, value):
+        self.value = value
+
+    def bind(self, f):
+        if self.value is None:
+            return Maybe(None)
+        else:
+            return f(self.value)

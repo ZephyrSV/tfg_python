@@ -10,8 +10,8 @@ set X{E}; # for each hyperedge, its tail set
 set Y{E}; # for each hyperedge, its head set
 
 set uninvertible within E; # set of edges that cannot be inverted
-set forced_sinks within V; # set of nodes that must be sinks
-set forced_sources within V; # set of nodes that must be sources
+set forced_externals within V; # set of nodes that must be sinks
+set forced_internals within V; # set of nodes that must be sources
 
 set substrate_in{i in V} := {j in E: i in X[j]}; 
 set product_in{i in V} := {j in E: i in Y[j]};

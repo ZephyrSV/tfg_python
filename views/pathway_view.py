@@ -11,25 +11,25 @@ from utils.ui_utils import pad, GridUtil
 class PathwayView(tk.Toplevel):
     ampl = AMPL()
     models = {
-        "Zephyr": "AMPL/models/my_model.mod",
-        "Zephyr Optimized": "AMPL/models/my_model2.mod",
+        "Zephyr": "AMPL/models/zephyr.mod",
+        #"Zephyr Optimized": "AMPL/models/my_model2.mod",
         "Nasini": "AMPL/models/nasini.mod",
-        "Valiente": "AMPL/models/valiente.mod"
+        #"Valiente": "AMPL/models/valiente.mod"
     }
     solvers = {
+        "cbc": "cbc",
         "CPLEX": "cplex",
         "Gurobi": "gurobi",
-        "cbc": "cbc",
     }
     tickbox_labels = [
         "respect invertability",
-        "force sources",
-        "force sinks",
+        "force internals",
+        "force externals",
     ]
     tickbox_models = {
         "respect invertability": "AMPL/models/restrictions/respect_invertability.mod",
-        "force sources": "AMPL/models/restrictions/force_sources.mod",
-        "force sinks": "AMPL/models/restrictions/force_sinks.mod",
+        "force internals": "AMPL/models/restrictions/forced_internals.mod",
+        "force externals": "AMPL/models/restrictions/forced_externals.mod",
     }
     tickbox_vars = {}
     tickbox_elements = {}
