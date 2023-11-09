@@ -4,7 +4,7 @@ from amplpy import AMPL
 import tkinter as tk
 from tkinter import ttk
 
-from utils.kgml_dat_converter import get_or_generate_dat
+from utils.kgml_dat_converter import DatGenerator
 from utils.ui_utils import pad, GridUtil
 
 
@@ -97,7 +97,8 @@ class PathwayView(tk.Toplevel):
     def __init__(self, master, entry):
         super().__init__(master)
         self.entry = entry
-        self.dat = get_or_generate_dat(entry)
+        d = DatGenerator()
+        self.dat = d.generate_dats([entry])[0][1]
         self.title(f"Pathway {entry}")
         self.init_UI()
         self.mainloop()

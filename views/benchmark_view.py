@@ -8,7 +8,7 @@ import numpy as np
 
 from amplpy import AMPL
 
-from utils.kgml_dat_converter import get_or_generate_dat, DatGenerator
+from utils.kgml_dat_converter import DatGenerator
 from utils.ui_utils import GridUtil, pad
 
 import threading
