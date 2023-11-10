@@ -50,6 +50,20 @@ class PathwayView(tk.Toplevel):
         print("--- %s seconds ---" % (time.time() - before_solve_time))
         print(self.ampl.getObjective("internal").value())
         print(self.ampl.getVariable("inverted").getValues())
+        query = "for  {i in E: inverted[i] == 0} { " \
+                           "printf \"%s: \", i;" \
+                           "printf {j in X[i]} \"%s \", j;" \
+                           "printf \"---> \", i;" \
+                           "printf {j in Y[i]} \"%s \", j;" \
+                           "printf \"\\n\", i;}"
+        print(self.ampl.getOutput(query))
+        query = "for  {i in E: inverted[i] == 1} { " \
+                "printf \"%s: \", i;" \
+                "printf {j in Y[i]} \"%s \", j;" \
+                "printf \"---> \", i;" \
+                "printf {j in X[i]} \"%s \", j;" \
+                "printf \"\\n\", i;}"
+        print(self.ampl.getOutput(query))
 
     def create_checkboxes(self, parent):
         for t in self.tickbox_labels:
