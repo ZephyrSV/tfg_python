@@ -2,7 +2,7 @@ import time
 
 from amplpy import AMPL
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 
 from utils.DatGenerator import DatGenerator
 from utils.ui_utils import pad, GridUtil
@@ -25,6 +25,7 @@ class PathwayView(tk.Toplevel):
         "respect invertability",
         "force internals",
         "force externals",
+        "Save results to file"
     ]
     tickbox_models = {
         "respect invertability": "AMPL/models/restrictions/respect_invertability.mod",
@@ -42,34 +43,65 @@ class PathwayView(tk.Toplevel):
         self.ampl.readData(self.dat)
         for k, v in self.tickbox_vars.items():
             print(k, v.get())
-            if v.get() == 1:
+            if v.get() == 1 and k in self.tickbox_models:
                 self.ampl.read(self.tickbox_models[k])
         self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
         before_solve_time = time.time()
         self.ampl.solve()
-        print("--- %s seconds ---" % (time.time() - before_solve_time))
-        print(self.ampl.getObjective("internal").value())
-        print(self.ampl.getVariable("inverted").getValues())
-        query = "for  {i in E: inverted[i] == 0} { " \
-                           "printf \"%s: \", i;" \
-                           "printf {j in X[i]} \"%s \", j;" \
-                           "printf \"---> \", i;" \
-                           "printf {j in Y[i]} \"%s \", j;" \
-                           "printf \"\\n\", i;}"
-        print(self.ampl.getOutput(query))
-        query = "for  {i in E: inverted[i] == 1} { " \
-                "printf \"%s: \", i;" \
-                "printf {j in Y[i]} \"%s \", j;" \
-                "printf \"---> \", i;" \
-                "printf {j in X[i]} \"%s \", j;" \
-                "printf \"\\n\", i;}"
-        print(self.ampl.getOutput(query))
+
+        printers = [print]
+
+        if self.tickbox_vars["Save results to file"].get() == 1:
+            file_path = filedialog.asksaveasfilename(defaultextension=".txt",
+                                                     initialdir="./output",
+                                                     initialfile=f"{self.model_selector.get()}_{self.solver_selector.get()}_{self.entry}",
+                                                     title="Save results to file",
+                                                     filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+            if file_path:
+                printers.append(self.build_save_to_file_printer(file_path))
+
+        self.print_result(time.time() - before_solve_time, printers=printers)
+
+    def build_save_to_file_printer(self, file_path):
+        class Printer:
+            def __init__(self, file_path):
+                self.file = open(file_path, 'w')
+
+            def __call__(self, s):
+                self.file.write(s.__str__() + "\n")
+
+            def __del__(self):
+                self.file.close()
+        return Printer(file_path)
+
+    def print_result(self, execution_time, printers=None):
+        if printers is None:
+            printers = [print]
+        for printer in printers:
+            printer("--- %s seconds ---" % (execution_time))
+            printer(self.ampl.getObjective("internal").value())
+            printer(self.ampl.getVariable("inverted").getValues())
+            query = "for  {i in E: inverted[i] == 0} { " \
+                    "printf \"%s: \", i;" \
+                    "printf {j in X[i]} \"%s \", j;" \
+                    "printf \"-----> \", i;" \
+                    "printf {j in Y[i]} \"%s \", j;" \
+                    "printf \"\\n\", i;}"
+            printer(self.ampl.getOutput(query))
+            query = "for  {i in E: inverted[i] == 1} { " \
+                    "printf \"%s: \", i;" \
+                    "printf {j in Y[i]} \"%s \", j;" \
+                    "printf \"-----> \", i;" \
+                    "printf {j in X[i]} \"%s \", j;" \
+                    "printf \"\\n\", i;}"
+            printer(self.ampl.getOutput(query))
+
 
     def create_checkboxes(self, parent):
-        for t in self.tickbox_labels:
+        for i, t in enumerate(self.tickbox_labels):
             self.tickbox_vars[t] = tk.IntVar(value=0)
             self.tickbox_elements[t] = ttk.Checkbutton(parent, text=t, variable=self.tickbox_vars[t])
-            self.tickbox_elements[t].pack()
+            self.tickbox_elements[t].grid(row=i, column=0, sticky=tk.W)
 
     def init_UI(self):
         """
