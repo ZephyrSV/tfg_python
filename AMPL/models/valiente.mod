@@ -16,7 +16,7 @@ var source {V} binary;
 var sink {V} binary;
 var is_internal{V} binary;
 
-maximize obj: sum {j in V} is_internal[j];
+maximize internal: sum {j in V} is_internal[j];
 
 #############
 

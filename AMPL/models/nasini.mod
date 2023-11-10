@@ -24,7 +24,7 @@ var is_internal{V} binary; # to maximize
 ## Rules
 #####################
 
-maximize obj: sum {j in V} is_internal[j];
+maximize internal: sum {j in V} is_internal[j];
 
 subject to outgoing_half_implies_internal {j in V}: # for each node 'j'
 		sum {i in E: j in X[i]} (1-inverted[i]) + 	# for every hyperedge 'i', sum 1 iff 'j' belongs to its *tail* set and is *not* inverted

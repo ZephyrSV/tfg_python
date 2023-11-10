@@ -30,7 +30,7 @@ var is_internal{V} binary;
 ## Rules
 #####################
 
-maximize obj: sum{i in V} is_internal[i];
+maximize internal: sum{i in V} is_internal[i];
 
 
 subject to substrates_not_inverted{i in V, j in substrate_in[i]}:
