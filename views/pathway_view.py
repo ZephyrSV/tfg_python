@@ -67,8 +67,8 @@ class PathwayView(tk.Toplevel):
             def __init__(self, file_path):
                 self.file = open(file_path, 'w')
 
-            def __call__(self, s):
-                self.file.write(s.__str__() + "\n")
+            def __call__(self, s, end="\n"):
+                self.file.write(s.__str__() + end)
 
             def __del__(self):
                 self.file.close()
@@ -78,9 +78,14 @@ class PathwayView(tk.Toplevel):
         if printers is None:
             printers = [print]
         for printer in printers:
-            printer("--- %s seconds ---" % (execution_time))
-            printer(self.ampl.getObjective("internal").value())
-            printer(self.ampl.getVariable("inverted").getValues())
+            printer("###############################################")
+            printer("### Computed in %s seconds" % (execution_time))
+            printer("### Number of internal vertices ", int(self.ampl.getObjective("internal").value()))
+            printer("###############################################")
+            printer("")
+            printer("### reactionID : [Substrates] -----> [Products]")
+            printer("")
+            printer("### Reactions that were not inverted")
             query = "for  {i in E: inverted[i] == 0} { " \
                     "printf \"%s: \", i;" \
                     "printf {j in X[i]} \"%s \", j;" \
@@ -88,6 +93,7 @@ class PathwayView(tk.Toplevel):
                     "printf {j in Y[i]} \"%s \", j;" \
                     "printf \"\\n\", i;}"
             printer(self.ampl.getOutput(query))
+            printer("### Reactions that were inverted")
             query = "for  {i in E: inverted[i] == 1} { " \
                     "printf \"%s: \", i;" \
                     "printf {j in Y[i]} \"%s \", j;" \
