@@ -28,7 +28,7 @@ var source{V} binary;
 ## Rules
 #####################
 
-maximize obj: sum{i in V} (source[i] * sink[i]);
+maximize internal: sum{i in V} (source[i] * sink[i]);
 
 subject to not_substrate_at_all{i in V}:
 		source[i] <=

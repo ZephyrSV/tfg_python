@@ -48,7 +48,7 @@ class PathwayView(tk.Toplevel):
         before_solve_time = time.time()
         self.ampl.solve()
         print("--- %s seconds ---" % (time.time() - before_solve_time))
-        print(self.ampl.getObjective("obj").value())
+        print(self.ampl.getObjective("internal").value())
         print(self.ampl.getVariable("inverted").getValues())
 
     def create_checkboxes(self, parent):

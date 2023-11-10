@@ -24,7 +24,7 @@ var is_internal{V} binary;
 ## Rules
 #####################
 
-maximize obj: sum{i in V} is_internal[i];
+maximize internal: sum{i in V} is_internal[i];
 
 subject to respect_invertibility {i in E}:
 		inverted[i] <= invertible[i];
