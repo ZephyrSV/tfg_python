@@ -67,8 +67,10 @@ class PathwayView(tk.Toplevel):
             def __init__(self, file_path):
                 self.file = open(file_path, 'w')
 
-            def __call__(self, s, end="\n"):
-                self.file.write(s.__str__() + end)
+            def __call__(self, *sa, end='\n'):
+                for s in sa:
+                    self.file.write(s.__str__())
+                self.file.write(end)
 
             def __del__(self):
                 self.file.close()
