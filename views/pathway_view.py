@@ -9,6 +9,7 @@ from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from utils.DatGenerator import DatGenerator
+from utils.functional_programming import lmap
 from utils.ui_utils import pad, GridUtil
 
 
@@ -135,28 +136,38 @@ class PathwayView(tk.Toplevel):
         G.add_nodes_from(self.compounds)
         external = [c for c in self.compounds if self.internal[c] == 0]
         internal = [c for c in self.compounds if self.internal[c] != 0]
-        for r in self.reactions:
-            for c in self.X[r]:
-                G.add_edge(r, c)
-            for c in self.Y[r]:
-                G.add_edge(c, r)
+        uninverted_reactions = [r for r in self.X.keys() if self.inverted[r] == 0]
+        inverted_reactions = [r for r in self.X.keys() if self.inverted[r] != 0]
+
+        uninverted_edges = \
+            [(c, r) for r in uninverted_reactions for c in self.X[r]] + \
+            [(r, c) for r in uninverted_reactions for c in self.Y[r]]
+        inverted_edges =  \
+            [(c, r) for r in inverted_reactions for c in self.Y[r]] + \
+            [(r, c) for r in inverted_reactions for c in self.X[r]]
+        edges = uninverted_edges + inverted_edges
+        G.add_edges_from(edges)
+
         fig, ax = plt.subplots()
         pos = nx.spring_layout(G)
-        nx.draw_networkx_nodes(G, pos, ax=ax, nodelist=self.reactions, node_color='grey', node_size=20, alpha=0.8,)
-        nx.draw_networkx_nodes(G, pos, nodelist=internal, node_color='y', node_size=20, alpha=0.8)
-        nx.draw_networkx_nodes(G, pos, nodelist=external, node_color='b', node_size=20, alpha=0.8)
-        nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5, arrows=True, arrowsize=10, arrowstyle='->')
-        nx.draw_networkx_labels(G, pos, font_size=5, font_family='sans-serif')
-        #add legend, with dots instead of lines but invisible
+        nx.draw_networkx_nodes(G, pos, nodelist=self.reactions, node_color='grey', node_size=20, alpha=0.8, node_shape='s')
+        nx.draw_networkx_nodes(G, pos, nodelist=internal, node_color='g', node_size=20, alpha=0.8)
+        nx.draw_networkx_nodes(G, pos, nodelist=external, node_color='r', node_size=20, alpha=0.8)
+        nx.draw_networkx_edges(G, pos, edgelist=uninverted_edges, width=1.0, alpha=0.5, arrows=True, arrowsize=10, arrowstyle='->')
+        nx.draw_networkx_edges(G, pos, edgelist=inverted_edges, edge_color='b', width=1.0, alpha=0.5, arrows=True, arrowsize=10, arrowstyle='->')
+        # draw the labels a bit higher
+        nx.draw_networkx_labels(G, {k: (v[0], v[1] + 0.05) for (k, v) in pos.items()}, font_size=8)
+
         ax.plot([],[], color='grey', label='Reactions', linestyle='', marker='o', markersize=5, alpha=0.8)
-        ax.plot([],[], color='y', label='Internal compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
-        ax.plot([],[], color='b', label='External compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
-        ax.legend()
+        ax.plot([],[], color='g', label='Internal compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.plot([],[], color='r', label='External compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.plot([],[], color='b', label='Inverted reactions', markersize=5, alpha=0.8)
+        ax.legend(bbox_to_anchor=(1.05, 1), loc='best', prop={'size': 8})
 
 
         canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
         canvas_widget = canvas.get_tk_widget()
-        toolbar = NavigationToolbar2Tk(canvas, canvas_frame)
+        NavigationToolbar2Tk(canvas, canvas_frame)
         canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 
