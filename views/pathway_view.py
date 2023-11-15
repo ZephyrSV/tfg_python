@@ -3,6 +3,10 @@ import time
 from amplpy import AMPL
 import tkinter as tk
 from tkinter import ttk, filedialog
+import networkx as nx
+import matplotlib.pyplot as plt
+from matplotlib.backends._backend_tk import NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from utils.DatGenerator import DatGenerator
 from utils.ui_utils import pad, GridUtil
@@ -63,6 +67,7 @@ class PathwayView(tk.Toplevel):
 
         self.get_ampl_variables()
         self.print_result(time.time() - before_solve_time, printers=printers)
+        self.draw_canvas_frame()
 
     def build_save_to_file_printer(self, file_path):
         class Printer:
@@ -119,7 +124,40 @@ class PathwayView(tk.Toplevel):
 
         self.X = {r_id: x.getValues().toList() for (r_id, x) in self.ampl.getSet("X").instances()}
         self.Y = {r_id: x.getValues().toList() for (r_id, x) in self.ampl.getSet("Y").instances()}
+        self.reactions = self.ampl.getSet("E").getValues().toList()
+        self.compounds = self.ampl.getSet("V").getValues().toList()
 
+    def draw_canvas_frame(self):
+        canvas_frame = ttk.Frame(self)
+        canvas_frame.grid(**pad(), row=0, column=3, rowspan=5)
+        G = nx.Graph()
+        G.add_nodes_from(self.reactions)
+        G.add_nodes_from(self.compounds)
+        external = [c for c in self.compounds if self.internal[c] == 0]
+        internal = [c for c in self.compounds if self.internal[c] != 0]
+        for r in self.reactions:
+            for c in self.X[r]:
+                G.add_edge(r, c)
+            for c in self.Y[r]:
+                G.add_edge(c, r)
+        fig, ax = plt.subplots()
+        pos = nx.spring_layout(G)
+        nx.draw_networkx_nodes(G, pos, ax=ax, nodelist=self.reactions, node_color='grey', node_size=20, alpha=0.8,)
+        nx.draw_networkx_nodes(G, pos, nodelist=internal, node_color='y', node_size=20, alpha=0.8)
+        nx.draw_networkx_nodes(G, pos, nodelist=external, node_color='b', node_size=20, alpha=0.8)
+        nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5, arrows=True, arrowsize=10, arrowstyle='->')
+        nx.draw_networkx_labels(G, pos, font_size=5, font_family='sans-serif')
+        #add legend, with dots instead of lines but invisible
+        ax.plot([],[], color='grey', label='Reactions', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.plot([],[], color='y', label='Internal compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.plot([],[], color='b', label='External compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.legend()
+
+
+        canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
+        canvas_widget = canvas.get_tk_widget()
+        toolbar = NavigationToolbar2Tk(canvas, canvas_frame)
+        canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 
 
@@ -139,6 +177,7 @@ class PathwayView(tk.Toplevel):
 
         self.title_label = ttk.Label(self, text="Select a model and a solver")
         self.title_label.grid(**pad(), **g.place(cs=3))
+
 
         g.next_row()
         self.model_label = ttk.Label(self, text="Model")
