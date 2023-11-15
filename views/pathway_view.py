@@ -82,12 +82,21 @@ class PathwayView(tk.Toplevel):
         if printers is None:
             printers = [print]
         for printer in printers:
-
-            for r in self.X.keys():
-                if self.inverted[r] == 0:
-                    printer(f"{r} : {' '.join(self.X[r])} : {' '.join(self.Y[r])}")
-                else:
-                    printer(f"{r} : {' '.join(self.Y[r])} : {' '.join(self.X[r])}")
+            printer("###############################################")
+            printer("### Computed in %s seconds" % (execution_time))
+            printer("### Number of internal vertices ", int(self.ampl.getObjective("internal").value()))
+            printer("###############################################")
+            printer("")
+            printer("### reactionID : [Substrates] : [Products]")
+            uninverted_reactions = [r for r in self.X.keys() if self.inverted[r] == 0]
+            inverted_reactions = [r for r in self.X.keys() if self.inverted[r] != 0]
+            printer("")
+            printer("### Reactions that were not inverted")
+            for r in uninverted_reactions:
+                printer(f"{r} : {' '.join(self.X[r])} : {' '.join(self.Y[r])}")
+            printer("### Reactions that were inverted")
+            for r in inverted_reactions:
+                printer(f"{r} : {' '.join(self.Y[r])} : {' '.join(self.X[r])}")
 
 
     def get_ampl_variables(self):
