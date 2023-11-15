@@ -39,6 +39,7 @@ class PathwayView(tk.Toplevel):
         """
         Solves the pathway
         """
+        self.ampl = AMPL()
         self.ampl.read(self.models[self.model_selector.get()])
         self.ampl.readData(self.dat)
         for k, v in self.tickbox_vars.items():
@@ -60,6 +61,7 @@ class PathwayView(tk.Toplevel):
             if file_path:
                 printers.append(self.build_save_to_file_printer(file_path))
 
+        self.get_ampl_variables()
         self.print_result(time.time() - before_solve_time, printers=printers)
 
     def build_save_to_file_printer(self, file_path):
@@ -80,29 +82,38 @@ class PathwayView(tk.Toplevel):
         if printers is None:
             printers = [print]
         for printer in printers:
-            printer("###############################################")
-            printer("### Computed in %s seconds" % (execution_time))
-            printer("### Number of internal vertices ", int(self.ampl.getObjective("internal").value()))
-            printer("###############################################")
-            printer("")
-            printer("### reactionID : [Substrates] -----> [Products]")
-            printer("")
-            printer("### Reactions that were not inverted")
-            query = "for  {i in E: inverted[i] == 0} { " \
-                    "printf \"%s: \", i;" \
-                    "printf {j in X[i]} \"%s \", j;" \
-                    "printf \"-----> \", i;" \
-                    "printf {j in Y[i]} \"%s \", j;" \
-                    "printf \"\\n\", i;}"
-            printer(self.ampl.getOutput(query))
-            printer("### Reactions that were inverted")
-            query = "for  {i in E: inverted[i] == 1} { " \
-                    "printf \"%s: \", i;" \
-                    "printf {j in Y[i]} \"%s \", j;" \
-                    "printf \"-----> \", i;" \
-                    "printf {j in X[i]} \"%s \", j;" \
-                    "printf \"\\n\", i;}"
-            printer(self.ampl.getOutput(query))
+
+            for r in self.X.keys():
+                if self.inverted[r] == 0:
+                    printer(f"{r} : {' '.join(self.X[r])} : {' '.join(self.Y[r])}")
+                else:
+                    printer(f"{r} : {' '.join(self.Y[r])} : {' '.join(self.X[r])}")
+
+
+    def get_ampl_variables(self):
+        def _and(i1, i2):
+            if i1 == 1 and i2 == 1:
+                return 1
+            return 0
+
+        variables = dict(self.ampl.get_variables())
+        sets = dict(self.ampl.get_sets())
+
+        self.inverted = variables["inverted"].getValues().toDict()
+
+        if "is_internal" in variables.keys():
+            self.internal = variables["is_internal"].getValues().toDict()
+        else:
+            has_outgoint = variables["has_outgoing"].getValues().toDict()
+            has_incoming = variables["has_incoming"].getValues().toDict()
+            self.internal = {k: _and(has_outgoint[k], has_incoming[k]) for k in has_outgoint.keys()}
+
+        self.X = {r_id: x.getValues().toList() for (r_id, x) in self.ampl.getSet("X").instances()}
+        self.Y = {r_id: x.getValues().toList() for (r_id, x) in self.ampl.getSet("Y").instances()}
+
+
+
+
 
 
     def create_checkboxes(self, parent):
@@ -148,11 +159,18 @@ class PathwayView(tk.Toplevel):
         self.solve_button = ttk.Button(self, text="Solve", command=self.solve)
         self.solve_button.grid(**pad(), **g.place(cs=3))
 
-    def __init__(self, master, entry):
+    def __init__(self, master, entry, mainloop=True):
         super().__init__(master)
         self.entry = entry
         d = DatGenerator()
         self.dat = d.generate_dats([entry])[0][1]
-        self.title(f"Pathway {entry}")
+        self.title(f"{entry}")
         self.init_UI()
-        self.mainloop()
+        if mainloop:
+            self.mainloop()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = PathwayView(master=root, entry="hsa00010", mainloop=False)
+    app.after(0,app.solve)
+    app.mainloop()
