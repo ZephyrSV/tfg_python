@@ -150,19 +150,20 @@ class PathwayView(tk.Toplevel):
 
         fig, ax = plt.subplots()
         pos = nx.spring_layout(G)
+        add_yoffset = lambda pos, o: {k: (v[0], v[1] + o) for (k, v) in pos.items()}
         nx.draw_networkx_nodes(G, pos, nodelist=self.reactions, node_color='grey', node_size=20, alpha=0.8, node_shape='s')
         nx.draw_networkx_nodes(G, pos, nodelist=internal, node_color='g', node_size=20, alpha=0.8)
         nx.draw_networkx_nodes(G, pos, nodelist=external, node_color='r', node_size=20, alpha=0.8)
         nx.draw_networkx_edges(G, pos, edgelist=uninverted_edges, width=1.0, alpha=0.5, arrows=True, arrowsize=10, arrowstyle='->')
         nx.draw_networkx_edges(G, pos, edgelist=inverted_edges, edge_color='b', width=1.0, alpha=0.5, arrows=True, arrowsize=10, arrowstyle='->')
-        # draw the labels a bit higher
-        nx.draw_networkx_labels(G, {k: (v[0], v[1] + 0.05) for (k, v) in pos.items()}, font_size=8)
+        nx.draw_networkx_labels(G, add_yoffset(pos, 0.05), font_size=8)
 
         ax.plot([],[], color='grey', label='Reactions', linestyle='', marker='o', markersize=5, alpha=0.8)
         ax.plot([],[], color='g', label='Internal compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
         ax.plot([],[], color='r', label='External compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
         ax.plot([],[], color='b', label='Inverted reactions', markersize=5, alpha=0.8)
-        ax.legend(bbox_to_anchor=(1.05, 1), loc='best', prop={'size': 8})
+        ax.axis('off')
+        ax.legend(loc='best', prop={'size': 8})
 
 
         canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
@@ -189,8 +190,8 @@ class PathwayView(tk.Toplevel):
         self.title_label = ttk.Label(self, text="Select a model and a solver")
         self.title_label.grid(**pad(), **g.place(cs=3))
 
-
         g.next_row()
+
         self.model_label = ttk.Label(self, text="Model")
         self.model_label.grid(**pad(), **g.place())
 
