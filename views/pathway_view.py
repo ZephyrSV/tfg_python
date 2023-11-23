@@ -175,7 +175,7 @@ class PathwayView(tk.Toplevel):
 
 
 
-    def create_checkboxes(self, parent):
+    def create_tickboxes(self, parent):
         for i, t in enumerate(self.tickbox_labels):
             self.tickbox_vars[t] = tk.IntVar(value=0)
             self.tickbox_elements[t] = ttk.Checkbutton(parent, text=t, variable=self.tickbox_vars[t])
@@ -209,10 +209,10 @@ class PathwayView(tk.Toplevel):
         self.solver_selector.grid(**pad(), **g.place())
 
         g.next_row()
-        tickbox_frame = ttk.Frame(self)
-        tickbox_frame.grid(**pad(), **g.place(cs=3))
+        self.tickbox_frame = ttk.Frame(self)
+        self.tickbox_frame.grid(**pad(), **g.place(cs=3))
 
-        self.create_checkboxes(tickbox_frame)
+        self.create_tickboxes(self.tickbox_frame)
 
         g.next_row()
 

@@ -122,6 +122,15 @@ class Benchmark_view(tk.Toplevel):
         print(f"Current test id: {self.current_test_id}")
         self.executor.submit(self.run_benchmark)
 
+    def create_tickboxes(self, parent):
+        self.tickbox_var_UseInstalledBenchmarkData = tk.IntVar(value=0)
+        self.tickbox_UseInstalledBenchmarkData = ttk.Checkbutton(
+            parent,
+            text="Use Installed Benchmark Data (Recommended)",
+            variable=self.tickbox_var_UseInstalledBenchmarkData)
+        self.tickbox_UseInstalledBenchmarkData.pack()
+        pass
+
     def init_UI(self):
         """
         Initializes the UI
@@ -132,6 +141,12 @@ class Benchmark_view(tk.Toplevel):
         self.solver_selector = tkinter.ttk.Combobox(self, values=[key for key in self.solvers.keys()])
         self.solver_selector.grid(**g.place(), **pad())
         self.solver_selector.current(0)
+
+        g.next_row()
+        self.tickbox_frame = ttk.Frame(self)
+        self.tickbox_frame.grid(**pad(), **g.place(cs=2))
+
+        self.create_tickboxes(self.tickbox_frame)
 
         g.next_row()
         self.start_button = tkinter.Button(self, text="Start benchmark", command=self.start_button_click)
@@ -158,3 +173,4 @@ class Benchmark_view(tk.Toplevel):
         self.entries = entries[:25]
         self.init_UI()
         self.mainloop()
+
