@@ -6,7 +6,7 @@ from tkinter import ttk
 import concurrent.futures
 import numpy as np
 
-from amplpy import AMPL
+from amplpy import AMPL, Environment
 
 from utils.DatGenerator import DatGenerator
 from utils.ui_utils import GridUtil, pad
@@ -36,7 +36,7 @@ class Benchmark_view(tk.Toplevel):
         "Nasini": "AMPL/models/nasini.mod",
         "Valiente": "AMPL/models/valiente.mod",
     }
-    ampls = {k: AMPL() for k in models.keys()}  # One ampl instance per model
+    ampls = {k: AMPL(Environment("/opt/ampl/")) for k in models.keys()}  # One ampl instance per model
     dats = {}
     _dats_lock = threading.Lock()
     result_count = 0

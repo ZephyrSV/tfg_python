@@ -43,3 +43,8 @@ Then install the depencies
 pip install -r requirements.txt
 ```
 
+## Running the Program
+
+```bash
+python3 App.py
+```

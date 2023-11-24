@@ -1,6 +1,7 @@
 import math
 import os
 import re
+import json
 
 import fontTools.ttx
 from Bio.KEGG import REST
@@ -12,6 +13,8 @@ import concurrent.futures
 
 
 class DatGenerator:
+    data_loc = "persistant_data/dataset.json"
+    data = {}
     reactions = {}
     _reactions_lock = threading.Lock()
     unfetched_reactions = set()
@@ -24,6 +27,29 @@ class DatGenerator:
             reactions = {}
         self.reactions = reactions
         self.executor = concurrent.futures.ThreadPoolExecutor()
+        if not os.path.isfile(self.data_loc):
+            reaction_req = REST.kegg_list("reaction").read()
+            reaction_ids = [r[:6] for r in reaction_req.split('\n')][:-1]
+            self.data = {'reaction_ids': reaction_ids}
+            with open(self.data_loc, 'w') as file:
+                json.dump(self.data, file)
+        with open(self.data_loc, 'r') as file:
+            self.data = json.load(file)
+        if 'reactions' not in self.data.keys():
+            unfetched_reactions = self.data['reaction_ids']
+        else:
+            unfetched_reactions = [r for r in self.data['reactions_ids'] if r not in self.data['reactions'].keys()]
+        print(unfetched_reactions)
+        fetching_tasks = split_into_smaller_sublist(unfetched_reactions, 10)
+        #futures = [self.executor.submit(self.get_full_reactions, ft) for ft in fetching_task]
+        for ft in fetching_task:
+            self.fetch_reactions(ft)
+
+    def fetch_reactions(self, reactions):
+        
+
+
+
 
     def add_unfetched_reaction(self, reaction):
         with self._unfetched_reactions_lock:
@@ -104,6 +130,7 @@ class DatGenerator:
         # write the sets (V,E)
         f.write("set E :=")
         for r_id in reactions.keys():
+            print(type(reaction_ids))
             f.write(" " + r_id)
         f.write(";\n")
 
@@ -142,7 +169,17 @@ class DatGenerator:
 
         f.close()
 
-    def generate_dats(self, entries):
+
+    def generate_dats(self, entries, old=False):
+        if old:
+            return self.generate_dats_old(entries)            
+            
+
+
+        futures = [self.executor.submit(self._generate_dat, entry, *self.pathway_reactions_kgml[entry])
+                   for entry in new_entries]
+    def generate_dats_old(self, entries):
+		
         """ Generates a dat file for each entry in the list
 
         Parameters
