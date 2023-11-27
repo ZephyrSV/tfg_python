@@ -14,7 +14,7 @@ import concurrent.futures
 
 class DatGenerator:
     data_loc = "persistant_data/dataset.json"
-    data = {}
+    reaction_ids = []
     reactions = {}
     _reactions_lock = threading.Lock()
     pathway_reactions = {}
@@ -27,21 +27,20 @@ class DatGenerator:
     def __init__(self, reactions=None):
         if reactions is None:
             reactions = {}
+
         self.reactions = reactions
         self.executor = concurrent.futures.ThreadPoolExecutor()
+        # if the data file does not exist
         if not os.path.isfile(self.data_loc):
+            # fetch the all reaction ids
             reaction_req = REST.kegg_list("reaction").read()
-            reaction_ids = [r[:6] for r in reaction_req.split('\n')][:-1]
-            self.data = {'reaction_ids': reaction_ids}
-            with open(self.data_loc, 'w') as file:
-                json.dump(self.data, file)
-        with open(self.data_loc, 'r') as file:
-            self.data = json.load(file)
-        if 'reactions' not in self.data.keys():
-            unfetched_reactions = self.data['reaction_ids']
-        else:
-            unfetched_reactions = [r for r in self.data['reaction_ids'] if r not in self.data['reactions'].keys()]
-        print(unfetched_reactions)
+            self.reaction_ids = [r[:6] for r in reaction_req.split('\n')][:-1]
+            self.dump_data()
+        # now the data file exists
+        self.recover_data()
+
+        unfetched_reactions = [r for r in self.reaction_ids if r not in self.reactions.keys()]
+        print("unfetched_reactions len : ", len(unfetched_reactions))
         fetching_tasks = self.split_into_smaller_sublist(unfetched_reactions, 10)
         futures = [self.executor.submit(self.fetch_reactions, ft) for ft in fetching_tasks]
         #try:
@@ -58,13 +57,25 @@ class DatGenerator:
             
         concurrent.futures.wait(futures)
         print("DONE")
-        self.data['reactions'] = self.reactions
-        self.data['pathways'] = self.pathway_reactions
         self.dump_data()
 
     def dump_data(self):
+        data = {}
+        data['reaction_ids'] = self.reaction_ids
+        data['reactions'] = self.reactions
+        data['pathways'] = self.pathway_reactions
         with open(self.data_loc, 'w') as file:
-            json.dump(self.data, file)
+            json.dump(data, file)
+
+    def recover_data(self):
+        """
+        Recovers the reaction_ids, reactions and pathway_reactions dictionaries
+        """
+        with open(self.data_loc, 'r') as file:
+            data = json.load(file)
+            self.reaction_ids = data['reaction_ids']
+            self.reactions = data.get('reactions', {})
+            self.pathway_reactions = data.get('pathway_reactions', {})
 
     def fetch_reactions(self, reactions):
         reactionID_regex_str = r"ENTRY\s*(?P<reactionID>R\d{5})"
