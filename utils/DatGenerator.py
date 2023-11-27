@@ -17,6 +17,8 @@ class DatGenerator:
     data = {}
     reactions = {}
     _reactions_lock = threading.Lock()
+    pathway_reactions = {}
+    _pathway_reactions_lock = threading.Lock()
     unfetched_reactions = set()
     _unfetched_reactions_lock = threading.Lock()
     pathway_reactions_kgml = {}
@@ -40,15 +42,49 @@ class DatGenerator:
         else:
             unfetched_reactions = [r for r in self.data['reactions_ids'] if r not in self.data['reactions'].keys()]
         print(unfetched_reactions)
-        fetching_tasks = split_into_smaller_sublist(unfetched_reactions, 10)
+        fetching_tasks = self.split_into_smaller_sublist(unfetched_reactions, 10)
         #futures = [self.executor.submit(self.get_full_reactions, ft) for ft in fetching_task]
-        for ft in fetching_task:
+        for ft in fetching_tasks:
             self.fetch_reactions(ft)
 
     def fetch_reactions(self, reactions):
-        
+        reactionID_regex_str = r"ENTRY\s*(?P<reactionID>R\d{5})"
+        equation_regex_str = r"EQUATION\s*(?P<substrates>[^<]*)<=>(?P<products>.*)"
 
+        reactionID_regex = re.compile(reactionID_regex_str, re.MULTILINE)
+        equation_regex = re.compile(equation_regex_str, re.MULTILINE)
+        id_regex = re.compile(r"\w*\d{5}", re.MULTILINE)
+        pathway_regex = re.compile(r"PATHWAY(?P<all>[^\n]*(\s{2,}[^\n]*)*)", re.MULTILINE)
 
+        for entry in REST.kegg_get(reactions).read().split("///")[:-1]:
+            for match in reactionID_regex.finditer(entry):
+                reactionID = id_regex.findall(match.group(0))[0]
+                print("reactionID : ", reactionID)
+            # Important to not that there will only be one reactionID
+            for match in equation_regex.finditer(entry):
+                substrates = id_regex.findall(match.group("substrates"))
+                products = id_regex.findall(match.group("products"))
+                print("substrates : ", substrates)
+                print("products : ", products)
+                self.add_reaction(reactionID, substrates, products)
+            for match in pathway_regex.finditer(entry):
+                print("pathways text : ", match.group(0))
+                pathways = id_regex.findall(match.group(0))
+                print("pathways : ", pathways)
+                self.add_pathway_reaction(reactionID, pathways) 
+            print(entry)
+        print("/!\\ pathway_reactions : ", self.pathway_reactions)
+        print("reactions : ", self.reactions)
+        input("Done?")    
+
+    def add_pathway_reaction(self, reaction_id: str, pathway_ids: list):
+        with self._pathway_reactions_lock:
+            for p_id in pathway_ids:
+                l = self.pathway_reactions.get(p_id, [])
+                l.append(reaction_id)
+                self.pathway_reactions[p_id] = l
+
+#####################
 
 
     def add_unfetched_reaction(self, reaction):
