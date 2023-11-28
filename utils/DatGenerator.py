@@ -75,7 +75,7 @@ class DatGenerator:
             data = json.load(file)
             self.reaction_ids = data['reaction_ids']
             self.reactions = data.get('reactions', {})
-            self.pathway_reactions = data.get('pathway_reactions', {})
+            self.pathway_reactions = data.get('pathways', {})
 
     def fetch_reactions(self, reactions):
         reactionID_regex_str = r"ENTRY\s*(?P<reactionID>R\d{5})"
