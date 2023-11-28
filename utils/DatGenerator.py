@@ -76,6 +76,9 @@ class DatGenerator:
             self.reaction_ids = data['reaction_ids']
             self.reactions = data.get('reactions', {})
             self.pathway_reactions = data.get('pathways', {})
+            print("reactions len : ", len(self.reactions))
+            print("pathway_reactions len : ", len(self.pathway_reactions))
+
 
     def fetch_reactions(self, reactions):
         reactionID_regex_str = r"ENTRY\s*(?P<reactionID>R\d{5})"
