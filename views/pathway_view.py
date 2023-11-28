@@ -1,6 +1,6 @@
 import time
 
-from amplpy import AMPL, Environment
+from amplpy import AMPL
 import tkinter as tk
 from tkinter import ttk, filedialog
 import networkx as nx
@@ -14,7 +14,7 @@ from utils.ui_utils import pad, GridUtil
 
 
 class PathwayView(tk.Toplevel):
-    ampl = AMPL(Environment("/opt/ampl/"))
+    ampl = AMPL()
     models = {
         "Zephyr": "AMPL/models/zephyr.mod",
         #"Zephyr Optimized": "AMPL/models/my_model2.mod",
