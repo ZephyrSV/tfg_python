@@ -176,7 +176,7 @@ class DatGenerator:
             for product in products:
                 substrates_products.add(product)
 
-        # write the sets (V,E)
+        # write the se  ts (V,E)
         f.write("set E :=")
         for r_id in reactions.keys():
             print(type(reaction_ids))
@@ -202,7 +202,7 @@ class DatGenerator:
 
         # determine the set of reversible reactions
         #seen = {}
-        #f.write("set uninvertible :=\n")
+        f.write("set uninvertibles :=\n")
         #for reaction in kgml.reactions:
         #    if reaction.type == "reversible":
         #        continue
@@ -212,9 +212,9 @@ class DatGenerator:
         #                continue
         #            f.write(r.replace("rn:", "") + " ")
         #            seen[r] = True
-        #f.write(";\n\n")
+        f.write(";\n\n")
         #
-        #f.write("set forced_externals := ;\n\nset forced_internals := ;\n\n")
+        f.write("set forced_externals := ;\n\nset forced_internals := ;\n\n")
 
         f.close()
 

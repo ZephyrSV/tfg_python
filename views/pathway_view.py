@@ -20,6 +20,7 @@ class PathwayView(tk.Toplevel):
         #"Zephyr Optimized": "AMPL/models/my_model2.mod",
         "Nasini": "AMPL/models/nasini.mod",
         #"Valiente": "AMPL/models/valiente.mod"
+        "Zephyr Full": "AMPL/models/zephyr_full.mod"
     }
     solvers = {
         "cbc": "cbc",

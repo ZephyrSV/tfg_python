@@ -16,14 +16,15 @@ set forced_externals within V; # set of nodes that must be sources
 # ####################
 ## Variables
 # ####################
-var inverted {i in E} binary ; # from X[i] to Y[i]
-var has_outgoing {j in V} binary ;
-var has_incoming {j in V} binary ;
+var inverted {E} binary ; # from X[i] to Y[i]
+var has_outgoing {V} binary ;
+var has_incoming {V} binary ;
+var is_internal {V} binary;
 
 # ####################
 ## Rules
 # ####################
-maximize internal : sum {j in V} has_incoming [j] * has_outgoing [j];
+maximize internal : sum {j in V} is_internal[j];
 
 subject to outgoing_implies_has_outgoing {j in V}:
         sum {i in E: j in X[i]} (1- inverted [i]) +
@@ -53,3 +54,9 @@ subject to forced_internals_rule {i in forced_internals }:
 
 subject to respect_invertability {i in uninvertibles }:
         inverted [i] = 0;
+
+subject to is_internal_1 {i in V}:
+        is_internal[i] * 2  <= has_incoming[i] + has_outgoing[i];
+
+subject to is_internal_2 {i in V}:
+        is_internal[i] >= has_incoming[i] + has_outgoing[i] -1;
