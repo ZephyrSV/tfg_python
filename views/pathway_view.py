@@ -51,6 +51,7 @@ class PathwayView(tk.Toplevel):
             print(k, v.get())
             if v.get() == 1 and k in self.tickbox_models:
                 self.ampl.read(self.tickbox_models[k])
+        print("solver: ", self.solvers[self.solver_selector.get()])
         self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
         before_solve_time = time.time()
         self.ampl.solve()
