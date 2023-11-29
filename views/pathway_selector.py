@@ -26,7 +26,7 @@ class Pathway_selector(tk.Tk):
             self.filter_entry.config(fg='red')
             return
         self.options = options
-        self.dropdown_set_values([hp['description'] for hp in self.options])
+        self.dropdown_set_values()
         self.description_label.config(text=f"Description:\n{self.options[0]['description']}")
 
     def on_entry_filter_click(self, event):
@@ -89,16 +89,31 @@ class Pathway_selector(tk.Tk):
 
     def on_dropdown_select(self, event):
         """
-        This function is called when an option is selected in the dropdown.
+        This function is called when an option is selected in the dropdown for descriptions.
 
         Updates the description label with the description of the selected pathway.
         """
         self.description_label.config(text=f"Description:\n{self.options[self.dropdown.current()]['description']}")
+        self.dropdown_var_id.set(self.options[self.dropdown.current()]['entry'])
 
-    def dropdown_set_values(self, values):
+    def on_dropdown_id_select(self, event):
+        """
+        This function is called when an option is selected in the dropdown for ids.
+
+        Updates the description label with the description of the selected pathway.
+        """
+        self.description_label.config(text=f"Description:\n{self.options[self.dropdown_id.current()]['description']}")
+        self.dropdown_var.set(self.options[self.dropdown_id.current()]['description'])
+
+    def dropdown_set_values(self):
         """
         Sets the values of the dropdown.
         """
+        values = [hp['entry'] for hp in self.options]
+        max_length = len(max(values, key=len))
+        self.dropdown_id.config(values=values, width=max_length+5)
+        self.dropdown_var_id.set(values[0])
+        values = [hp['description'] for hp in self.options]
         max_length = len(max(values, key=len))
         self.dropdown.config(values=values, width=max_length+5)
         self.dropdown_var.set(values[0])
@@ -112,8 +127,9 @@ class Pathway_selector(tk.Tk):
         """
         self.human_pathways = fetch_all_pathways(organism="hsa")
         self.options = self.human_pathways
+        self.dropdown_id.config(state='normal')
         self.dropdown.config(state='normal')
-        self.dropdown_set_values([hp['description'] for hp in self.options])
+        self.dropdown_set_values()
         self.description_label.config(text=f"Description:\n{self.options[0]['description']}")
 
     def __init__(self):
@@ -124,7 +140,7 @@ class Pathway_selector(tk.Tk):
         self.title("Orienting Biochemical Reactions")
         self.resizable(False, False)
 
-        g.set_column(1)
+        g.set_column(2)
 
         self.filter_entry = tk.Entry(self)
         self.filter_entry.insert(0, self.default_filter_text)
@@ -141,6 +157,12 @@ class Pathway_selector(tk.Tk):
 
         self.label = tk.Label(self, text='Select pathway: ', font=("Arial", 12, "bold", "underline"))
         self.label.grid(**pad(), **g.place())
+
+        self.dropdown_var_id = tk.StringVar()
+        self.dropdown_id = ttk.Combobox(self, textvariable=self.dropdown_var_id, state='readonly')
+        self.dropdown_var_id.set('Downloading...')
+        self.dropdown_id.grid(**pad(y=0), **g.place())
+        self.dropdown_id.bind("<<ComboboxSelected>>", self.on_dropdown_id_select)
 
         self.dropdown_var = tk.StringVar()
         self.dropdown = ttk.Combobox(self, textvariable=self.dropdown_var, state='readonly')
