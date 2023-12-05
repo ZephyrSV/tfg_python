@@ -43,18 +43,6 @@ class DatGenerator:
         print("unfetched_reactions len : ", len(unfetched_reactions))
         fetching_tasks = self.split_into_smaller_sublist(unfetched_reactions, 10)
         futures = [self.executor.submit(self.fetch_reactions, ft) for ft in fetching_tasks]
-        #try:
-        #    for (i, ft) in enumerate(fetching_tasks):
-        #        self.fetch_reactions(ft)
-        #        print(f"{i/len(unfetched_reactions)*1000}%")
-        #except KeyboardInterrupt:
-        #    print("Control C")
-        #except Exception as e:
-        #    print("Caught exception")
-        #    print(type(e))
-        #    print(e)
-        #    return 0
-            
         concurrent.futures.wait(futures)
         print("DONE")
         self.dump_data()
@@ -176,11 +164,13 @@ class DatGenerator:
                     regex2.findall(match.group("products"))
                 )
 
-    def _generate_dat(self, entry, reaction_ids, kgml):
-        dat_file = "dats/" + entry + ".dat"
+    def _generate_dat(self, pathway_id, reaction_ids, kgml):
+        dat_file = "dats/" + pathway_id + ".dat"
         f = open(dat_file, "w")
 
-        reactions = {r_id: self.reactions[r_id] for r_id in reaction_ids}
+        generic_pathway_reactions = {k[-5:]:v for k,v in self.pathway_reactions.items()}
+
+        reactions = {r_id: self.reactions[r_id] for r_id in generic_pathway_reactions[pathway_id[-5:]]}
 
         substrates_products = set()
         for substrates, products in reactions.values():
@@ -189,7 +179,7 @@ class DatGenerator:
             for product in products:
                 substrates_products.add(product)
 
-        # write the sets (V,E)
+        # write the se  ts (V,E)
         f.write("set E :=")
         for r_id in reactions.keys():
             print(type(reaction_ids))
@@ -214,19 +204,19 @@ class DatGenerator:
         f.write("\n")
 
         # determine the set of reversible reactions
-        seen = {}
-        f.write("set uninvertible :=\n")
-        for reaction in kgml.reactions:
-            if reaction.type == "reversible":
-                continue
-            else:
-                for r in reaction.name.split(" "):
-                    if r in seen:
-                        continue
-                    f.write(r.replace("rn:", "") + " ")
-                    seen[r] = True
+        #seen = {}
+        f.write("set uninvertibles :=\n")
+        #for reaction in kgml.reactions:
+        #    if reaction.type == "reversible":
+        #        continue
+        #    else:
+        #        for r in reaction.name.split(" "):
+        #            if r in seen:
+        #                continue
+        #            f.write(r.replace("rn:", "") + " ")
+        #            seen[r] = True
         f.write(";\n\n")
-
+        #
         f.write("set forced_externals := ;\n\nset forced_internals := ;\n\n")
 
         f.close()
@@ -236,10 +226,15 @@ class DatGenerator:
         if old:
             return self.generate_dats_old(entries)            
             
+        print("<>generating dat")
+        for e in entries:
+            self._generate_dat(e, None, None)
+        print("</>generating dat")
+        #futures = [self.executor.submit(self._generate_dat, e, None, None)
+        #           for e in entries]
+        #concurrent.futures.wait(futures)
 
-
-        futures = [self.executor.submit(self._generate_dat, entry, *self.pathway_reactions_kgml[entry])
-                   for entry in new_entries]
+        return [(entry, "dats/" + entry + ".dat") for entry in entries]
     def generate_dats_old(self, entries):
 		
         """ Generates a dat file for each entry in the list
