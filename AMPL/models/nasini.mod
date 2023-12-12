@@ -8,7 +8,7 @@ set E;
 
 set X{E} within V; # The tail set for each hyperedge
 set Y{E} within V; # The head set for each hyperedge
-set uninvertible within E; # set of edges that cannot be inverted
+set uninvertibles within E; # set of edges that cannot be inverted
 set forced_externals within V; # set of nodes that must be sinks
 set forced_internals within V; # set of nodes that must be sources
 

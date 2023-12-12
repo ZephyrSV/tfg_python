@@ -11,7 +11,7 @@ param M = card(E);
 set X {i in E} within V; # Tail set
 set Y {i in E} within V; # Head set
 
-set uninvertible within E; # set of edges that cannot be inverted
+set uninvertibles within E; # set of edges that cannot be inverted
 set forced_internals within V; # set of nodes that must be sinks
 set forced_externals within V; # set of nodes that must be sources
 

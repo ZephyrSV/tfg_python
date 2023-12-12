@@ -3,7 +3,8 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 import requests
 from io import BytesIO
-from utils.pathway_getter import fetch_all_pathways
+
+from utils.DatGenerator import DatGenerator
 from views.pathway_view import PathwayView
 from views.benchmark_view import Benchmark_view
 from utils.ui_utils import *
@@ -125,7 +126,7 @@ class Pathway_selector(tk.Tk):
         :todo: remove this function and call the functions directly
         :return:
         """
-        self.human_pathways = fetch_all_pathways(organism="hsa")
+        self.human_pathways = self.dat_generator.pathway_description
         self.options = self.human_pathways
         self.dropdown_id.config(state='normal')
         self.dropdown.config(state='normal')
@@ -134,8 +135,10 @@ class Pathway_selector(tk.Tk):
 
     def __init__(self):
         super().__init__()
+        self.dat_generator = DatGenerator()
         self.executor = concurrent.futures.ThreadPoolExecutor()
         g = GridUtil()
+
 
         self.title("Orienting Biochemical Reactions")
         self.resizable(False, False)
