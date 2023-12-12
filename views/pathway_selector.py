@@ -120,18 +120,6 @@ class Pathway_selector(tk.Tk):
         self.dropdown_var.set(values[0])
 
 
-    def initialize(self):
-        """
-        Initializes the window.
-        :todo: remove this function and call the functions directly
-        :return:
-        """
-        self.human_pathways = self.dat_generator.pathway_description
-        self.options = self.human_pathways
-        self.dropdown_id.config(state='normal')
-        self.dropdown.config(state='normal')
-        self.dropdown_set_values()
-        self.description_label.config(text=f"Description:\n{self.options[0]['description']}")
 
     def __init__(self):
         super().__init__()
@@ -191,6 +179,13 @@ class Pathway_selector(tk.Tk):
         g.next_row()
         self.image_label = tk.Label(self)
         self.image_label.grid(**pad(), **g.place(cs=4))
+
+        self.human_pathways = self.dat_generator.pathway_description
+        self.options = self.human_pathways
+        self.dropdown_id.config(state='normal')
+        self.dropdown.config(state='normal')
+        self.dropdown_set_values()
+        self.description_label.config(text=f"Description:\n{self.options[0]['description']}")
 
 
 
