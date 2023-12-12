@@ -25,9 +25,9 @@ def print_thread_name(func):
 
 class Benchmark_view(tk.Toplevel):
     solvers = {
+        "cbc": "cbc",
         "CPLEX": "cplex",
         "Gurobi": "gurobi",
-        "cbc": "cbc",
     }
     models = {
         "Zephyr Old": "AMPL/models/my_model.mod",
