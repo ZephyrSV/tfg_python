@@ -12,7 +12,18 @@ import threading
 import concurrent.futures
 
 
-class DatGenerator:
+class SingletonClass(object):
+    """
+    A singleton class that can be inherited by other classes
+
+    source: https://www.geeksforgeeks.org/singleton-pattern-in-python-a-complete-guide/
+    """
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(SingletonClass, cls).__new__(cls)
+        return cls.instance
+
+class DatGenerator(SingletonClass):
     data_loc = "persistant_data/dataset.json"
     reaction_ids = []
     reactions = {}
@@ -87,9 +98,7 @@ class DatGenerator:
                 self.add_reaction(reactionID, substrates, products)
             for match in pathway_regex.finditer(entry):
                 pathways = id_regex.findall(match.group(0))
-                self.add_pathway_reaction(reactionID, pathways) 
-        #print("/!\\ pathway_reactions : ", self.pathway_reactions)
-        #print("reactions : ", self.reactions)
+                self.add_pathway_reaction(reactionID, pathways)
 
     def add_pathway_reaction(self, reaction_id: str, pathway_ids: list):
         with self._pathway_reactions_lock:
@@ -164,7 +173,7 @@ class DatGenerator:
                     regex2.findall(match.group("products"))
                 )
 
-    def _generate_dat(self, pathway_id, reaction_ids, kgml):
+    def _generate_dat(self, pathway_id):
         dat_file = "dats/" + pathway_id + ".dat"
         f = open(dat_file, "w")
 
@@ -182,7 +191,6 @@ class DatGenerator:
         # write the se  ts (V,E)
         f.write("set E :=")
         for r_id in reactions.keys():
-            print(type(reaction_ids))
             f.write(" " + r_id)
         f.write(";\n")
 
@@ -216,46 +224,16 @@ class DatGenerator:
         #            f.write(r.replace("rn:", "") + " ")
         #            seen[r] = True
         f.write(";\n\n")
-        #
         f.write("set forced_externals := ;\n\nset forced_internals := ;\n\n")
 
         f.close()
 
 
     def generate_dats(self, entries, old=False):
-        if old:
-            return self.generate_dats_old(entries)            
-            
         print("<>generating dat")
         for e in entries:
-            self._generate_dat(e, None, None)
+            self._generate_dat(e)
         print("</>generating dat")
-        #futures = [self.executor.submit(self._generate_dat, e, None, None)
-        #           for e in entries]
-        #concurrent.futures.wait(futures)
-
-        return [(entry, "dats/" + entry + ".dat") for entry in entries]
-    def generate_dats_old(self, entries):
-		
-        """ Generates a dat file for each entry in the list
-
-        Parameters
-        ----------
-        entries : list(str)
-            A list of entry IDs
-        """
-        new_entries = [entry for entry in entries if not os.path.isfile("dats/" + entry + ".dat")]
-        futures = [self.executor.submit(self.get_reaction_ids_from_kgml, entry) for entry in new_entries]
-        concurrent.futures.wait(futures)
-
-        lists_of_10_reactions = list(DatGenerator.split_into_smaller_sublist(list(self.unfetched_reactions), 10))
-        futures = [self.executor.submit(self.get_full_reactions, l) for l in lists_of_10_reactions]
-        concurrent.futures.wait(futures)
-
-        futures = [self.executor.submit(self._generate_dat, entry, *self.pathway_reactions_kgml[entry])
-                   for entry in new_entries]
-        concurrent.futures.wait(futures)
-
         return [(entry, "dats/" + entry + ".dat") for entry in entries]
 
 if __name__ == "__main__":
