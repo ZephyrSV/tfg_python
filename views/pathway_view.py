@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from utils.DatGenerator import DatGenerator
+from utils.KEGGIntegration import KEGGIntegration
 from utils.functional_programming import lmap
 from utils.ui_utils import pad, GridUtil
 
@@ -224,7 +224,7 @@ class PathwayView(tk.Toplevel):
     def __init__(self, master, entry, mainloop=True):
         super().__init__(master)
         self.entry = entry
-        d = DatGenerator()
+        d = KEGGIntegration()
         self.dat = d.generate_dats([entry])[0][1]
         self.title(f"{entry}")
         self.init_UI()

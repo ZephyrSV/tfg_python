@@ -8,7 +8,7 @@ import numpy as np
 
 from amplpy import AMPL
 
-from utils.DatGenerator import DatGenerator
+from utils.KEGGIntegration import KEGGIntegration
 from utils.ui_utils import GridUtil, pad
 
 import threading
@@ -94,7 +94,7 @@ class Benchmark_view(tk.Toplevel):
         """
         #futures = [self.executor.submit(self.prepare_dat, entry) for entry in self.entries]
         #concurrent.futures.wait(futures)
-        d = DatGenerator()
+        d = KEGGIntegration()
         for entry, dat in d.generate_dats(self.entries):
             self.add_to_dats(entry, dat)
 

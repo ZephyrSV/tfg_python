@@ -22,7 +22,7 @@ class SingletonClass(object):
         return cls.instance
 
 
-class DatGenerator(SingletonClass):
+class KEGGIntegration(SingletonClass):
     data_loc = "persistent_data/dataset.json"
     reaction_ids = []
     reactions = {}
@@ -275,5 +275,5 @@ class DatGenerator(SingletonClass):
 
 
 if __name__ == "__main__":
-    d = DatGenerator()  # test case
+    d = KEGGIntegration()  # test case
     d.generate_dats(["hsa00010", "hsa00020"])

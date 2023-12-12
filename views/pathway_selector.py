@@ -4,7 +4,7 @@ from PIL import ImageTk, Image
 import requests
 from io import BytesIO
 
-from utils.DatGenerator import DatGenerator
+from utils.KEGGIntegration import KEGGIntegration
 from views.pathway_view import PathwayView
 from views.benchmark_view import Benchmark_view
 from utils.ui_utils import *
@@ -123,7 +123,7 @@ class Pathway_selector(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.dat_generator = DatGenerator()
+        self.dat_generator = KEGGIntegration()
         self.executor = concurrent.futures.ThreadPoolExecutor()
         g = GridUtil()
 
