@@ -22,7 +22,7 @@ On windows
 
 ```bash
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate.bat
 ```
 
 On Linux

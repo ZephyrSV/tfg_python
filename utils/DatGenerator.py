@@ -122,16 +122,6 @@ class DatGenerator(SingletonClass):
         with self._reactions_lock:
             self.reactions[reaction_id] = (substrates, products)
 
-    def get_reaction_ids_from_kgml(self, entry):
-        kgml = next(KGML_parser.parse(REST.kegg_get(entry, 'kgml').read()))
-        # fetch the actual reactions from the KEGG API
-        reaction_identifiers = flatten([r.name.replace("rn:", "").split(" ") for r in kgml.reactions])
-        self.add_pathway_reaction_kgml(entry, reaction_identifiers, kgml)
-        unfetched = filter(lambda r_id: r_id not in self.reactions.keys(), reaction_identifiers)
-        for reaction_id in unfetched:
-            self.add_unfetched_reaction(reaction_id)
-        print(f"Fetching {len(reaction_identifiers)} reactions for {entry}")
-
     @staticmethod
     def split_into_smaller_sublist(l, n):
         """ Splits a list into smaller sublists of size n
