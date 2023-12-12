@@ -143,12 +143,6 @@ class Benchmark_view(tk.Toplevel):
         self.solver_selector.current(0)
 
         g.next_row()
-        self.tickbox_frame = ttk.Frame(self)
-        self.tickbox_frame.grid(**pad(), **g.place(cs=2))
-
-        self.create_tickboxes(self.tickbox_frame)
-
-        g.next_row()
         self.start_button = tkinter.Button(self, text="Start benchmark", command=self.start_button_click)
         self.start_button.grid(**g.place(cs=2), **pad())
 
