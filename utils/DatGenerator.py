@@ -15,6 +15,7 @@ class SingletonClass(object):
 
     source: https://www.geeksforgeeks.org/singleton-pattern-in-python-a-complete-guide/
     """
+
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(SingletonClass, cls).__new__(cls)
@@ -28,6 +29,7 @@ class DatGenerator(SingletonClass):
     _reactions_lock = threading.Lock()
     pathways = {}
     _pathways_lock = threading.Lock()
+    pathway_description = {}
 
     def __init__(self, reactions=None):
         if reactions is None:
@@ -35,22 +37,39 @@ class DatGenerator(SingletonClass):
 
         self.reactions = reactions
         self.executor = concurrent.futures.ThreadPoolExecutor()
-        # if the data file does not exist
+
+        # if the data file does not exist, fetch the list of all reaction ids
         if not os.path.isfile(self.data_loc):
             # fetch the all reaction ids
             reaction_req = REST.kegg_list("reaction").read()
             self.reaction_ids = [r[:6] for r in reaction_req.split('\n')][:-1]
             self.dump_data()
+
         # now the data file exists
         self.recover_data()
 
+        # fetch the reactions that have not been fully fetched
         unfetched_reactions = [r for r in self.reaction_ids if r not in self.reactions.keys()]
-        print("unfetched_reactions len : ", len(unfetched_reactions))
+        print("Reactions left to query : ", len(unfetched_reactions))
         fetching_tasks = self.split_into_smaller_sublist(unfetched_reactions, 10)
         futures = [self.executor.submit(self.fetch_reactions, ft) for ft in fetching_tasks]
         concurrent.futures.wait(futures)
-        print("DONE")
         self.dump_data()
+
+        # Check if all the reactions have successfully been fetched
+        unfetched_reactions = [r for r in self.reaction_ids if r not in self.reactions.keys()]
+        if len(unfetched_reactions) > 0:
+            raise Exception(
+                f"Some reactions could not be fetched ({len(unfetched_reactions)} left)!\nThe KEGG REST API probably "
+                f"IP-banned your network, please "
+                "continue later (the progress has been saved). \nIf you are not trying to redownload the dataset, "
+                "please make sure the persistent_data/dataset.json file has not been corrupted. \nA working version "
+                "(complete as of December 2023) of the persitent_data/dataset.json file can be found in the repository."
+            )
+        # fetch the pathway_descriptions
+        if len(self.pathway_description) == 0:
+            self.pathway_description = self.fetch_pathway_descriptions()
+            self.dump_data()
 
     def dump_data(self):
         """
@@ -59,7 +78,8 @@ class DatGenerator(SingletonClass):
         data = {
             'reaction_ids': self.reaction_ids,
             'reactions': self.reactions,
-            'pathways': self.pathways
+            'pathways': self.pathways,
+            'pathways_description': self.pathway_description,
         }
         with open(self.data_loc, 'w') as file:
             json.dump(data, file)
@@ -179,7 +199,7 @@ class DatGenerator(SingletonClass):
             for product in products:
                 substrates_products.add(product)
 
-        # write the se  ts (V,E)
+        # write the sets (V,E)
         f.write("set E :=")
         for r_id in reactions.keys():
             f.write(" " + r_id)
@@ -238,6 +258,20 @@ class DatGenerator(SingletonClass):
             self._generate_dat(e)
         print("</> generating dat")
         return [(entry, "dats/" + entry + ".dat") for entry in entries]
+
+    def fetch_pathway_descriptions(self, organism=None):
+        """ Returns pathways in the form of a list of dictionaries [{'entry' = STRING, 'description' = STRING}, ... ]
+
+        Parameters
+        ----------
+        organism : str, optional
+            An identifier declared by KEGG database that identifies a specific organism ('hsa' for humans)
+        """
+        pathways = REST.kegg_list("pathway", org=organism).read().split("\n")
+        pathways = [x.split("\t") for x in pathways]
+        pathways = filter(lambda x: x[0] != '', pathways)  # remove empty entries
+        pathways = [{'entry': x[0], 'description': x[1]} for x in pathways]
+        return pathways
 
 
 if __name__ == "__main__":
