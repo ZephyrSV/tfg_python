@@ -28,12 +28,8 @@ class DatGenerator(SingletonClass):
     reaction_ids = []
     reactions = {}
     _reactions_lock = threading.Lock()
-    pathway_reactions = {}
-    _pathway_reactions_lock = threading.Lock()
-    unfetched_reactions = set()
-    _unfetched_reactions_lock = threading.Lock()
-    pathway_reactions_kgml = {}
-    _pathway_reactions_kgml_lock = threading.Lock()
+    pathways = {}
+    _pathways_lock = threading.Lock()
 
     def __init__(self, reactions=None):
         if reactions is None:
@@ -62,7 +58,7 @@ class DatGenerator(SingletonClass):
         data = {}
         data['reaction_ids'] = self.reaction_ids
         data['reactions'] = self.reactions
-        data['pathways'] = self.pathway_reactions
+        data['pathways'] = self.pathways
         with open(self.data_loc, 'w') as file:
             json.dump(data, file)
 
@@ -72,11 +68,10 @@ class DatGenerator(SingletonClass):
         """
         with open(self.data_loc, 'r') as file:
             data = json.load(file)
-            self.reaction_ids = data['reaction_ids']
-            self.reactions = data.get('reactions', {})
-            self.pathway_reactions = data.get('pathways', {})
+            for n in data.keys():
+                setattr(self, n, data[n])
             print("reactions len : ", len(self.reactions))
-            print("pathway_reactions len : ", len(self.pathway_reactions))
+            print("pathway_reactions len : ", len(self.pathways))
 
 
     def fetch_reactions(self, reactions):
@@ -97,26 +92,15 @@ class DatGenerator(SingletonClass):
                 products = id_regex.findall(match.group("products"))
                 self.add_reaction(reactionID, substrates, products)
             for match in pathway_regex.finditer(entry):
-                pathways = id_regex.findall(match.group(0))
-                self.add_pathway_reaction(reactionID, pathways)
+                p = id_regex.findall(match.group(0))
+                self.add_pathway_reaction(reactionID, p)
 
     def add_pathway_reaction(self, reaction_id: str, pathway_ids: list):
-        with self._pathway_reactions_lock:
+        with self._pathways_lock:
             for p_id in pathway_ids:
-                l = self.pathway_reactions.get(p_id, [])
+                l = self.pathways.get(p_id, [])
                 l.append(reaction_id)
-                self.pathway_reactions[p_id] = l
-
-#####################
-
-
-    def add_unfetched_reaction(self, reaction):
-        with self._unfetched_reactions_lock:
-            self.unfetched_reactions.add(reaction)
-
-    def add_pathway_reaction_kgml(self, pathway, reactions, kgml):
-        with self._pathway_reactions_kgml_lock:
-            self.pathway_reactions_kgml[pathway] = (reactions, kgml)
+                self.pathways[p_id] = l
 
     def add_reaction(self, reaction_id, substrates, products):
         with self._reactions_lock:
@@ -137,37 +121,12 @@ class DatGenerator(SingletonClass):
         for i in range(0, len(l), n):
             yield l[i:i + n]
 
-    def get_full_reactions(self, reaction_ids):
-        if len(reaction_ids) == 0:
-            raise ValueError("reaction_ids must not be empty")
-        if len(reaction_ids) > 10:
-            raise ValueError("reaction_ids must not be longer than 10")
-
-        print("Fetching reactions " + "+".join(reaction_ids) + f" from the KEGG API...")
-
-        regexStr = r"^ENTRY\s*(?P<reaction>\S*)|EQUATION\s+(?P<substrates>.*) <=> (?P<products>.*)"
-        regex = re.compile(regexStr, re.MULTILINE)
-        regexStr2 = r"\w\d+"
-        regex2 = re.compile(regexStr2, re.MULTILINE)
-
-        response = REST.kegg_get("+".join(reaction_ids)).read()
-        matches = regex.finditer(response)
-        current_reaction_id = None
-        for match in matches:
-            if match.group("reaction") is not None:
-                current_reaction_id = match.group("reaction")
-            if match.group("substrates") is not None:
-                self.add_reaction(
-                    current_reaction_id,
-                    regex2.findall(match.group("substrates")),
-                    regex2.findall(match.group("products"))
-                )
 
     def _generate_dat(self, pathway_id):
         dat_file = "dats/" + pathway_id + ".dat"
         f = open(dat_file, "w")
 
-        generic_pathway_reactions = {k[-5:]:v for k,v in self.pathway_reactions.items()}
+        generic_pathway_reactions = {k[-5:]:v for k,v in self.pathways.items()}
 
         reactions = {r_id: self.reactions[r_id] for r_id in generic_pathway_reactions[pathway_id[-5:]]}
 
@@ -220,10 +179,10 @@ class DatGenerator(SingletonClass):
 
 
     def generate_dats(self, entries, old=False):
-        print("<>generating dat")
+        print("<>  generating dat")
         for e in entries:
             self._generate_dat(e)
-        print("</>generating dat")
+        print("</> generating dat")
         return [(entry, "dats/" + entry + ".dat") for entry in entries]
 
 if __name__ == "__main__":
