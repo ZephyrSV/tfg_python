@@ -1,13 +1,10 @@
-import math
 import os
 import re
 import json
 
-import fontTools.ttx
 from Bio.KEGG import REST
 from Bio.KEGG.KGML import KGML_parser
 
-from utils.functional_programming import flatten, compose
 import threading
 import concurrent.futures
 
@@ -23,8 +20,9 @@ class SingletonClass(object):
             cls.instance = super(SingletonClass, cls).__new__(cls)
         return cls.instance
 
+
 class DatGenerator(SingletonClass):
-    data_loc = "persistant_data/dataset.json"
+    data_loc = "persistent_data/dataset.json"
     reaction_ids = []
     reactions = {}
     _reactions_lock = threading.Lock()
@@ -55,78 +53,122 @@ class DatGenerator(SingletonClass):
         self.dump_data()
 
     def dump_data(self):
-        data = {}
-        data['reaction_ids'] = self.reaction_ids
-        data['reactions'] = self.reactions
-        data['pathways'] = self.pathways
+        """
+        Dumps the reaction_ids, reactions and pathway_reactions dictionaries to the persistent data file
+        """
+        data = {
+            'reaction_ids': self.reaction_ids,
+            'reactions': self.reactions,
+            'pathways': self.pathways
+        }
         with open(self.data_loc, 'w') as file:
             json.dump(data, file)
 
     def recover_data(self):
         """
-        Recovers the reaction_ids, reactions and pathway_reactions dictionaries
+        Recovers the reaction_ids, reactions and pathway_reactions dictionaries from the persistent data file
         """
         with open(self.data_loc, 'r') as file:
             data = json.load(file)
             for n in data.keys():
                 setattr(self, n, data[n])
             print("reactions len : ", len(self.reactions))
-            print("pathway_reactions len : ", len(self.pathways))
+            print("pathways len : ", len(self.pathways))
 
+    def fetch_reactions(self, reactions: list):
+        """
+        Queries the KEGG database for the reactions and adds them to the reactions dictionary
 
-    def fetch_reactions(self, reactions):
-        reactionID_regex_str = r"ENTRY\s*(?P<reactionID>R\d{5})"
-        equation_regex_str = r"EQUATION\s*(?P<substrates>[^<]*)<=>(?P<products>.*)"
-
-        reactionID_regex = re.compile(reactionID_regex_str, re.MULTILINE)
-        equation_regex = re.compile(equation_regex_str, re.MULTILINE)
+        Parameters
+        ----------
+        reactions : list
+            A list of reaction ids to be fetched
+        """
+        reaction_id_regex = re.compile(r"ENTRY\s*(?P<reaction_id>R\d{5})", re.MULTILINE)
+        equation_regex = re.compile(r"EQUATION\s*(?P<substrates>[^<]*)<=>(?P<products>.*)", re.MULTILINE)
         id_regex = re.compile(r"\w*\d{5}", re.MULTILINE)
         pathway_regex = re.compile(r"PATHWAY(?P<all>[^\n]*(\s{2,}[^\n]*)*)", re.MULTILINE)
 
         for entry in REST.kegg_get(reactions).read().split("///")[:-1]:
-            for match in reactionID_regex.finditer(entry):
-                reactionID = id_regex.findall(match.group(0))[0]
-            # Important to not that there will only be one reactionID
+            for match in reaction_id_regex.finditer(entry):
+                reaction_id = id_regex.findall(match.group(0))[0]
+            # Important to not that there will only be one reaction_id
             for match in equation_regex.finditer(entry):
                 substrates = id_regex.findall(match.group("substrates"))
                 products = id_regex.findall(match.group("products"))
-                self.add_reaction(reactionID, substrates, products)
+                self.add_reaction(reaction_id, substrates, products)
             for match in pathway_regex.finditer(entry):
                 p = id_regex.findall(match.group(0))
-                self.add_pathway_reaction(reactionID, p)
+                self.add_pathway_reaction(reaction_id, p)
 
     def add_pathway_reaction(self, reaction_id: str, pathway_ids: list):
+        """
+        Assigns a reaction to multiple pathways
+
+        This method is thread safe
+
+        Parameters
+        ----------
+        reaction_id : str
+            The id of the reaction to be added to the pathway
+
+        pathway_ids : list
+            The ids of the pathways to which the reaction is to be added
+        """
         with self._pathways_lock:
             for p_id in pathway_ids:
-                l = self.pathways.get(p_id, [])
-                l.append(reaction_id)
-                self.pathways[p_id] = l
+                reactions_of_the_pathway = self.pathways.get(p_id, [])
+                reactions_of_the_pathway.append(reaction_id)
+                self.pathways[p_id] = reactions_of_the_pathway
 
-    def add_reaction(self, reaction_id, substrates, products):
+    def add_reaction(self, reaction_id: str, substrates: list, products: list):
+        """
+        Adds a reaction to the reactions dictionary
+
+        This method is thread safe
+
+        Parameters
+        ----------
+        reaction_id : str
+            The id of the reaction to be added
+
+        substrates : list
+            The ids of the substrates of the reaction
+
+        products : list
+            The ids of the products of the reaction
+        """
         with self._reactions_lock:
             self.reactions[reaction_id] = (substrates, products)
 
     @staticmethod
-    def split_into_smaller_sublist(l, n):
+    def split_into_smaller_sublist(list_to_split, n):
         """ Splits a list into smaller sublists of size n
 
         Parameters
         ----------
-        l : list
+        list_to_split : list
             The list to be split
 
         n : int
             The size of the sublists
         """
-        for i in range(0, len(l), n):
-            yield l[i:i + n]
+        for i in range(0, len(list_to_split), n):
+            yield list_to_split[i:i + n]
 
+    def _generate_dat(self, pathway_id: str):
+        """
+        Generates the .dat file for the pathway
 
-    def _generate_dat(self, pathway_id):
+        Parameters
+        ----------
+        pathway_id : str
+            The id of the pathway for which the .dat file is to be generated
+        """
         dat_file = "dats/" + pathway_id + ".dat"
         f = open(dat_file, "w")
 
-        generic_pathway_reactions = {k[-5:]:v for k,v in self.pathways.items()}
+        generic_pathway_reactions = {k[-5:]: v for k, v in self.pathways.items()}
 
         reactions = {r_id: self.reactions[r_id] for r_id in generic_pathway_reactions[pathway_id[-5:]]}
 
@@ -161,30 +203,43 @@ class DatGenerator(SingletonClass):
         f.write("\n")
 
         # determine the set of reversible reactions
-        #seen = {}
+        # seen = {}
         f.write("set uninvertibles :=\n")
-        #for reaction in kgml.reactions:
-        #    if reaction.type == "reversible":
-        #        continue
-        #    else:
-        #        for r in reaction.name.split(" "):
-        #            if r in seen:
-        #                continue
-        #            f.write(r.replace("rn:", "") + " ")
-        #            seen[r] = True
+        # for reaction in kgml.reactions:
+        #     if reaction.type == "reversible":
+        #         continue
+        #     else:
+        #         for r in reaction.name.split(" "):
+        #             if r in seen:
+        #                 continue
+        #             f.write(r.replace("rn:", "") + " ")
+        #             seen[r] = True
         f.write(";\n\n")
         f.write("set forced_externals := ;\n\nset forced_internals := ;\n\n")
 
         f.close()
 
+    def generate_dats(self, entries: list):
+        """
+        Generates the .dat files for the pathways
 
-    def generate_dats(self, entries, old=False):
+        Parameters
+        ----------
+        entries : list
+            A list of pathway ids for which the .dat files are to be generated
+
+        Returns
+        -------
+        list
+            A list of tuples containing the pathway id and the path to the .dat file
+        """
         print("<>  generating dat")
         for e in entries:
             self._generate_dat(e)
         print("</> generating dat")
         return [(entry, "dats/" + entry + ".dat") for entry in entries]
 
+
 if __name__ == "__main__":
-    d = DatGenerator()#test case
+    d = DatGenerator()  # test case
     d.generate_dats(["hsa00010", "hsa00020"])
