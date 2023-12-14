@@ -37,14 +37,18 @@ class KEGGIntegration(SingletonClass):
     data_loc = "persistent_data/data.json"
 
     def __init__(self):
-        self.compound_synonym_id = KEGGIntegration.fetch_compound_synonym_id()
         self.reaction_substrate_product_ids = {}
-        print("len compound_synonym_id: ", len(self.compound_synonym_id))
-        last_compound = list(self.compound_synonym_id.keys())[-1]
-        print("last compound: ", last_compound)
-        print("last compound id: ", self.compound_synonym_id[last_compound])
-        self.fetch_reaction_substrates_ids()
-        print("len reaction_substrate_product_ids: ", len(self.reaction_substrate_product_ids))
+        if os.path.exists(self.data_loc):
+            self.load_data()
+        else:
+            self.compound_synonym_id = KEGGIntegration.fetch_compound_synonym_id()
+        self.dump_data()
+
+        if len(self.reaction_substrate_product_ids) == 0:
+            self.fetch_reaction_substrates_ids()
+            self.dump_data()
+
+
 
     def dump_data(self):
         """
