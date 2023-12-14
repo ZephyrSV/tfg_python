@@ -38,6 +38,8 @@ class KEGGIntegration(SingletonClass):
 
     def __init__(self):
         self.reaction_substrate_product_ids = {}
+        self.compound_synonym_id = {}
+        self.broken_reaction_ids = []
         if os.path.exists(self.data_loc):
             self.load_data()
         else:
@@ -45,8 +47,12 @@ class KEGGIntegration(SingletonClass):
         self.dump_data()
 
         if len(self.reaction_substrate_product_ids) == 0:
+            print("fetching reactions and their substrate product ids")
             self.fetch_reaction_substrates_ids()
             self.dump_data()
+        if len(self.broken_reaction_ids) != 0:
+            print("broken reaction ids: ", len(self.broken_reaction_ids), ",", self.broken_reaction_ids)
+            #self.fetch_broken_reactions()
 
 
 
@@ -57,7 +63,8 @@ class KEGGIntegration(SingletonClass):
         """
         data = {
             "compound_synonym_id": self.compound_synonym_id,
-            "reaction_substrate_product_ids": self.reaction_substrate_product_ids
+            "reaction_substrate_product_ids": self.reaction_substrate_product_ids,
+            "broken_reaction_ids": self.broken_reaction_ids
         }
         with open(self.data_loc, 'w') as f:
             json.dump(data, f)
@@ -71,6 +78,7 @@ class KEGGIntegration(SingletonClass):
             data = json.load(f)
         self.compound_synonym_id = data["compound_synonym_id"]
         self.reaction_substrate_product_ids = data["reaction_substrate_product_ids"]
+        self.broken_reaction_ids = data["broken_reaction_ids"]
 
     @staticmethod
     def fetch_compound_synonym_id():
@@ -135,7 +143,7 @@ class KEGGIntegration(SingletonClass):
             reaction_id: the reaction id that the compound belongs to
 
         Returns:
-            a single compound id
+            a single compound id, or None if no match
         """
         compound_synonyms = compound_verbose.split('; ')
         # remove the number at the beginning of the synonym, that may signify the number of molecules in the equation
@@ -143,15 +151,14 @@ class KEGGIntegration(SingletonClass):
             compound_synonyms[i] = re.sub(r'^\d+n? |^\(n\+\d+\) |^n ', '', compound_synonyms[i])
 
         compound_id = self.compound_synonym_to_ids(compound_synonyms)
-        if compound_id is None:
+        if len(compound_id) == 0:
             return None
 
         return compound_id[0]
 
     def fetch_reaction_substrates_ids(self):
-        broken_reaction_ids = []
-
         for reaction in REST.kegg_list("reaction").read().split('\n')[:-1]:
+            broken = False
             reaction_id, reaction_equation_verbose = reaction.split('\t')
             self.reaction_substrate_product_ids[reaction_id] = {"substrates": [], "products": []}
             substrates_verbose, product_verbose = reaction_equation_verbose.split(' <=> ')
@@ -160,26 +167,33 @@ class KEGGIntegration(SingletonClass):
                 if substrate_id is not None:
                     self.reaction_substrate_product_ids[reaction_id]["substrates"].append(substrate_id)
                 else:
-                    broken_reaction_ids.append(reaction_id)
+                    self.broken_reaction_ids.append(reaction_id)
+                    broken = True
                     break
+            if broken:
+                continue
             for product_verbose in product_verbose.split(' + '):
                 product_id = self.compound_verbose_and_reaction_to_id(product_verbose, reaction_id)
                 if product_id is not None:
                     self.reaction_substrate_product_ids[reaction_id]["products"].append(product_id)
                 else:
-                    broken_reaction_ids.append(reaction_id)
+                    self.broken_reaction_ids.append(reaction_id)
                     break
 
-        print("broken reaction ids: ", len(broken_reaction_ids), ",", broken_reaction_ids)
-        # for to_query in KEGGIntegration.split_into_smaller_sublist(broken_reaction_ids, 10):
-        #    self.query_for_reactions(to_query)
-        # TODO: run this only at university campus
+        for reaction_id in self.broken_reaction_ids:
+            self.reaction_substrate_product_ids.pop(reaction_id)
+            # remove the reaction from the dictionary, or else we won't know which reactions are broken upon
+            # relaunching the script
+
+    def fetch_broken_reactions(self):
+        for to_query in KEGGIntegration.split_into_smaller_sublist(self.broken_reaction_ids, 10):
+            self.query_for_reactions(to_query)
 
 
 
     def query_for_reactions(self, reactions: list):
         """
-        Queries the KEGG database for the reactions and adds them to the reactions dictionary
+        Queries the KEGG database (GET of REST) for the reactions (by groups of 10) and adds them to the reactions dictionary
 
         Parameters
         ----------
