@@ -34,17 +34,39 @@ class KEGGIntegration(SingletonClass):
         - 'var_name'_verbose: means that the object is made up of a collection of synonyms
             example: equation_verbose is something like "Maltose + H2O <=> 2 D-Glucose"
     """
-    data_loc = "persistent_data/dataset.json"
-    reaction_substrate_product_ids = {}
+    data_loc = "persistent_data/data.json"
 
     def __init__(self):
         self.compound_synonym_id = KEGGIntegration.fetch_compound_synonym_id()
+        self.reaction_substrate_product_ids = {}
         print("len compound_synonym_id: ", len(self.compound_synonym_id))
         last_compound = list(self.compound_synonym_id.keys())[-1]
         print("last compound: ", last_compound)
         print("last compound id: ", self.compound_synonym_id[last_compound])
         self.fetch_reaction_substrates_ids()
         print("len reaction_substrate_product_ids: ", len(self.reaction_substrate_product_ids))
+
+    def dump_data(self):
+        """
+        Dumps the data to a json file
+        :return:
+        """
+        data = {
+            "compound_synonym_id": self.compound_synonym_id,
+            "reaction_substrate_product_ids": self.reaction_substrate_product_ids
+        }
+        with open(self.data_loc, 'w') as f:
+            json.dump(data, f)
+
+    def load_data(self):
+        """
+        Loads the data from a json file
+        :return:
+        """
+        with open(self.data_loc, 'r') as f:
+            data = json.load(f)
+        self.compound_synonym_id = data["compound_synonym_id"]
+        self.reaction_substrate_product_ids = data["reaction_substrate_product_ids"]
 
     @staticmethod
     def fetch_compound_synonym_id():
