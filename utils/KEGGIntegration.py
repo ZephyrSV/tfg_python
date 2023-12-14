@@ -1,12 +1,10 @@
+import concurrent.futures
+import json
 import os
 import re
-import json
+import threading
 
 from Bio.KEGG import REST
-from Bio.KEGG.KGML import KGML_parser
-
-import threading
-import concurrent.futures
 
 
 class SingletonClass(object):
@@ -23,6 +21,167 @@ class SingletonClass(object):
 
 
 class KEGGIntegration(SingletonClass):
+    """
+    A class that handles the integration with KEGG
+
+    Some of the methods are static (to avoid using state)
+
+    Here are some definitions:
+        - compound: a chemical compound, can be identified by a compound id or by a list of synonyms
+            example: C00001 or ['H2O', 'Water']
+        - reaction: a chemical reaction, can be identified by a reaction id
+    Here are some programming shorthands used in this class:
+        - 'var_name'_verbose: means that the object is made up of a collection of synonyms
+            example: equation_verbose is something like "Maltose + H2O <=> 2 D-Glucose"
+    """
+    data_loc = "persistent_data/dataset.json"
+    reaction_substrate_product_ids = {}
+
+    def __init__(self):
+        self.compound_synonym_id = KEGGIntegration.fetch_compound_synonym_id()
+        print("len compound_synonym_id: ", len(self.compound_synonym_id))
+        last_compound = list(self.compound_synonym_id.keys())[-1]
+        print("last compound: ", last_compound)
+        print("last compound id: ", self.compound_synonym_id[last_compound])
+        self.fetch_reaction_substrates_ids()
+        print("len reaction_substrate_product_ids: ", len(self.reaction_substrate_product_ids))
+
+    @staticmethod
+    def fetch_compound_synonym_id():
+        """
+        Creates a dictionary of compound synonyms to compound ids
+        A synonym can have multiple ids
+        :return: a dictionary of compound synonyms to compound ids
+        """
+        compound_names_id = {}
+        compound_req = REST.kegg_list("compound").read()
+        for compound in compound_req.split('\n')[:-1]:
+            compound_id, compound_name_list = compound.split('\t')
+            for compound_synonym in compound_name_list.split('; '):
+                print("compound_synonym: ", compound_synonym, compound_synonym in compound_names_id.keys())
+                if compound_synonym in compound_names_id.keys():
+                    compound_names_id[compound_synonym].append(compound_id)
+                else:
+                    compound_names_id[compound_synonym] = [compound_id]
+                print("I stored: ", compound_synonym, compound_names_id[compound_synonym])
+
+        return compound_names_id
+
+    @staticmethod
+    def split_into_smaller_sublist(list_to_split, n):
+        """ Splits a list into smaller sublists of size n
+
+        Parameters
+        ----------
+        list_to_split : list
+            The list to be split
+
+        n : int
+            The size of the sublists
+        """
+        for i in range(0, len(list_to_split), n):
+            yield list_to_split[i:i + n]
+
+    def compound_synonym_to_ids(self, synonyms: list):
+        """
+        Returns the compound ids that matches the synonym
+
+        Parameters:
+            synonyms: list of synonyms
+
+        Returns:
+            list of compound ids, or empty list if no match
+        """
+        for synonym in synonyms:
+            if synonym in self.compound_synonym_id:
+                result = self.compound_synonym_id[synonym]
+                if len(result) > 1:
+                    print("compound: ", synonym, " has multiple ids: ", result)
+                return result
+        return []
+
+    def compound_verbose_and_reaction_to_id(self, compound_verbose, reaction_id):
+        """
+        Returns the compound id that matches the verbose compound name
+
+        Parameters:
+            compound_verbose: a verbose compound name
+            reaction_id: the reaction id that the compound belongs to
+
+        Returns:
+            a single compound id
+        """
+        compound_synonyms = compound_verbose.split('; ')
+        # remove the number at the beginning of the synonym, that may signify the number of molecules in the equation
+        for i in range(len(compound_synonyms)):
+            compound_synonyms[i] = re.sub(r'^\d+n? |^\(n\+\d+\) |^n ', '', compound_synonyms[i])
+
+        compound_id = self.compound_synonym_to_ids(compound_synonyms)
+        if compound_id is None:
+            return None
+
+        return compound_id[0]
+
+    def fetch_reaction_substrates_ids(self):
+        broken_reaction_ids = []
+
+        for reaction in REST.kegg_list("reaction").read().split('\n')[:-1]:
+            reaction_id, reaction_equation_verbose = reaction.split('\t')
+            self.reaction_substrate_product_ids[reaction_id] = {"substrates": [], "products": []}
+            substrates_verbose, product_verbose = reaction_equation_verbose.split(' <=> ')
+            for substrate_verbose in substrates_verbose.split(' + '):
+                substrate_id = self.compound_verbose_and_reaction_to_id(substrate_verbose, reaction_id)
+                if substrate_id is not None:
+                    self.reaction_substrate_product_ids[reaction_id]["substrates"].append(substrate_id)
+                else:
+                    broken_reaction_ids.append(reaction_id)
+                    break
+            for product_verbose in product_verbose.split(' + '):
+                product_id = self.compound_verbose_and_reaction_to_id(product_verbose, reaction_id)
+                if product_id is not None:
+                    self.reaction_substrate_product_ids[reaction_id]["products"].append(product_id)
+                else:
+                    broken_reaction_ids.append(reaction_id)
+                    break
+
+        print("broken reaction ids: ", len(broken_reaction_ids), ",", broken_reaction_ids)
+        # for to_query in KEGGIntegration.split_into_smaller_sublist(broken_reaction_ids, 10):
+        #    self.query_for_reactions(to_query)
+        # TODO: run this only at university campus
+
+
+
+    def query_for_reactions(self, reactions: list):
+        """
+        Queries the KEGG database for the reactions and adds them to the reactions dictionary
+
+        Parameters
+        ----------
+        reactions : list
+            A list of reaction ids to be fetched
+        """
+        reaction_id_regex = re.compile(r"ENTRY\s*(?P<reaction_id>R\d{5})", re.MULTILINE)
+        equation_regex = re.compile(r"EQUATION\s*(?P<substrates>[^<]*)<=>(?P<products>.*)", re.MULTILINE)
+        id_regex = re.compile(r"\w*\d{5}", re.MULTILINE)
+
+        for entry in REST.kegg_get(reactions).read().split("///")[:-1]:
+            reaction = {"substrates": [], "products": []}
+            for match in reaction_id_regex.finditer(entry):
+                reaction_id = id_regex.findall(match.group(0))[0]
+            # Important to not that there will only be one reaction_id
+            for match in equation_regex.finditer(entry):
+                reaction["substrates"] = id_regex.findall(match.group("substrates"))
+                reaction["products"] = id_regex.findall(match.group("products"))
+
+            self.reaction_substrate_product_ids[reaction_id] = reaction
+
+
+
+
+
+
+
+class _KEGGIntegration(SingletonClass):
     data_loc = "persistent_data/dataset.json"
     reaction_ids = []
     reactions = {}
