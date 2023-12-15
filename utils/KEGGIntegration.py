@@ -40,6 +40,7 @@ class KEGGIntegration(SingletonClass):
         self.reaction_substrate_product_ids = {}
         self.compound_synonym_id = {}
         self.broken_reaction_ids = []
+        self.fetched_breaking_reaction_ids = []
         if os.path.exists(self.data_loc):
             self.load_data()
         else:
@@ -64,7 +65,8 @@ class KEGGIntegration(SingletonClass):
         data = {
             "compound_synonym_id": self.compound_synonym_id,
             "reaction_substrate_product_ids": self.reaction_substrate_product_ids,
-            "broken_reaction_ids": self.broken_reaction_ids
+            "broken_reaction_ids": self.broken_reaction_ids,
+            "fetched_breaking_reaction_ids": self.fetched_breaking_reaction_ids,
         }
         with open(self.data_loc, 'w') as f:
             json.dump(data, f)
@@ -79,6 +81,7 @@ class KEGGIntegration(SingletonClass):
         self.compound_synonym_id = data["compound_synonym_id"]
         self.reaction_substrate_product_ids = data["reaction_substrate_product_ids"]
         self.broken_reaction_ids = data["broken_reaction_ids"]
+        self.fetched_breaking_reaction_ids = data["fetched_breaking_reaction_ids"]
 
     @staticmethod
     def fetch_compound_synonym_id():
@@ -186,8 +189,14 @@ class KEGGIntegration(SingletonClass):
             # relaunching the script
 
     def fetch_broken_reactions(self):
-        for to_query in KEGGIntegration.split_into_smaller_sublist(self.broken_reaction_ids, 10):
+        unfetched_reaction_ids = [
+            reaction_id
+            for reaction_id in self.broken_reaction_ids
+            if reaction_id not in self.fetched_breaking_reaction_ids
+        ]
+        for to_query in KEGGIntegration.split_into_smaller_sublist(unfetched_reaction_ids, 10):
             self.query_for_reactions(to_query)
+            self.fetched_breaking_reaction_ids.extend(to_query)
 
 
 
