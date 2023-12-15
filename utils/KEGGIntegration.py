@@ -480,8 +480,3 @@ class _KEGGIntegration(SingletonClass):
         pathways = filter(lambda x: x[0] != '', pathways)  # remove empty entries
         pathways = [{'entry': x[0], 'description': x[1]} for x in pathways]
         return pathways
-
-
-if __name__ == "__main__":
-    d = KEGGIntegration()  # test case
-    d.generate_dats(["hsa00010", "hsa00020"])
