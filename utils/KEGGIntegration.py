@@ -41,10 +41,12 @@ class KEGGIntegration(SingletonClass):
         self.compound_synonym_id = {}
         self.broken_reaction_ids = []
         self.fetched_breaking_reaction_ids = []
+        self.reaction_compound_ids = {}
         if os.path.exists(self.data_loc):
             self.load_data()
         else:
             self.compound_synonym_id = KEGGIntegration.fetch_compound_synonym_id()
+            self.reaction_compound_ids = KEGGIntegration.fetch_reaction_compound_ids()
         self.dump_data()
 
         if len(self.reaction_substrate_product_ids) == 0:
@@ -54,8 +56,6 @@ class KEGGIntegration(SingletonClass):
         if len(self.broken_reaction_ids) != 0:
             print("broken reaction ids: ", len(self.broken_reaction_ids), ",", self.broken_reaction_ids)
             #self.fetch_broken_reactions()
-
-
 
     def dump_data(self):
         """
@@ -67,6 +67,7 @@ class KEGGIntegration(SingletonClass):
             "reaction_substrate_product_ids": self.reaction_substrate_product_ids,
             "broken_reaction_ids": self.broken_reaction_ids,
             "fetched_breaking_reaction_ids": self.fetched_breaking_reaction_ids,
+            "reaction_compound_ids": self.reaction_compound_ids,
         }
         with open(self.data_loc, 'w') as f:
             json.dump(data, f)
@@ -82,6 +83,26 @@ class KEGGIntegration(SingletonClass):
         self.reaction_substrate_product_ids = data["reaction_substrate_product_ids"]
         self.broken_reaction_ids = data["broken_reaction_ids"]
         self.fetched_breaking_reaction_ids = data["fetched_breaking_reaction_ids"]
+        self.reaction_compound_ids = data["reaction_compound_ids"]
+        
+    @staticmethod
+    def fetch_reaction_compound_ids():
+        """
+        Creates a dictionary of reaction ids to compound ids
+        A reaction can have multiple compounds, we can't know which are substrates and which are products
+        Returns:
+            a dictionary of reaction ids to compound ids
+        """
+        reaction_coumpound_ids = {}
+        reaction_compound_ids_req = REST.kegg_link("compound", "reaction").read()
+        for reaction_compound_id in reaction_compound_ids_req.split('\n')[:-1]:
+            reaction_id, compound_id = [type_and_id.split(':')[1] for type_and_id in reaction_compound_id.split('\t')]
+            if reaction_id in reaction_coumpound_ids.keys():
+                reaction_coumpound_ids[reaction_id].append(compound_id)
+            else:
+                reaction_coumpound_ids[reaction_id] = [compound_id]
+        return reaction_coumpound_ids
+        
 
     @staticmethod
     def fetch_compound_synonym_id():
@@ -119,7 +140,7 @@ class KEGGIntegration(SingletonClass):
         for i in range(0, len(list_to_split), n):
             yield list_to_split[i:i + n]
 
-    def compound_synonym_to_ids(self, synonyms: list):
+    def compound_synonym_to_ids(self, synonyms: list, reaction_id: str):
         """
         Returns the compound ids that matches the synonym
 
@@ -133,7 +154,18 @@ class KEGGIntegration(SingletonClass):
             if synonym in self.compound_synonym_id:
                 result = self.compound_synonym_id[synonym]
                 if len(result) > 1:
-                    print("compound: ", synonym, " has multiple ids: ", result)
+                    print("compound: ", synonym, " has multiple ids: ", result, " for reaction: ", reaction_id)
+                    result = [
+                        compound_id 
+                        for compound_id in result 
+                        if compound_id in self.reaction_compound_ids[reaction_id]
+                    ]
+                    if len(result) > 1:
+                        print("compound: ", synonym, " STILL has multiple ids: ", result, " for reaction: ", reaction_id)
+                        return []
+                    else :
+                        print("compound: ", synonym, " has id: ", result, " for reaction: ", reaction_id)
+                
                 return result
         return []
 
@@ -153,7 +185,7 @@ class KEGGIntegration(SingletonClass):
         for i in range(len(compound_synonyms)):
             compound_synonyms[i] = re.sub(r'^\d+n? |^\(n\+\d+\) |^n ', '', compound_synonyms[i])
 
-        compound_id = self.compound_synonym_to_ids(compound_synonyms)
+        compound_id = self.compound_synonym_to_ids(compound_synonyms, reaction_id)
         if len(compound_id) == 0:
             return None
 
