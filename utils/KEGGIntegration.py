@@ -43,6 +43,7 @@ class KEGGIntegration(SingletonClass):
         self.fetched_breaking_reaction_ids = []
         self.reaction_compound_ids = {}
         self.pathway_reaction_ids = {}
+        self.pathway_descriptions = {}
         if os.path.exists(self.data_loc):
             self.load_data()
         else:
@@ -62,6 +63,10 @@ class KEGGIntegration(SingletonClass):
             print("broken reaction ids: ", self.get_remaing_breaking_reaction_ids())
             #self.fetch_broken_reactions()
             self.dump_data()
+        if len(self.pathway_descriptions) == 0:
+            print("fetching pathways and their descriptions")
+            self.pathway_descriptions = KEGGIntegration.fetch_pathway_descriptions()
+            self.dump_data()
 
     def get_remaing_breaking_reaction_ids(self):
         return [x for x in self.broken_reaction_ids if x not in self.fetched_breaking_reaction_ids]
@@ -77,7 +82,8 @@ class KEGGIntegration(SingletonClass):
             "broken_reaction_ids": self.broken_reaction_ids,
             "fetched_breaking_reaction_ids": self.fetched_breaking_reaction_ids,
             "reaction_compound_ids": self.reaction_compound_ids,
-            "pathway_reaction_ids": self.pathway_reaction_ids
+            "pathway_reaction_ids": self.pathway_reaction_ids,
+            "pathway_descriptions": self.pathway_descriptions,
         }
         with open(self.data_loc, 'w') as f:
             json.dump(data, f)
@@ -95,6 +101,7 @@ class KEGGIntegration(SingletonClass):
         self.fetched_breaking_reaction_ids = data["fetched_breaking_reaction_ids"]
         self.reaction_compound_ids = data["reaction_compound_ids"]
         self.pathway_reaction_ids = data["pathway_reaction_ids"]
+        self.pathway_descriptions = data["pathway_descriptions"]
         
     @staticmethod
     def fetch_reaction_compound_ids():
@@ -171,6 +178,21 @@ class KEGGIntegration(SingletonClass):
         """
         for i in range(0, len(list_to_split), n):
             yield list_to_split[i:i + n]
+
+    @staticmethod
+    def fetch_pathway_descriptions(organism=None):
+        """ Returns pathways in the form of a list of dictionaries [{'entry' = STRING, 'description' = STRING}, ... ]
+
+        Parameters
+        ----------
+        organism : str, optional
+            An identifier declared by KEGG database that identifies a specific organism ('hsa' for humans)
+        """
+        pathways = REST.kegg_list("pathway", org=organism).read().split("\n")
+        pathways = [x.split("\t") for x in pathways]
+        pathways = filter(lambda x: x[0] != '', pathways)  # remove empty entries
+        pathways = [{'entry': x[0], 'description': x[1]} for x in pathways]
+        return pathways
 
     def compound_synonym_to_ids(self, synonyms: list, reaction_id: str):
         """
@@ -287,6 +309,90 @@ class KEGGIntegration(SingletonClass):
                 reaction["products"] = id_regex.findall(match.group("products"))
 
             self.reaction_substrate_product_ids[reaction_id] = reaction
+
+    def generate_dats(self, entries: list):
+        """
+        Generates the .dat files for the pathways
+
+        Parameters
+        ----------
+        entries : list
+            A list of pathway ids for which the .dat files are to be generated
+
+        Returns
+        -------
+        list
+            A list of tuples containing the pathway id and the path to the .dat file
+        """
+        print("<>  generating dat")
+        for e in entries:
+            self._generate_dat(e)
+        print("</> generating dat")
+        return [(entry, "dats/" + entry + ".dat") for entry in entries]
+
+    def _generate_dat(self, pathway_id: str):
+        """
+        Generates the .dat file for the pathway
+
+        Parameters
+        ----------
+        pathway_id : str
+            The id of the pathway for which the .dat file is to be generated
+        """
+        dat_file = "dats/" + pathway_id + ".dat"
+        f = open(dat_file, "w")
+
+        generic_pathway_reactions = {k[-5:]: v for k, v in self.pathway_reaction_ids.items()}
+
+        reactions = {r_id: self.reaction_substrate_product_ids[r_id].values() for r_id in generic_pathway_reactions[pathway_id[-5:]]}
+
+        substrates_products = set()
+        for substrates, products in reactions.values():
+            for substrate in substrates:
+                substrates_products.add(substrate)
+            for product in products:
+                substrates_products.add(product)
+
+        # write the sets (V,E)
+        f.write("set E :=")
+        for r_id in reactions.keys():
+            f.write(" " + r_id)
+        f.write(";\n")
+
+        f.write("set V :=")
+        for sp_id in substrates_products:
+            f.write(" " + sp_id)
+        f.write(";\n\n")
+
+        # write the sets X and Y
+        for r_id, (subs, prods) in reactions.items():
+            f.write("set X[" + r_id + "] :=")
+            for s_id in subs:
+                f.write(" " + s_id)
+            f.write(";\n")
+            f.write("set Y[" + r_id + "] :=")
+            for p_id in prods:
+                f.write(" " + p_id)
+            f.write(";\n")
+        f.write("\n")
+
+        # determine the set of reversible reactions
+        # seen = {}
+        f.write("set uninvertibles :=\n")
+        # for reaction in kgml.reactions:
+        #     if reaction.type == "reversible":
+        #         continue
+        #     else:
+        #         for r in reaction.name.split(" "):
+        #             if r in seen:
+        #                 continue
+        #             f.write(r.replace("rn:", "") + " ")
+        #             seen[r] = True
+        f.write(";\n\n")
+        f.write("set forced_externals := ;\n\nset forced_internals := ;\n\n")
+
+        f.close()
+
 
 
 

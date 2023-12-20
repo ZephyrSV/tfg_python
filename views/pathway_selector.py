@@ -180,7 +180,7 @@ class Pathway_selector(tk.Tk):
         self.image_label = tk.Label(self)
         self.image_label.grid(**pad(), **g.place(cs=4))
 
-        self.human_pathways = self.dat_generator.pathway_description
+        self.human_pathways = self.dat_generator.pathway_descriptions
         self.options = self.human_pathways
         self.dropdown_id.config(state='normal')
         self.dropdown.config(state='normal')
