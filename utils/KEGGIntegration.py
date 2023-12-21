@@ -61,7 +61,7 @@ class KEGGIntegration(SingletonClass):
             self.dump_data()
         if len(self.get_remaing_breaking_reaction_ids()) != 0:
             print("broken reaction ids: ", self.get_remaing_breaking_reaction_ids())
-            #self.fetch_broken_reactions()
+            self.fetch_broken_reactions()
             self.dump_data()
         if len(self.pathway_descriptions) == 0:
             print("fetching pathways and their descriptions")

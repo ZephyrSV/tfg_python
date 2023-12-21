@@ -30,6 +30,21 @@ class Pathway_selector(tk.Tk):
         self.dropdown_set_values()
         self.description_label.config(text=f"Description:\n{self.options[0]['description']}")
 
+    def dropdown_enter_action(self, event=None):
+        """
+        This function is called when enter is pressed in the dropdown.
+
+        The dropdown is used to select the pathway to be viewed.
+        """
+        options = [hp for hp in self.human_pathways if self.dropdown_var.get().upper() in hp['description'].upper()]
+        if len(options) == 0:
+            self.dropdown.config(style="Red.TCombobox")
+            return
+        self.dropdown.config(style="TCombobox")
+        self.options = options
+        self.dropdown_set_values()
+        self.description_label.config(text=f"Description:\n{self.options[self.dropdown.current()]['description']}")
+
     def on_entry_filter_click(self, event):
         """
         Called when the filter entry is clicked.
@@ -88,7 +103,7 @@ class Pathway_selector(tk.Tk):
         Benchmark_view(self, [x['entry'] for x in self.options])
 
 
-    def on_dropdown_select(self, event):
+    def on_dropdown_select(self, event=None):
         """
         This function is called when an option is selected in the dropdown for descriptions.
 
@@ -160,6 +175,8 @@ class Pathway_selector(tk.Tk):
         self.dropdown_var.set("Downloading...")
         self.dropdown.grid(**pad(y=0), **g.place())
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
+        self.dropdown.bind("<Return>", self.dropdown_enter_action)
+
 
         self.show_img_button = tk.Button(self, text='Show Image', command=self.show_image_button_click)
         self.show_img_button.grid(**pad(y=0),**g.place())
