@@ -88,8 +88,8 @@ class Benchmark_view(tk.Toplevel):
         Prepares the dats for the benchmark and blocks until all dats are prepared
         :return:
         """
-        d = KEGGIntegration()
-        for entry, dat in d.generate_dats(self.entries):
+
+        for entry, dat in self.kegg_integration.generate_dats(self.entries):
             self.add_to_dats(entry, dat)
 
     @print_thread_name
@@ -125,35 +125,37 @@ class Benchmark_view(tk.Toplevel):
         self.tickbox_UseInstalledBenchmarkData.pack()
         pass
 
-
-    def __init__(self, master,  entries):
+    def __init__(self, master):
         super().__init__(master)
+        self.kegg_integration = KEGGIntegration()
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.title("Benchmark")
-        self.entries = entries[:25]
+        self.entries = list(self.kegg_integration.pathway_descriptions.keys())[:25]
         g = GridUtil()
+        g.do_not_resize_row()
+
         self.select_solver_label = tkinter.Label(self, text="Select a solver")
-        self.select_solver_label.grid(**g.place(), **pad())
+        self.select_solver_label.grid(**g.place(sticky="nsew"), **pad())
         self.solver_selector = tkinter.ttk.Combobox(self, values=[key for key in self.solvers.keys()])
-        self.solver_selector.grid(**g.place(), **pad())
+        self.solver_selector.grid(**g.place(sticky="nsew"), **pad())
         self.solver_selector.current(0)
 
         g.next_row()
+        g.do_not_resize_row()
         self.start_button = tkinter.Button(self, text="Start benchmark", command=self.start_button_click)
-        self.start_button.grid(**g.place(cs=2), **pad())
+        self.start_button.grid(**g.place(cs=2, sticky="nsew"), **pad())
 
         g.next_row()
-
         self.treeview = ttk.Treeview(self, columns=["Solver"] + list(self.models.keys()))
         self.treeview.heading("Solver", text="Solver")
         for k in self.models.keys():
             self.treeview.heading(k, text=f"{k}'s solve duration")
         self.treeview.grid(**g.place(cs=2, sticky="nsew"))
         self.verticalScrollbar = ttk.Scrollbar(self, orient="vertical", command=self.treeview.yview)
-        self.verticalScrollbar.grid(**g.place(sticky="ns"))
+        g.do_not_resize_col()
+        self.verticalScrollbar.grid(**g.place(sticky="nsew"))
         self.treeview.configure(yscrollcommand=self.verticalScrollbar.set)
 
-        self.grid_rowconfigure(g.current_row, weight=1)
-        self.grid_columnconfigure(g.current_row, weight=1)
+        self.bind("<Configure>", g.generate_on_resize())
         self.mainloop()
 

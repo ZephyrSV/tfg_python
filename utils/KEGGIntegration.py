@@ -181,17 +181,12 @@ class KEGGIntegration(SingletonClass):
 
     @staticmethod
     def fetch_pathway_descriptions(organism=None):
-        """ Returns pathways in the form of a list of dictionaries [{'entry' = STRING, 'description' = STRING}, ... ]
-
-        Parameters
-        ----------
-        organism : str, optional
-            An identifier declared by KEGG database that identifies a specific organism ('hsa' for humans)
+        """ Returns pathways in the form of a dictionary of the form {pathway_id: pathway_description}
         """
         pathways = REST.kegg_list("pathway", org=organism).read().split("\n")
         pathways = [x.split("\t") for x in pathways]
         pathways = filter(lambda x: x[0] != '', pathways)  # remove empty entries
-        pathways = [{'entry': x[0], 'description': x[1]} for x in pathways]
+        pathways = {x[0]: x[1] for x in pathways}
         return pathways
 
     def compound_synonym_to_ids(self, synonyms: list, reaction_id: str):
