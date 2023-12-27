@@ -58,10 +58,6 @@ class Benchmark_view(tk.Toplevel):
         self.treeview.item(entry, values=[solver_id] + list(np.average(valid_duration_lists, axis=0)))
 
 
-    def prepare_dat(self, entry):
-        dat = get_or_generate_dat(entry)
-        self.add_to_dats(entry, dat)
-
     def solve_all_entries(self):
         solver_id = self.solver_selector.get()
         solver = self.solvers[solver_id]
@@ -92,8 +88,6 @@ class Benchmark_view(tk.Toplevel):
         Prepares the dats for the benchmark and blocks until all dats are prepared
         :return:
         """
-        #futures = [self.executor.submit(self.prepare_dat, entry) for entry in self.entries]
-        #concurrent.futures.wait(futures)
         d = KEGGIntegration()
         for entry, dat in d.generate_dats(self.entries):
             self.add_to_dats(entry, dat)
@@ -131,10 +125,12 @@ class Benchmark_view(tk.Toplevel):
         self.tickbox_UseInstalledBenchmarkData.pack()
         pass
 
-    def init_UI(self):
-        """
-        Initializes the UI
-        """
+
+    def __init__(self, master,  entries):
+        super().__init__(master)
+        self.executor = concurrent.futures.ThreadPoolExecutor()
+        self.title("Benchmark")
+        self.entries = entries[:25]
         g = GridUtil()
         self.select_solver_label = tkinter.Label(self, text="Select a solver")
         self.select_solver_label.grid(**g.place(), **pad())
@@ -159,12 +155,5 @@ class Benchmark_view(tk.Toplevel):
 
         self.grid_rowconfigure(g.current_row, weight=1)
         self.grid_columnconfigure(g.current_row, weight=1)
-
-    def __init__(self, master,  entries):
-        super().__init__(master)
-        self.executor = concurrent.futures.ThreadPoolExecutor()
-        self.title("Benchmark")
-        self.entries = entries[:25]
-        self.init_UI()
         self.mainloop()
 
