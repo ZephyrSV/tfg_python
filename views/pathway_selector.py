@@ -197,5 +197,7 @@ class Pathway_selector(tk.Tk):
         self.dropdown.config(state='normal')
         self.dropdown_set_values()
 
+        self.bind("<Configure>", g.generate_on_resize())
+
 
 

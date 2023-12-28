@@ -57,8 +57,6 @@ class GridUtil:
             for i in range(self.current_column+1):
                 if i not in self.no_resize_columns:
                     event.widget.columnconfigure(i, weight=1)
-
-
         return on_resize
 
     def do_not_resize_col(self):

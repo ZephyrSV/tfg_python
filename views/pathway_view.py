@@ -131,8 +131,6 @@ class PathwayView(tk.Toplevel):
         self.compounds = self.ampl.getSet("V").getValues().toList()
 
     def draw_canvas_frame(self):
-        canvas_frame = ttk.Frame(self)
-        canvas_frame.grid(**pad(), row=0, column=3, rowspan=5)
         G = nx.Graph()
         G.add_nodes_from(self.reactions)
         G.add_nodes_from(self.compounds)
@@ -168,10 +166,12 @@ class PathwayView(tk.Toplevel):
         ax.legend(loc='best', prop={'size': 8})
 
 
-        canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
+        canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
         canvas_widget = canvas.get_tk_widget()
-        NavigationToolbar2Tk(canvas, canvas_frame)
+        NavigationToolbar2Tk(canvas, self.canvas_frame)
         canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        self.after(100, lambda: self.canvas_frame.bind("<Configure>", lambda event: canvas_widget.configure(width=event.width, height=event.height)))
+
 
 
 
@@ -190,7 +190,10 @@ class PathwayView(tk.Toplevel):
         g = GridUtil()
 
         self.title_label = ttk.Label(self, text="Select a model and a solver")
-        self.title_label.grid(**pad(), **g.place(cs=3))
+        self.title_label.grid(**pad(), **g.place(cs=2))
+
+        self.canvas_frame = ttk.Frame(self)
+        self.canvas_frame.grid(**pad(), **g.place(rs=5))
 
         g.next_row()
 
@@ -202,24 +205,29 @@ class PathwayView(tk.Toplevel):
         self.model_selector.grid(**pad(), **g.place())
 
         g.next_row()
-
+        g.do_not_resize_col()
         self.solver_label = ttk.Label(self, text="Solver")
         self.solver_label.grid(**pad(), **g.place())
 
+        g.do_not_resize_col()
         self.solver_selector = ttk.Combobox(self, values=[key for key in self.solvers.keys()])
         self.solver_selector.current(0)
         self.solver_selector.grid(**pad(), **g.place())
 
         g.next_row()
         self.tickbox_frame = ttk.Frame(self)
-        self.tickbox_frame.grid(**pad(), **g.place(cs=3))
+        self.tickbox_frame.grid(**pad(), **g.place(cs=2))
 
         self.create_tickboxes(self.tickbox_frame)
 
         g.next_row()
 
         self.solve_button = ttk.Button(self, text="Solve", command=self.solve)
-        self.solve_button.grid(**pad(), **g.place(cs=3))
+        self.solve_button.grid(**pad(), **g.place(cs=2))
+
+
+
+        self.bind("<Configure>", g.generate_on_resize())
 
     def __init__(self, master, entry, mainloop=True):
         super().__init__(master)
