@@ -234,5 +234,5 @@ class PathwayView(tk.Toplevel):
 if __name__ == "__main__":
     root = tk.Tk()
     app = PathwayView(master=root, entry="hsa00010", mainloop=False)
-    app.after(0,app.solve)
+    app.after(0, app.solve)
     app.mainloop()

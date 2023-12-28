@@ -154,7 +154,7 @@ class Pathway_selector(tk.Tk):
         self.filter_entry.bind("<Return>", self.filter_enter_action)
         self.filter_entry.grid(**pad(), **g.place())
 
-        self.filter_button = tk.Button(self, text='Filter', command=self.filter_enter_action)
+        self.filter_button = tk.Button(self, text='Search', command=self.filter_enter_action)
         self.filter_button.grid(**pad(y=0), **g.place())
 
         g.next_row()
