@@ -165,8 +165,8 @@ class PathwayView(tk.Toplevel):
         ax.axis('off')
         ax.legend(loc='best', prop={'size': 8})
 
-
         canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
+        canvas_widget = canvas.get_tk_widget()
         canvas_widget = canvas.get_tk_widget()
         NavigationToolbar2Tk(canvas, self.canvas_frame)
         canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)

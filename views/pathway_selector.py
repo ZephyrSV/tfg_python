@@ -122,15 +122,15 @@ class Pathway_selector(tk.Tk):
         Sets the values of the dropdown.
         """
 
-        values = list(self.search_pool.keys())
+        values = sorted(list(self.search_pool.keys()))
         max_length = len(max(values, key=len))
         self.dropdown_id.config(values=values, width=max_length+5)
         self.dropdown_var_id.set(values[0])
 
-        values = list(self.search_pool.values())
+        values = sorted(list(self.search_pool.values()))
         max_length = len(max(values, key=len))
         self.dropdown.config(values=values, width=max_length+5)
-        self.dropdown_var.set(values[0])
+        self.dropdown_var.set(self.search_pool[self.dropdown_id.get()])
 
 
 
