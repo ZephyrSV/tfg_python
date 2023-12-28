@@ -27,17 +27,10 @@ class PathwayView(tk.Toplevel):
         "CPLEX": "cplex",
         "Gurobi": "gurobi",
     }
-    tickbox_labels = [
-        "respect invertability",
-        "force internals",
-        "force externals",
-        "Save results to file"
-    ]
-    tickbox_models = {
-        "respect invertability": "AMPL/models/restrictions/respect_invertability.mod",
-        "force internals": "AMPL/models/restrictions/forced_internals.mod",
-        "force externals": "AMPL/models/restrictions/forced_externals.mod",
-    }
+    save_result_to_file_var = None
+    save_result_to_file = None
+    visualize_result_var = None
+    visualize_result = None
     tickbox_vars = {}
     tickbox_elements = {}
 
@@ -48,10 +41,6 @@ class PathwayView(tk.Toplevel):
         self.ampl = AMPL()
         self.ampl.read(self.models[self.model_selector.get()])
         self.ampl.readData(self.dat)
-        for k, v in self.tickbox_vars.items():
-            print(k, v.get())
-            if v.get() == 1 and k in self.tickbox_models:
-                self.ampl.read(self.tickbox_models[k])
         print("solver: ", self.solvers[self.solver_selector.get()])
         self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
         before_solve_time = time.time()
@@ -59,7 +48,7 @@ class PathwayView(tk.Toplevel):
 
         printers = [print]
 
-        if self.tickbox_vars["Save results to file"].get() == 1:
+        if self.save_result_to_file_var.get():
             file_path = filedialog.asksaveasfilename(defaultextension=".txt",
                                                      initialdir="./output",
                                                      initialfile=f"{self.model_selector.get()}_{self.solver_selector.get()}_{self.entry}",
@@ -70,7 +59,8 @@ class PathwayView(tk.Toplevel):
 
         self.get_ampl_variables()
         self.print_result(time.time() - before_solve_time, printers=printers)
-        self.draw_canvas_frame()
+        if self.visualize_result_var.get():
+            self.draw_canvas_frame()
 
     def build_save_to_file_printer(self, file_path):
         class Printer:
@@ -171,17 +161,18 @@ class PathwayView(tk.Toplevel):
         NavigationToolbar2Tk(canvas, self.canvas_frame)
         canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
         self.after(100, lambda: self.canvas_frame.bind("<Configure>", lambda event: canvas_widget.configure(width=event.width, height=event.height)))
-
-
-
-
+        self.resizable(True, True)
 
 
     def create_tickboxes(self, parent):
-        for i, t in enumerate(self.tickbox_labels):
-            self.tickbox_vars[t] = tk.IntVar(value=0)
-            self.tickbox_elements[t] = ttk.Checkbutton(parent, text=t, variable=self.tickbox_vars[t])
-            self.tickbox_elements[t].grid(row=i, column=0, sticky=tk.W)
+        g = GridUtil()
+        self.save_result_to_file_var = tk.IntVar(value=0)
+        self.save_result_to_file = ttk.Checkbutton(parent, text="Save result to file", variable=self.save_result_to_file_var)
+        self.save_result_to_file.grid(**pad(), **g.place(sticky=tk.W))
+
+        self.visualize_result_var = tk.IntVar(value=0)
+        self.visualize_result = ttk.Checkbutton(parent, text="Visualize result", variable=self.visualize_result_var)
+        self.visualize_result.grid(**pad(), **g.place(sticky=tk.W))
 
     def init_UI(self):
         """
@@ -228,6 +219,7 @@ class PathwayView(tk.Toplevel):
 
 
         self.bind("<Configure>", g.generate_on_resize())
+        self.resizable(False, False)
 
     def __init__(self, master, entry, mainloop=True):
         super().__init__(master)
