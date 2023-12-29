@@ -61,6 +61,8 @@ class PathwayView(tk.Toplevel):
         self.print_result(time.time() - before_solve_time, printers=printers)
         if self.visualize_result_var.get():
             self.draw_canvas_frame()
+        self.solved_label.config(text="Solved! Check console for results.")
+        self.after(2500, lambda: self.solved_label.config(text=""))
 
     def build_save_to_file_printer(self, file_path):
         class Printer:
@@ -207,16 +209,19 @@ class PathwayView(tk.Toplevel):
 
         g.next_row()
         self.tickbox_frame = ttk.Frame(self)
-        self.tickbox_frame.grid(**pad(), **g.place(cs=2))
+        self.tickbox_frame.grid(**pad(y=0), **g.place(cs=2))
 
         self.create_tickboxes(self.tickbox_frame)
 
         g.next_row()
 
+        self.solved_label = ttk.Label(self, text="", foreground="green")
+        self.solved_label.grid(**pad(y=0), **g.place(cs=2))
+
+        g.next_row()
+
         self.solve_button = ttk.Button(self, text="Solve", command=self.solve)
         self.solve_button.grid(**pad(), **g.place(cs=2))
-
-
 
         self.bind("<Configure>", g.generate_on_resize())
         self.resizable(False, False)
@@ -232,7 +237,7 @@ class PathwayView(tk.Toplevel):
             self.mainloop()
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = tk.Tk() 
     app = PathwayView(master=root, entry="hsa00010", mainloop=False)
     app.after(0, app.solve)
     app.mainloop()
