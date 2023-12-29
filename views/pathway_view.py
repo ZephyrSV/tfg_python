@@ -62,7 +62,7 @@ class PathwayView(tk.Toplevel):
         if self.visualize_result_var.get():
             self.draw_canvas_frame()
         self.solved_label.config(text="Solved! Check console for results.")
-        self.after(2500, lambda: self.solved_label.config(text=""))
+        self.after(5000, lambda: self.solved_label.config(text=""))
 
     def build_save_to_file_printer(self, file_path):
         class Printer:
