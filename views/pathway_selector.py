@@ -37,9 +37,23 @@ class Pathway_selector(tk.Tk):
         """
         search_pool = {entry: desc for entry, desc in self.kegg_integration.pathway_descriptions.items() if self.dropdown_var.get().upper() in desc.upper()}
         if len(search_pool) == 0:
-            self.dropdown.config(style="Red.TCombobox")
+            self.dropdown.config(foreground="red")
             return
-        self.dropdown.config(style="TCombobox")
+        self.dropdown.config(foreground="black")
+        self.search_pool = search_pool
+        self.dropdown_set_values()
+
+    def dropdown_id_enter_action(self, event=None):
+        """
+        This function is called when enter is pressed in the dropdown.
+
+        The dropdown is used to select the pathway to be viewed.
+        """
+        search_pool = {entry: desc for entry, desc in self.kegg_integration.pathway_descriptions.items() if self.dropdown_var_id.get().upper() in entry.upper()}
+        if len(search_pool) == 0:
+            self.dropdown_id.config(foreground="red")
+            return
+        self.dropdown_id.config(foreground="black")
         self.search_pool = search_pool
         self.dropdown_set_values()
 
@@ -117,6 +131,22 @@ class Pathway_selector(tk.Tk):
         """
         self.dropdown_var.set(self.search_pool[self.dropdown_id.get()])
 
+    def clear_description_label(self, event=None):
+        """
+        Clears the description label.
+        """
+        self.description_label.config(text="")
+        self.description_label.update()
+
+    def set_description_label_func(self, text):
+        """
+        Returns a function that sets the description label to the given text.
+        """
+        def set_description_label(event=None):
+            self.description_label.config(text=text)
+            self.description_label.update()
+        return set_description_label
+
     def dropdown_set_values(self):
         """
         Sets the values of the dropdown.
@@ -144,21 +174,6 @@ class Pathway_selector(tk.Tk):
         self.title("Orienting Biochemical Reactions")
         self.resizable(False, False)
 
-        g.set_column(2)
-
-        self.filter_entry = tk.Entry(self)
-        self.filter_entry.insert(0, self.default_filter_text)
-        self.filter_entry.config(fg="gray")
-        self.filter_entry.bind("<FocusIn>", self.on_entry_filter_click)
-        self.filter_entry.bind("<FocusOut>", self.on_entry_filter_leave)
-        self.filter_entry.bind("<Return>", self.filter_enter_action)
-        self.filter_entry.grid(**pad(), **g.place())
-
-        self.filter_button = tk.Button(self, text='Search', command=self.filter_enter_action)
-        self.filter_button.grid(**pad(y=0), **g.place())
-
-        g.next_row()
-
         self.label = tk.Label(self, text='Select pathway: ', font=("Arial", 12, "bold", "underline"))
         self.label.grid(**pad(), **g.place())
 
@@ -167,6 +182,10 @@ class Pathway_selector(tk.Tk):
         self.dropdown_var_id.set('Downloading...')
         self.dropdown_id.grid(**pad(y=0), **g.place())
         self.dropdown_id.bind("<<ComboboxSelected>>", self.on_dropdown_id_select)
+        self.dropdown_id.bind("<Return>", self.dropdown_id_enter_action)
+        self.dropdown_id.bind("<Enter>", self.set_description_label_func(
+            "Select a pathway. You can also type in the pathway id and press enter."))
+        self.dropdown_id.bind("<Leave>", self.clear_description_label)
 
         self.dropdown_var = tk.StringVar()
         self.dropdown = ttk.Combobox(self, textvariable=self.dropdown_var, state='readonly')
@@ -174,18 +193,35 @@ class Pathway_selector(tk.Tk):
         self.dropdown.grid(**pad(y=0), **g.place())
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
         self.dropdown.bind("<Return>", self.dropdown_enter_action)
+        self.dropdown.bind("<Enter>", self.set_description_label_func(
+            "Select a pathway. You can also type in the pathway name and press enter."))
+        self.dropdown.bind("<Leave>", self.clear_description_label)
+
 
 
         self.show_img_button = tk.Button(self, text='Show Image', command=self.show_image_button_click)
         self.show_img_button.grid(**pad(y=0),**g.place())
+        self.show_img_button.bind("<Enter>", self.set_description_label_func(
+            "Show the image of the selected pathway. This may take a while. (Requires internet connection)"))
+        self.show_img_button.bind("<Leave>", self.clear_description_label)
 
         self.select_button = tk.Button(self, text='Select 🡕', command=self.select_pathway_button_click)
         self.select_button.grid(**pad(y=0), **g.place())
+        self.select_button.bind("<Enter>", self.set_description_label_func(
+            "Open the pathway window of the selected pathway."))
+        self.select_button.bind("<Leave>", self.clear_description_label)
 
         g.next_row()
-        g.set_column(3)
+        self.description_label = tk.Label(self, foreground="gray")
+        self.description_label.grid(**pad(y=0), **g.place(cs=4))
+
         self.benchmark_button = tk.Button(self, text='Benchmark 🡕', command=self.benchmark_button_click)
         self.benchmark_button.grid(**pad(y=0), **g.place())
+        self.benchmark_button.bind("<Enter>", self.set_description_label_func(
+            "Open the benchmark window."))
+        self.benchmark_button.bind("<Leave>", self.clear_description_label)
+
+
 
         g.next_row()
         self.image_label = tk.Label(self)
