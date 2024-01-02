@@ -184,7 +184,7 @@ class Pathway_selector(tk.Tk):
         self.dropdown_id.bind("<<ComboboxSelected>>", self.on_dropdown_id_select)
         self.dropdown_id.bind("<Return>", self.dropdown_id_enter_action)
         self.dropdown_id.bind("<Enter>", self.set_description_label_func(
-            "Select a pathway. You can also type in the pathway id and press enter."))
+            "Select a pathway. You can also search for one by typing its pathway id and pressing enter."))
         self.dropdown_id.bind("<Leave>", self.clear_description_label)
 
         self.dropdown_var = tk.StringVar()
@@ -194,7 +194,7 @@ class Pathway_selector(tk.Tk):
         self.dropdown.bind("<<ComboboxSelected>>", self.on_dropdown_select)
         self.dropdown.bind("<Return>", self.dropdown_enter_action)
         self.dropdown.bind("<Enter>", self.set_description_label_func(
-            "Select a pathway. You can also type in the pathway name and press enter."))
+            "Select a pathway. You can also search for one by typing its name and pressing enter."))
         self.dropdown.bind("<Leave>", self.clear_description_label)
 
 

@@ -114,7 +114,7 @@ class Benchmark_view(tk.Toplevel):
         )
         self.current_test_id = self.get_last_entry_treeview_id()
         print(f"Current test id: {self.current_test_id}")
-        self.executor.submit(self.run_benchmark)
+        threading.Thread(target=self.run_benchmark).start()
 
     def create_tickboxes(self, parent):
         self.tickbox_var_UseInstalledBenchmarkData = tk.IntVar(value=0)
@@ -157,5 +157,11 @@ class Benchmark_view(tk.Toplevel):
         self.treeview.configure(yscrollcommand=self.verticalScrollbar.set)
 
         self.bind("<Configure>", g.generate_on_resize())
-        self.mainloop()
+        try:
+            self.mainloop()
+        except KeyboardInterrupt:
+            print("Interrupted by user")
+            self.destroy()
+            exit(0)
+
 

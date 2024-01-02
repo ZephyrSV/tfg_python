@@ -234,7 +234,12 @@ class PathwayView(tk.Toplevel):
         self.title(f"{entry}")
         self.init_UI()
         if mainloop:
-            self.mainloop()
+            try:
+                self.mainloop()
+            except KeyboardInterrupt:
+                print("Interrupted by user")
+                self.destroy()
+                exit(0)
 
 if __name__ == "__main__":
     root = tk.Tk() 

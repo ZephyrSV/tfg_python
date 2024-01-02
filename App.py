@@ -8,4 +8,9 @@ from views.pathway_selector import Pathway_selector
 if __name__ == '__main__':
     print("Running App.py")
     app = Pathway_selector()
-    app.mainloop()
+    try:
+        app.mainloop()
+    except KeyboardInterrupt:
+        print("Interrupted by user")
+        app.destroy()
+        exit(0)
