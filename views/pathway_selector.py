@@ -121,7 +121,7 @@ class Pathway_selector(tk.Tk):
             "the KEGG REST API.\n"
             "If that is the case, you will have to wait until you are unbanned from the REST API before resuming.\n"
             "\n"
-            "This will close the App, The dataset will be downloaded upon re-launching"
+            "This will close the app, the dataset will be downloaded upon re-launching"
         )
         if response:
             os.remove(KEGGIntegration.data_loc)
