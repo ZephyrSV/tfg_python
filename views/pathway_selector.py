@@ -125,6 +125,7 @@ class Pathway_selector(tk.Tk):
         )
         if response:
             os.remove(KEGGIntegration.data_loc)
+            exit(0)
 
 
     def on_dropdown_select(self, event=None):
