@@ -28,6 +28,13 @@ class PathwayView(tk.Toplevel):
     save_result_to_file = None
     visualize_result_var = None
     visualize_result = None
+    solve_5s_count = 0
+
+    def five_secs_after_solve(self):
+        self.solve_5s_count -= 1
+        if self.solve_5s_count == 0:
+            self.solved_label.config(text="")
+
 
     def solve(self):
         """
@@ -57,7 +64,8 @@ class PathwayView(tk.Toplevel):
         if self.visualize_result_var.get():
             self.draw_canvas_frame()
         self.solved_label.config(text="Solved! Check console for results.")
-        self.after(5000, lambda: self.solved_label.config(text=""))
+        self.solve_5s_count += 1
+        self.after(5000, self.five_secs_after_solve)
 
     def build_save_to_file_printer(self, file_path):
         class Printer:
@@ -171,10 +179,16 @@ class PathwayView(tk.Toplevel):
         self.visualize_result = ttk.Checkbutton(parent, text="Visualize result", variable=self.visualize_result_var)
         self.visualize_result.grid(**pad(), **g.place(sticky=tk.W))
 
-    def init_UI(self):
-        """
-        Initializes the UI
-        """
+
+    def __init__(self, master, entry, mainloop=True):
+        super().__init__(master)
+        self.entry = entry
+        d = KEGGIntegration()
+        self.dat = d.generate_dats([entry])[0][1]
+        self.title(f"{entry}")
+        ####
+        # The UI
+        ####
         g = GridUtil()
 
         self.title_label = ttk.Label(self, text="Select a model and a solver")
@@ -221,13 +235,6 @@ class PathwayView(tk.Toplevel):
         self.bind("<Configure>", g.generate_on_resize())
         self.resizable(False, False)
 
-    def __init__(self, master, entry, mainloop=True):
-        super().__init__(master)
-        self.entry = entry
-        d = KEGGIntegration()
-        self.dat = d.generate_dats([entry])[0][1]
-        self.title(f"{entry}")
-        self.init_UI()
         if mainloop:
             try:
                 self.mainloop()
