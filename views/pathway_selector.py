@@ -117,8 +117,8 @@ class Pathway_selector(tk.Tk):
     def update_data_button_click(self):
         response = messagebox.askyesno(
             "Confirmation",
-            "This operation is very time consuming. It is most likely you will be IP-banned for a few minutes from"
-            "the KEGG REST API.\n"
+            "This operation is very time consuming. It is most likely you will be IP-banned for a few minutes/hours "
+            "from the KEGG REST API.\n"
             "If that is the case, you will have to wait until you are unbanned from the REST API before resuming.\n"
             "\n"
             "This will close the app, the dataset will be downloaded upon re-launching"
