@@ -203,6 +203,8 @@ class PathwayView(tk.Toplevel):
         self.model_label.grid(**pad(), **g.place())
 
         self.model_selector = ttk.Combobox(self, values=[key for key in self.models.keys()])
+        max_length = len(max(self.models.keys(), key=len))
+        self.model_selector.config(width=max_length + 5)
         self.model_selector.current(0)
         self.model_selector.grid(**pad(), **g.place())
 
