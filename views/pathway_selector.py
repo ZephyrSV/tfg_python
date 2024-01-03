@@ -119,7 +119,10 @@ class Pathway_selector(tk.Tk):
             "Confirmation",
             "This operation is very time consuming. It is most likely you will be IP-banned for a few minutes from"
             "the KEGG REST API.\n"
-            "If that is the case, you will have to wait until you are unbanned from the REST API before resuming.")
+            "If that is the case, you will have to wait until you are unbanned from the REST API before resuming.\n"
+            "\n"
+            "This will close the App, The dataset will be downloaded upon re-launching"
+        )
         if response:
             os.remove(KEGGIntegration.data_loc)
 
@@ -228,7 +231,7 @@ class Pathway_selector(tk.Tk):
         self.update_data_button = tk.Button(self, text="Update Dataset", command=self.update_data_button_click)
         self.update_data_button.grid(**pad(y=0), **g.place())
         self.update_data_button.bind("<Enter>", self.set_description_label_func(
-            "Refresh and download the dataset (Requires an internet connection)."))
+            "Refresh and download the dataset. (Requires an internet connection)"))
         self.update_data_button.bind("<Leave>", self.clear_description_label)
 
 
