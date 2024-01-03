@@ -49,4 +49,4 @@ subject to has_outgoing_implies_outgoing {j in V}:
         <= M * has_incoming[j];
 
 s.t. compute_is_internal{i in V}:
-		is_internal[i] <= has_outgoing[i] + has_incoming[i] - 1;
+		is_internal[i] * 2 <= has_outgoing[i] + has_incoming[i];
