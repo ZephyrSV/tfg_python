@@ -16,11 +16,11 @@ from utils.ui_utils import pad, GridUtil
 class PathwayView(tk.Toplevel):
     ampl = AMPL()
     models = {
-        "Zephyr": "AMPL/models/zephyr.mod",
-        #"Zephyr Optimized": "AMPL/models/my_model2.mod",
-        "Nasini": "AMPL/models/nasini.mod",
-        #"Valiente": "AMPL/models/valiente.mod"
-        "Zephyr Full": "AMPL/models/zephyr_full.mod"
+        "Zephyr": "AMPL/models/zephyr_dual_imply.mod",
+        #"Zephyr Optimized": "AMPL/models/zephyr_uni_imply.mod",
+        "Nasini": "AMPL/models/model_A.mod",
+        #"Valiente": "AMPL/models/model_B.mod"
+        "Zephyr Full": "AMPL/models/zephyr_dual_imply_extra_restrictions.mod"
     }
     solvers = {
         "cbc": "cbc",
