@@ -16,11 +16,8 @@ from utils.ui_utils import pad, GridUtil
 class PathwayView(tk.Toplevel):
     ampl = AMPL()
     models = {
-        "Zephyr": "AMPL/models/zephyr_dual_imply.mod",
-        #"Zephyr Optimized": "AMPL/models/zephyr_uni_imply.mod",
-        "Nasini": "AMPL/models/model_A.mod",
-        #"Valiente": "AMPL/models/model_B.mod"
-        "Zephyr Full": "AMPL/models/zephyr_dual_imply_extra_restrictions.mod"
+        "Zephyr Dual Imply with extra restrictions": "AMPL/models/zephyr_dual_imply_extra_restrictions.mod",
+        "Model A (faster, no extra restrictions)": "AMPL/models/model_A.mod", # Nasini
     }
     solvers = {
         "cbc": "cbc",
@@ -31,8 +28,6 @@ class PathwayView(tk.Toplevel):
     save_result_to_file = None
     visualize_result_var = None
     visualize_result = None
-    tickbox_vars = {}
-    tickbox_elements = {}
 
     def solve(self):
         """
