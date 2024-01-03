@@ -31,8 +31,8 @@ class Benchmark_view(tk.Toplevel):
     }
     models = {
         "Zephyr old": "AMPL/models/my_model.mod",
-        "Zephyr full": "AMPL/models/zephyr.mod",
-        "Zephyr weak": "AMPL/models/my_model2.mod",
+        "Zephyr DualImply": "AMPL/models/zephyr.mod",
+        "Zephyr UniImply": "AMPL/models/my_model2.mod",
         "Model A": "AMPL/models/nasini.mod",
         "Model B": "AMPL/models/valiente.mod",
     }
