@@ -195,7 +195,7 @@ class PathwayView(tk.Toplevel):
         self.title_label.grid(**pad(), **g.place(cs=2))
 
         self.canvas_frame = ttk.Frame(self)
-        self.canvas_frame.grid(**pad(), **g.place(rs=5))
+        self.canvas_frame.grid(**pad(), **g.place(rs=6))
 
         g.next_row()
 
