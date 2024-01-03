@@ -30,11 +30,11 @@ class Benchmark_view(tk.Toplevel):
         "Gurobi": "gurobi",
     }
     models = {
-        "Zephyr Old": "AMPL/models/my_model.mod",
-        "Zephyr": "AMPL/models/zephyr.mod",
-        "Zephyr Optimized": "AMPL/models/my_model2.mod",
-        "Nasini": "AMPL/models/nasini.mod",
-        "Valiente": "AMPL/models/valiente.mod",
+        "Zephyr old": "AMPL/models/my_model.mod",
+        "Zephyr full": "AMPL/models/zephyr.mod",
+        "Zephyr weak": "AMPL/models/my_model2.mod",
+        "Model A": "AMPL/models/nasini.mod",
+        "Model B": "AMPL/models/valiente.mod",
     }
     ampls = {k: AMPL() for k in models.keys()}  # One ampl instance per model
     dats = {}
