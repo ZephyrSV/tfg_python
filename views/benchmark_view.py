@@ -157,11 +157,13 @@ class Benchmark_view(tk.Toplevel):
         self.treeview.configure(yscrollcommand=self.verticalScrollbar.set)
 
         self.bind("<Configure>", g.generate_on_resize())
+        self.focus_set()
         try:
             self.mainloop()
         except KeyboardInterrupt:
             print("Interrupted by user")
             self.destroy()
+            raise KeyboardInterrupt
             exit(0)
 
 

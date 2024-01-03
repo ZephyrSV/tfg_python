@@ -234,6 +234,7 @@ class PathwayView(tk.Toplevel):
 
         self.bind("<Configure>", g.generate_on_resize())
         self.resizable(False, False)
+        self.focus_set()
 
         if mainloop:
             try:
@@ -241,6 +242,7 @@ class PathwayView(tk.Toplevel):
             except KeyboardInterrupt:
                 print("Interrupted by user")
                 self.destroy()
+                raise KeyboardInterrupt
                 exit(0)
 
 if __name__ == "__main__":
