@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import ttk
 from PIL import ImageTk, Image
@@ -9,7 +10,7 @@ from views.pathway_view import PathwayView
 from views.benchmark_view import Benchmark_view
 from utils.ui_utils import *
 import concurrent.futures
-
+from tkinter import messagebox
 
 
 class Pathway_selector(tk.Tk):
@@ -113,6 +114,15 @@ class Pathway_selector(tk.Tk):
         """
         Benchmark_view(master=self)
 
+    def update_data_button_click(self):
+        response = messagebox.askyesno(
+            "Confirmation",
+            "This operation is very time consuming. It is most likely you will be IP-banned for a few minutes from"
+            "the KEGG REST API.\n"
+            "If that is the case, you will have to wait until you are unbanned from the REST API before resuming.")
+        if response:
+            os.remove(KEGGIntegration.data_loc)
+
 
     def on_dropdown_select(self, event=None):
         """
@@ -213,7 +223,14 @@ class Pathway_selector(tk.Tk):
 
         g.next_row()
         self.description_label = tk.Label(self, foreground="gray")
-        self.description_label.grid(**pad(y=0), **g.place(cs=4))
+        self.description_label.grid(**pad(y=0), **g.place(cs=3))
+
+        self.update_data_button = tk.Button(self, text="Update Dataset", command=self.update_data_button_click)
+        self.update_data_button.grid(**pad(y=0), **g.place())
+        self.update_data_button.bind("<Enter>", self.set_description_label_func(
+            "Refresh and download the dataset (Requires an internet connection)."))
+        self.update_data_button.bind("<Leave>", self.clear_description_label)
+
 
         self.benchmark_button = tk.Button(self, text='Benchmark 🡕', command=self.benchmark_button_click)
         self.benchmark_button.grid(**pad(y=0), **g.place())
