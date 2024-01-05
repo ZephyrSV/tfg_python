@@ -53,7 +53,7 @@ class KEGGIntegration(SingletonClass):
 
         if len(self.map_reaction_id_to_substrates_products_ids) == 0:
             print("fetching reactions and their substrate product ids")
-            self.fetch_reaction_substrates_ids()
+            self.fetch_reaction_substrates_products_ids()
             self.dump_data()
         if len(self.map_pathway_id_to_list_reaction_id) == 0:
             print("fetching pathways and their reaction ids")
@@ -221,7 +221,15 @@ class KEGGIntegration(SingletonClass):
         print("compound: ", synonym, " has id: ", candidates[0], " for reaction: ", reaction_id)
         return candidates[0]
 
-    def fetch_reaction_substrates_ids(self):
+    def fetch_reaction_substrates_products_ids(self):
+        """
+            Fetches the list of reactions and creates the map reaction_id to substrate_ids and product_ids:
+            Uses the result from the KEGG api as well as :
+            - self.map_reaction_id_to_list_compound_id
+            - self.map_synonym_to_compound_id
+        Returns:
+            Nothing, stores the result in self.map_reaction_id_to_substrates_products_ids
+        """
         for reaction in REST.kegg_list("reaction").read().split('\n')[:-1]:
             broken = False
             reaction_id, reaction_equation_verbose = reaction.split('\t')
@@ -245,11 +253,6 @@ class KEGGIntegration(SingletonClass):
                 else:
                     self.broken_reaction_ids.append(reaction_id)
                     break
-
-        for reaction_id in self.broken_reaction_ids:
-            self.map_reaction_id_to_substrates_products_ids.pop(reaction_id)
-            # remove the reaction from the dictionary, or else we won't know which reactions are broken upon
-            # relaunching the script
 
     def fetch_broken_reactions(self):
         unfetched_reaction_ids = [
