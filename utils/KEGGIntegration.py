@@ -209,7 +209,7 @@ class KEGGIntegration(SingletonClass):
         candidates = [
             candidate # compound id
             for candidate in self.map_synonym_to_compound_id[synonym]
-            if candidate in self.map_reaction_id_to_list_compound_id[reaction_id]
+            if candidate in self.map_reaction_id_to_list_compound_id.get(reaction_id, [])
         ]
         if len(candidates) > 1:
             print("compound: ", synonym, " has multiple candidates: ", candidates,
