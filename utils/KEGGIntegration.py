@@ -189,7 +189,7 @@ class KEGGIntegration(SingletonClass):
         pathways = {x[0]: x[1] for x in pathways}
         return pathways
 
-    def compound_synonym_to_ids(self, synonym: str, reaction_id: str):
+    def compound_synonym_to_id(self, synonym: str, reaction_id: str):
         """
         Returns the compound ids that matches the synonym
 
@@ -197,13 +197,13 @@ class KEGGIntegration(SingletonClass):
             synonym: the synonym of the compound
 
         Returns:
-            list of compound ids, or empty list if no match
+            The compound id, or None if no match
         """
         if synonym not in self.compound_synonym_id:
-            return []
+            return None
         result = self.compound_synonym_id[synonym]
         if len(result) == 1:
-            return result
+            return result[0]
         print("compound: ", synonym, " has multiple ids: ", result, " for reaction: ", reaction_id)
         result = [
             compound_id
@@ -212,9 +212,12 @@ class KEGGIntegration(SingletonClass):
         ]
         if len(result) > 1:
             print("compound: ", synonym, " STILL has multiple ids: ", result, " for reaction: ", reaction_id)
-            return []
-        print("compound: ", synonym, " has id: ", result, " for reaction: ", reaction_id)
-        return result
+            return None
+        if len(result) < 1:
+            print("compound: ", synonym, "NOW has no ids, adding to broken reaction list to fetching later")
+            return None
+        print("compound: ", synonym, " has id: ", result[0], " for reaction: ", reaction_id)
+        return result[0]
 
     def compound_verbose_and_reaction_to_id(self, compound_verbose, reaction_id):
         """
@@ -230,11 +233,8 @@ class KEGGIntegration(SingletonClass):
 
         compound_synonym = re.sub(r'^\d+n? |^\(n\+\d+\) |^n ', '', compound_verbose)
 
-        compound_id = self.compound_synonym_to_ids(compound_synonym, reaction_id)
-        if len(compound_id) == 0:
-            return None
-
-        return compound_id[0]
+        compound_id = self.compound_synonym_to_id(compound_synonym, reaction_id)
+        return compound_id
 
     def fetch_reaction_substrates_ids(self):
         for reaction in REST.kegg_list("reaction").read().split('\n')[:-1]:
