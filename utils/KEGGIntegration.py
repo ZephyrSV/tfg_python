@@ -201,20 +201,17 @@ class KEGGIntegration(SingletonClass):
         """
         if synonym not in self.compound_synonym_id:
             return None
-        result = self.compound_synonym_id[synonym]
-        if len(result) == 1:
-            return result[0]
-        print("compound: ", synonym, " has multiple ids: ", result, " for reaction: ", reaction_id)
+        candidates = self.compound_synonym_id[synonym]
         result = [
             compound_id
-            for compound_id in result
+            for compound_id in candidates
             if compound_id in self.reaction_compound_ids[reaction_id]
         ]
         if len(result) > 1:
-            print("compound: ", synonym, " STILL has multiple ids: ", result, " for reaction: ", reaction_id)
+            print("compound: ", synonym, " has multiple candidates: ", result, " for reaction: ", reaction_id)
             return None
         if len(result) < 1:
-            print("compound: ", synonym, "NOW has no ids, adding to broken reaction list to fetching later")
+            print("compound: ", synonym, "has no candidates, adding to broken reaction list to fetching later")
             return None
         print("compound: ", synonym, " has id: ", result[0], " for reaction: ", reaction_id)
         return result[0]
