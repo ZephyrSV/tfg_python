@@ -189,34 +189,32 @@ class KEGGIntegration(SingletonClass):
         pathways = {x[0]: x[1] for x in pathways}
         return pathways
 
-    def compound_synonym_to_ids(self, synonyms: list, reaction_id: str):
+    def compound_synonym_to_ids(self, synonym: str, reaction_id: str):
         """
         Returns the compound ids that matches the synonym
 
         Parameters:
-            synonyms: list of synonyms
+            synonym: the synonym of the compound
 
         Returns:
             list of compound ids, or empty list if no match
         """
-        for synonym in synonyms:
-            if synonym in self.compound_synonym_id:
-                result = self.compound_synonym_id[synonym]
-                if len(result) > 1:
-                    print("compound: ", synonym, " has multiple ids: ", result, " for reaction: ", reaction_id)
-                    result = [
-                        compound_id 
-                        for compound_id in result 
-                        if compound_id in self.reaction_compound_ids[reaction_id]
-                    ]
-                    if len(result) > 1:
-                        print("compound: ", synonym, " STILL has multiple ids: ", result, " for reaction: ", reaction_id)
-                        return []
-                    else :
-                        print("compound: ", synonym, " has id: ", result, " for reaction: ", reaction_id)
-                
-                return result
-        return []
+        if synonym not in self.compound_synonym_id:
+            return []
+        result = self.compound_synonym_id[synonym]
+        if len(result) == 1:
+            return result
+        print("compound: ", synonym, " has multiple ids: ", result, " for reaction: ", reaction_id)
+        result = [
+            compound_id
+            for compound_id in result
+            if compound_id in self.reaction_compound_ids[reaction_id]
+        ]
+        if len(result) > 1:
+            print("compound: ", synonym, " STILL has multiple ids: ", result, " for reaction: ", reaction_id)
+            return []
+        print("compound: ", synonym, " has id: ", result, " for reaction: ", reaction_id)
+        return result
 
     def compound_verbose_and_reaction_to_id(self, compound_verbose, reaction_id):
         """
@@ -229,12 +227,10 @@ class KEGGIntegration(SingletonClass):
         Returns:
             a single compound id, or None if no match
         """
-        compound_synonyms = compound_verbose.split('; ')
-        # remove the number at the beginning of the synonym, that may signify the number of molecules in the equation
-        for i in range(len(compound_synonyms)):
-            compound_synonyms[i] = re.sub(r'^\d+n? |^\(n\+\d+\) |^n ', '', compound_synonyms[i])
 
-        compound_id = self.compound_synonym_to_ids(compound_synonyms, reaction_id)
+        compound_synonym = re.sub(r'^\d+n? |^\(n\+\d+\) |^n ', '', compound_verbose)
+
+        compound_id = self.compound_synonym_to_ids(compound_synonym, reaction_id)
         if len(compound_id) == 0:
             return None
 
@@ -244,6 +240,7 @@ class KEGGIntegration(SingletonClass):
         for reaction in REST.kegg_list("reaction").read().split('\n')[:-1]:
             broken = False
             reaction_id, reaction_equation_verbose = reaction.split('\t')
+            reaction_equation_verbose = reaction_equation_verbose.split("; ")[-1] # remove the name of the equation
             self.reaction_substrate_product_ids[reaction_id] = {"substrates": [], "products": []}
             substrates_verbose, product_verbose = reaction_equation_verbose.split(' <=> ')
             for substrate_verbose in substrates_verbose.split(' + '):
