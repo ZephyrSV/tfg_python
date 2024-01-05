@@ -189,33 +189,6 @@ class KEGGIntegration(SingletonClass):
         pathways = {x[0]: x[1] for x in pathways}
         return pathways
 
-    def compound_synonym_to_id(self, synonym: str, reaction_id: str):
-        """
-        Returns the compound ids that matches the synonym
-
-        Parameters:
-            synonym: the synonym of the compound
-
-        Returns:
-            The compound id, or None if no match
-        """
-        if synonym not in self.map_synonym_to_compound_id:
-            return None
-        candidates = self.map_synonym_to_compound_id[synonym]
-        result = [
-            compound_id
-            for compound_id in candidates
-            if compound_id in self.map_reaction_id_to_list_compound_id[reaction_id]
-        ]
-        if len(result) > 1:
-            print("compound: ", synonym, " has multiple candidates: ", result, " for reaction: ", reaction_id, ", marking as broken")
-            return None
-        if len(result) < 1:
-            print("compound: ", synonym, "has no candidates in reaction", reaction_id, ", marking as broken")
-            return None
-        print("compound: ", synonym, " has id: ", result[0], " for reaction: ", reaction_id)
-        return result[0]
-
     def compound_verbose_and_reaction_to_id(self, compound_verbose, reaction_id):
         """
         Returns the compound id that matches the verbose compound name
@@ -228,10 +201,25 @@ class KEGGIntegration(SingletonClass):
             a single compound id, or None if no match
         """
 
-        compound_synonym = re.sub(r'^\d+n? |^\(n\+\d+\) |^n ', '', compound_verbose)
+        synonym = re.sub(r'^\d+n? |^\(n\+\d+\) |^n ', '', compound_verbose)
 
-        compound_id = self.compound_synonym_to_id(compound_synonym, reaction_id)
-        return compound_id
+        if synonym not in self.map_synonym_to_compound_id:
+            print("Couldn't find the synonym :", synonym)
+            return None
+        candidates = [
+            candidate # compound id
+            for candidate in self.map_synonym_to_compound_id[synonym]
+            if candidate in self.map_reaction_id_to_list_compound_id[reaction_id]
+        ]
+        if len(candidates) > 1:
+            print("compound: ", synonym, " has multiple candidates: ", candidates,
+                  " for reaction: ", reaction_id, ", marking as broken")
+            return None
+        if len(candidates) < 1:
+            print("compound: ", synonym, "has no candidates in reaction", reaction_id, ", marking as broken")
+            return None
+        print("compound: ", synonym, " has id: ", candidates[0], " for reaction: ", reaction_id)
+        return candidates[0]
 
     def fetch_reaction_substrates_ids(self):
         for reaction in REST.kegg_list("reaction").read().split('\n')[:-1]:
