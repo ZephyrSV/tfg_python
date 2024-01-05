@@ -130,7 +130,7 @@ class Benchmark_view(tk.Toplevel):
         self.kegg_integration = KEGGIntegration()
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.title("Benchmark")
-        self.entries = list(self.kegg_integration.pathway_descriptions.keys())[:25]
+        self.entries = list(self.kegg_integration.map_pathway_id_to_description.keys())[:25]
         g = GridUtil()
         g.do_not_resize_row()
 

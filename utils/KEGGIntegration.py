@@ -37,35 +37,35 @@ class KEGGIntegration(SingletonClass):
     data_loc = "persistent_data/data.json"
 
     def __init__(self):
-        self.reaction_substrate_product_ids = {}
-        self.compound_synonym_id = {}
+        self.map_reaction_id_to_substrates_products_ids = {}
+        self.map_synonym_to_compound_id = {}
         self.broken_reaction_ids = []
         self.fetched_breaking_reaction_ids = []
-        self.reaction_compound_ids = {}
-        self.pathway_reaction_ids = {}
-        self.pathway_descriptions = {}
+        self.map_reaction_id_to_list_compound_id = {}
+        self.map_pathway_id_to_list_reaction_id = {}
+        self.map_pathway_id_to_description = {}
         if os.path.exists(self.data_loc):
             self.load_data()
         else:
-            self.compound_synonym_id = KEGGIntegration.fetch_compound_synonym_id()
-            self.reaction_compound_ids = KEGGIntegration.fetch_reaction_compound_ids()
+            self.map_synonym_to_compound_id = KEGGIntegration.fetch_map_synonym_to_compound_id()
+            self.map_reaction_id_to_list_compound_id = KEGGIntegration.fetch_map_reaction_id_to_list_compound_id()
             self.dump_data()
 
-        if len(self.reaction_substrate_product_ids) == 0:
+        if len(self.map_reaction_id_to_substrates_products_ids) == 0:
             print("fetching reactions and their substrate product ids")
             self.fetch_reaction_substrates_ids()
             self.dump_data()
-        if len(self.pathway_reaction_ids) == 0:
+        if len(self.map_pathway_id_to_list_reaction_id) == 0:
             print("fetching pathways and their reaction ids")
-            self.pathway_reaction_ids = KEGGIntegration.fetch_pathway_reaction_ids()
+            self.map_pathway_id_to_list_reaction_id = KEGGIntegration.fetch_map_pathway_id_to_list_reaction_id()
             self.dump_data()
         if len(self.get_remaing_breaking_reaction_ids()) != 0:
             print("broken reaction ids: ", self.get_remaing_breaking_reaction_ids())
             self.fetch_broken_reactions()
             self.dump_data()
-        if len(self.pathway_descriptions) == 0:
+        if len(self.map_pathway_id_to_description) == 0:
             print("fetching pathways and their descriptions")
-            self.pathway_descriptions = KEGGIntegration.fetch_pathway_descriptions()
+            self.map_pathway_id_to_description = KEGGIntegration.fetch_map_pathway_id_to_description()
             self.dump_data()
 
     def get_remaing_breaking_reaction_ids(self):
@@ -77,13 +77,13 @@ class KEGGIntegration(SingletonClass):
         :return:
         """
         data = {
-            "compound_synonym_id": self.compound_synonym_id,
-            "reaction_substrate_product_ids": self.reaction_substrate_product_ids,
+            "map_synonym_to_compound_id": self.map_synonym_to_compound_id,
+            "map_reaction_id_to_substrates_products_ids": self.map_reaction_id_to_substrates_products_ids,
             "broken_reaction_ids": self.broken_reaction_ids,
             "fetched_breaking_reaction_ids": self.fetched_breaking_reaction_ids,
-            "reaction_compound_ids": self.reaction_compound_ids,
-            "pathway_reaction_ids": self.pathway_reaction_ids,
-            "pathway_descriptions": self.pathway_descriptions,
+            "map_reaction_id_to_list_compound_id": self.map_reaction_id_to_list_compound_id,
+            "map_pathway_id_to_list_reaction_id": self.map_pathway_id_to_list_reaction_id,
+            "map_pathway_id_to_description": self.map_pathway_id_to_description,
         }
         with open(self.data_loc, 'w') as f:
             json.dump(data, f)
@@ -95,16 +95,16 @@ class KEGGIntegration(SingletonClass):
         """
         with open(self.data_loc, 'r') as f:
             data = json.load(f)
-        self.compound_synonym_id = data["compound_synonym_id"]
-        self.reaction_substrate_product_ids = data["reaction_substrate_product_ids"]
+        self.map_synonym_to_compound_id = data["map_synonym_to_compound_id"]
+        self.map_reaction_id_to_substrates_products_ids = data["map_reaction_id_to_substrates_products_ids"]
         self.broken_reaction_ids = data["broken_reaction_ids"]
         self.fetched_breaking_reaction_ids = data["fetched_breaking_reaction_ids"]
-        self.reaction_compound_ids = data["reaction_compound_ids"]
-        self.pathway_reaction_ids = data["pathway_reaction_ids"]
-        self.pathway_descriptions = data["pathway_descriptions"]
+        self.map_reaction_id_to_list_compound_id = data["map_reaction_id_to_list_compound_id"]
+        self.map_pathway_id_to_list_reaction_id = data["map_pathway_id_to_list_reaction_id"]
+        self.map_pathway_id_to_description = data["map_pathway_id_to_description"]
         
     @staticmethod
-    def fetch_reaction_compound_ids():
+    def fetch_map_reaction_id_to_list_compound_id():
         """
         Creates a dictionary of reaction ids to compound ids
         A reaction can have multiple compounds, we can't know which are substrates and which are products
@@ -112,8 +112,8 @@ class KEGGIntegration(SingletonClass):
             a dictionary of reaction ids to compound ids
         """
         reaction_coumpound_ids = {}
-        reaction_compound_ids_req = REST.kegg_link("compound", "reaction").read()
-        for reaction_compound_id in reaction_compound_ids_req.split('\n')[:-1]:
+        map_reaction_id_to_list_compound_id_req = REST.kegg_link("compound", "reaction").read()
+        for reaction_compound_id in map_reaction_id_to_list_compound_id_req.split('\n')[:-1]:
             reaction_id, compound_id = [type_and_id.split(':')[1] for type_and_id in reaction_compound_id.split('\t')]
             if reaction_id in reaction_coumpound_ids.keys():
                 reaction_coumpound_ids[reaction_id].append(compound_id)
@@ -123,7 +123,7 @@ class KEGGIntegration(SingletonClass):
         
 
     @staticmethod
-    def fetch_compound_synonym_id():
+    def fetch_map_synonym_to_compound_id():
         """
         Creates a dictionary of compound synonyms to compound ids
         A synonym can have multiple ids
@@ -144,24 +144,24 @@ class KEGGIntegration(SingletonClass):
 
         return compound_names_id
     @staticmethod
-    def fetch_pathway_reaction_ids():
+    def fetch_map_pathway_id_to_list_reaction_id():
         """
         Creates a dictionary of pathway ids to reaction ids
         A pathway can have multiple reactions
         Returns:
             a dictionary of pathway ids to reaction ids
         """
-        pathway_reaction_ids = {}
-        pathway_reaction_ids_req = REST.kegg_link("reaction", "pathway").read()
-        for pathway_reaction_id in pathway_reaction_ids_req.split('\n')[:-1]:
+        map_pathway_id_to_list_reaction_id = {}
+        map_pathway_id_to_list_reaction_id_req = REST.kegg_link("reaction", "pathway").read()
+        for pathway_reaction_id in map_pathway_id_to_list_reaction_id_req.split('\n')[:-1]:
             pathway_verbose, reaction_verbose = pathway_reaction_id.split('\t')
             pathway_id = pathway_verbose.split(':')[1]
             reaction_id = reaction_verbose.split(':')[1]
-            if pathway_id in pathway_reaction_ids.keys():
-                pathway_reaction_ids[pathway_id].append(reaction_id)
+            if pathway_id in map_pathway_id_to_list_reaction_id.keys():
+                map_pathway_id_to_list_reaction_id[pathway_id].append(reaction_id)
             else:
-                pathway_reaction_ids[pathway_id] = [reaction_id]
-        return pathway_reaction_ids
+                map_pathway_id_to_list_reaction_id[pathway_id] = [reaction_id]
+        return map_pathway_id_to_list_reaction_id
 
 
     @staticmethod
@@ -180,7 +180,7 @@ class KEGGIntegration(SingletonClass):
             yield list_to_split[i:i + n]
 
     @staticmethod
-    def fetch_pathway_descriptions(organism=None):
+    def fetch_map_pathway_id_to_description(organism=None):
         """ Returns pathways in the form of a dictionary of the form {pathway_id: pathway_description}
         """
         pathways = REST.kegg_list("pathway", org=organism).read().split("\n")
@@ -199,19 +199,19 @@ class KEGGIntegration(SingletonClass):
         Returns:
             The compound id, or None if no match
         """
-        if synonym not in self.compound_synonym_id:
+        if synonym not in self.map_synonym_to_compound_id:
             return None
-        candidates = self.compound_synonym_id[synonym]
+        candidates = self.map_synonym_to_compound_id[synonym]
         result = [
             compound_id
             for compound_id in candidates
-            if compound_id in self.reaction_compound_ids[reaction_id]
+            if compound_id in self.map_reaction_id_to_list_compound_id[reaction_id]
         ]
         if len(result) > 1:
-            print("compound: ", synonym, " has multiple candidates: ", result, " for reaction: ", reaction_id)
+            print("compound: ", synonym, " has multiple candidates: ", result, " for reaction: ", reaction_id, ", marking as broken")
             return None
         if len(result) < 1:
-            print("compound: ", synonym, "has no candidates, adding to broken reaction list to fetching later")
+            print("compound: ", synonym, "has no candidates in reaction", reaction_id, ", marking as broken")
             return None
         print("compound: ", synonym, " has id: ", result[0], " for reaction: ", reaction_id)
         return result[0]
@@ -238,12 +238,12 @@ class KEGGIntegration(SingletonClass):
             broken = False
             reaction_id, reaction_equation_verbose = reaction.split('\t')
             reaction_equation_verbose = reaction_equation_verbose.split("; ")[-1] # remove the name of the equation
-            self.reaction_substrate_product_ids[reaction_id] = {"substrates": [], "products": []}
+            self.map_reaction_id_to_substrates_products_ids[reaction_id] = {"substrates": [], "products": []}
             substrates_verbose, product_verbose = reaction_equation_verbose.split(' <=> ')
             for substrate_verbose in substrates_verbose.split(' + '):
                 substrate_id = self.compound_verbose_and_reaction_to_id(substrate_verbose, reaction_id)
                 if substrate_id is not None:
-                    self.reaction_substrate_product_ids[reaction_id]["substrates"].append(substrate_id)
+                    self.map_reaction_id_to_substrates_products_ids[reaction_id]["substrates"].append(substrate_id)
                 else:
                     self.broken_reaction_ids.append(reaction_id)
                     broken = True
@@ -253,13 +253,13 @@ class KEGGIntegration(SingletonClass):
             for product_verbose in product_verbose.split(' + '):
                 product_id = self.compound_verbose_and_reaction_to_id(product_verbose, reaction_id)
                 if product_id is not None:
-                    self.reaction_substrate_product_ids[reaction_id]["products"].append(product_id)
+                    self.map_reaction_id_to_substrates_products_ids[reaction_id]["products"].append(product_id)
                 else:
                     self.broken_reaction_ids.append(reaction_id)
                     break
 
         for reaction_id in self.broken_reaction_ids:
-            self.reaction_substrate_product_ids.pop(reaction_id)
+            self.map_reaction_id_to_substrates_products_ids.pop(reaction_id)
             # remove the reaction from the dictionary, or else we won't know which reactions are broken upon
             # relaunching the script
 
@@ -297,7 +297,7 @@ class KEGGIntegration(SingletonClass):
                 reaction["substrates"] = id_regex.findall(match.group("substrates"))
                 reaction["products"] = id_regex.findall(match.group("products"))
 
-            self.reaction_substrate_product_ids[reaction_id] = reaction
+            self.map_reaction_id_to_substrates_products_ids[reaction_id] = reaction
 
     def generate_dats(self, entries: list):
         """
@@ -331,9 +331,9 @@ class KEGGIntegration(SingletonClass):
         dat_file = "dats/" + pathway_id + ".dat"
         f = open(dat_file, "w")
 
-        generic_pathway_reactions = {k[-5:]: v for k, v in self.pathway_reaction_ids.items()}
+        generic_pathway_reactions = {k[-5:]: v for k, v in self.map_pathway_id_to_list_reaction_id.items()}
 
-        reactions = {r_id: self.reaction_substrate_product_ids[r_id].values() for r_id in generic_pathway_reactions[pathway_id[-5:]]}
+        reactions = {r_id: self.map_reaction_id_to_substrates_products_ids[r_id].values() for r_id in generic_pathway_reactions[pathway_id[-5:]]}
 
         substrates_products = set()
         for substrates, products in reactions.values():

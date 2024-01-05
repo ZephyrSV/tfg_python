@@ -23,7 +23,7 @@ class Pathway_selector(tk.Tk):
         The filter Entry is used to filter the search_pool in the dropdown based on their respective description.
         """
         self.filter_entry.config(fg='black')
-        search_pool = {entry: desc for entry, desc in self.kegg_integration.pathway_descriptions.items() if self.filter_entry.get().upper() in desc.upper()}
+        search_pool = {entry: desc for entry, desc in self.kegg_integration.map_pathway_id_to_description.items() if self.filter_entry.get().upper() in desc.upper()}
         if len(search_pool) == 0:
             self.filter_entry.config(fg='red')
             return
@@ -36,7 +36,7 @@ class Pathway_selector(tk.Tk):
 
         The dropdown is used to select the pathway to be viewed.
         """
-        search_pool = {entry: desc for entry, desc in self.kegg_integration.pathway_descriptions.items() if self.dropdown_var.get().upper() in desc.upper()}
+        search_pool = {entry: desc for entry, desc in self.kegg_integration.map_pathway_id_to_description.items() if self.dropdown_var.get().upper() in desc.upper()}
         if len(search_pool) == 0:
             self.dropdown.config(foreground="red")
             return
@@ -50,7 +50,7 @@ class Pathway_selector(tk.Tk):
 
         The dropdown is used to select the pathway to be viewed.
         """
-        search_pool = {entry: desc for entry, desc in self.kegg_integration.pathway_descriptions.items() if self.dropdown_var_id.get().upper() in entry.upper()}
+        search_pool = {entry: desc for entry, desc in self.kegg_integration.map_pathway_id_to_description.items() if self.dropdown_var_id.get().upper() in entry.upper()}
         if len(search_pool) == 0:
             self.dropdown_id.config(foreground="red")
             return
@@ -248,7 +248,7 @@ class Pathway_selector(tk.Tk):
         self.image_label = tk.Label(self)
         self.image_label.grid(**pad(), **g.place(cs=4))
 
-        self.human_pathways = self.kegg_integration.pathway_descriptions
+        self.human_pathways = self.kegg_integration.map_pathway_id_to_description
         self.search_pool = self.human_pathways
         self.dropdown_id.config(state='normal')
         self.dropdown.config(state='normal')
