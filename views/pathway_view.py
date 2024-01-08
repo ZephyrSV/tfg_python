@@ -14,14 +14,10 @@ from utils.ui_utils import pad, GridUtil
 
 class PathwayView(tk.Toplevel):
     ampl = AMPL()
-    models = {
-        "Zephyr Dual Imply with extra restrictions": "AMPL/models/zephyr_dual_imply_extra_restrictions.mod",
-        "Model A (faster, no extra restrictions)": "AMPL/models/model_A.mod",  # Nasini
-    }
     solvers = {
-        "cbc": "cbc",
-        "CPLEX": "cplex",
-        "Gurobi": "gurobi",
+        "cbc (free)": "cbc",
+        "CPLEX (requires licence for big models)": "cplex",
+        "Gurobi (requires licence for big models)": "gurobi",
     }
     save_result_to_file_var = None
     save_result_to_file = None
@@ -41,7 +37,10 @@ class PathwayView(tk.Toplevel):
         Solves the pathway
         """
         self.ampl = AMPL()
-        self.ampl.read(self.models[self.model_selector.get()])
+        if self.use_extra_restrictions_var.get():
+            self.ampl.read("AMPL/models/zephyr_dual_imply_extra_restrictions.mod")
+        else:
+            self.ampl.read("AMPL/models/model_A.mod")
         self.ampl.readData(self.dat)
         print("solver: ", self.solvers[self.solver_selector.get()])
         self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
@@ -361,28 +360,17 @@ class PathwayView(tk.Toplevel):
         d = KEGGIntegration()
         self.dat = d.generate_dats([entry])[0][1]
         self.get_data_from_dat()
-        self.title(f"{entry}")
+        self.title("Solver and Visualizer")
         ####
         # The UI
         ####
         g = GridUtil()
 
-        self.title_label = ttk.Label(self, text="Select a model and a solver")
+        self.title_label = ttk.Label(self, text=f"Solving the {self.entry} pathway:", font=("Arial", 12, "bold", "underline"))
         self.title_label.grid(**pad(), **g.place(cs=2))
 
         self.canvas_frame = ttk.Frame(self)
         self.canvas_frame.grid(**pad(), **g.place(rs=6))
-
-        g.next_row()
-
-        self.model_label = ttk.Label(self, text="Model")
-        self.model_label.grid(**pad(), **g.place())
-
-        self.model_selector = ttk.Combobox(self, values=[key for key in self.models.keys()])
-        max_length = len(max(self.models.keys(), key=len))
-        self.model_selector.config(width=max_length + 5)
-        self.model_selector.current(0)
-        self.model_selector.grid(**pad(), **g.place())
 
         g.next_row()
         g.do_not_resize_col()
@@ -391,6 +379,8 @@ class PathwayView(tk.Toplevel):
 
         g.do_not_resize_col()
         self.solver_selector = ttk.Combobox(self, values=[key for key in self.solvers.keys()])
+        max_length = len(max(self.solvers.keys(), key=len))
+        self.solver_selector.config(width=max_length)
         self.solver_selector.current(0)
         self.solver_selector.grid(**pad(), **g.place())
 
