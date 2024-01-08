@@ -264,11 +264,16 @@ class PathwayView(tk.Toplevel):
         def add(self):
             g = GridUtil()
             pop_up = tk.Toplevel(self.parent)
-            pop_up.title("Add a new restriction")
+            pop_up.title("")
             pop_up.focus_set()
+            label = ttk.Label(pop_up, text="Select elements to add to the list")
+            label.grid(**pad(), **g.place(sticky=tk.NSEW, cs=2))
+
+            g.next_row()
+
             listbox = tk.Listbox(pop_up, selectmode=tk.MULTIPLE)
             listbox.grid(**pad(x=(10, 0)), **g.place(sticky=tk.NSEW))
-            for item in self.to_add_from:
+            for item in [item for item in self.to_add_from if item not in self.my_list]:
                 listbox.insert(tk.END, item)
 
             scrollbar = ttk.Scrollbar(pop_up, orient=tk.VERTICAL, command=listbox.yview)

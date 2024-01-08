@@ -47,7 +47,7 @@ subject to has_incoming_implies_incoming {j in V}:
         <= M * has_incoming [j];
 
 subject to forced_externals_rule {i in forced_externals }:
-        has_incoming [i] + has_outgoing [i] < 2;
+        has_incoming [i] + has_outgoing [i] <= 1;
 
 subject to forced_internals_rule {i in forced_internals }:
         has_incoming [i] + has_outgoing [i] = 2;
