@@ -125,6 +125,11 @@ class PathwayView(tk.Toplevel):
         self.compounds = self.ampl.getSet("V").getValues().toList()
 
     def draw_canvas_frame(self):
+        if hasattr(self, "canvas_frame"):
+            self.canvas_frame.destroy()
+        self.canvas_frame = ttk.Frame(self)
+        self.canvas_frame.grid(**pad(), rowspan=6, column=2, row=0, sticky=tk.NSEW)
+
         G = nx.Graph()
         G.add_nodes_from(self.reactions)
         G.add_nodes_from(self.compounds)
@@ -163,9 +168,9 @@ class PathwayView(tk.Toplevel):
         ax.legend(loc='best', prop={'size': 8})
 
         canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
-        self.canvas_widget = canvas.get_tk_widget()
+        canvas_widget = canvas.get_tk_widget()
         NavigationToolbar2Tk(canvas, self.canvas_frame)
-        self.canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
         self.resizable(True, True)
 
@@ -355,9 +360,6 @@ class PathwayView(tk.Toplevel):
 
         self.title_label = ttk.Label(self, text=f"Solving the {self.entry} pathway:", font=("Arial", 12, "bold", "underline"))
         self.title_label.grid(**pad(), **g.place(cs=2))
-
-        self.canvas_frame = ttk.Frame(self)
-        self.canvas_frame.grid(**pad(), **g.place(rs=6, sticky=tk.NSEW))
 
         g.next_row()
         g.do_not_resize_col()
