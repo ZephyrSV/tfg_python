@@ -186,13 +186,13 @@ class PathwayView(tk.Toplevel):
                     self.compounds = line[:-1].split(" ")
                 elif line.startswith("set uninvertibles :="):
                     line = line.replace("set uninvertibles :=", "").strip()
-                    self.uninvertibles = line[:-1].split(" ")
+                    self.uninvertibles = sorted(line[:-1].split(" "))
                 elif line.startswith("set forced_externals :="):
                     line = line.replace("set forced_externals :=", "").strip()
-                    self.forced_externals = line[:-1].split(" ")
+                    self.forced_externals = sorted(line[:-1].split(" "))
                 elif line.startswith("set forced_internals :="):
                     line = line.replace("set forced_internals :=", "").strip()
-                    self.forced_internals = line[:-1].split(" ")
+                    self.forced_internals = sorted(line[:-1].split(" "))
         print("I found the following reactions :")
         print(self.reactions)
         print("I found the following compounds :")
@@ -224,9 +224,8 @@ class PathwayView(tk.Toplevel):
         g = GridUtil()
         self.extra_restrictions_label = ttk.Label(parent, text="Extra restrictions :", font=("TkDefaultFont", 12, "bold"))
         self.extra_restrictions_label.grid(**pad(), **g.place(sticky=tk.W, cs=2))
-
         g.next_row()
-
+        ############################################################
         self.uninvertibles_label = ttk.Label(parent, text="Uninvertibles :")
         self.uninvertibles_label.grid(**pad(y=0), **g.place(sticky=tk.W))
 
@@ -235,11 +234,47 @@ class PathwayView(tk.Toplevel):
         self.uninvertibles_dropdown.current(0)
         self.uninvertibles_dropdown.grid(**pad(y=0), **g.place(sticky=tk.W))
 
-        self.add_uninvertible_button = ttk.Button(parent, text="Add", command=None)
-        self.add_uninvertible_button.grid(**pad(y=0), **g.place(sticky=tk.W))
-
         self.remove_uninvertible_button = ttk.Button(parent, text="Remove", command=None)
         self.remove_uninvertible_button.grid(**pad(y=0, x=0), **g.place(sticky=tk.W))
+
+        self.add_uninvertible_button = ttk.Button(parent, text="Add", command=self.rewrite_extra_restrictions_in_dat)
+        self.add_uninvertible_button.grid(**pad(y=0), **g.place(sticky=tk.W))
+        ############################################################
+        g.next_row()
+        self.forced_externals_label = ttk.Label(parent, text="Forced externals :")
+        self.forced_externals_label.grid(**pad(y=0), **g.place(sticky=tk.W))
+
+        g.next_row()
+        self.forced_externals_dropdown = ttk.Combobox(parent, values=self.forced_externals, state="readonly")
+        self.forced_externals_dropdown.current(0)
+        self.forced_externals_dropdown.grid(**pad(y=0), **g.place(sticky=tk.W))
+
+        self.remove_forced_external_button = ttk.Button(parent, text="Remove", command=None)
+        self.remove_forced_external_button.grid(**pad(y=0, x=0), **g.place(sticky=tk.W))
+
+        self.add_forced_external_button = ttk.Button(parent, text="Add", command=None)
+        self.add_forced_external_button.grid(**pad(y=0), **g.place(sticky=tk.W))
+        ############################################################
+        g.next_row()
+        self.forced_internals_label = ttk.Label(parent, text="Forced internals :")
+        self.forced_internals_label.grid(**pad(y=0), **g.place(sticky=tk.W))
+
+        g.next_row()
+        self.forced_internals_dropdown = ttk.Combobox(parent, values=self.forced_internals, state="readonly")
+        self.forced_internals_dropdown.current(0)
+        self.forced_internals_dropdown.grid(**pad(y=0), **g.place(sticky=tk.W))
+
+        self.remove_forced_internal_button = ttk.Button(parent, text="Remove", command=None)
+        self.remove_forced_internal_button.grid(**pad(y=0, x=0), **g.place(sticky=tk.W))
+
+        self.add_forced_internal_button = ttk.Button(parent, text="Add", command=None)
+        self.add_forced_internal_button.grid(**pad(y=0), **g.place(sticky=tk.W))
+
+        g.next_row()
+        self.extra_restrictions_separator = ttk.Separator(parent, orient=tk.HORIZONTAL, style="Separator.TSeparator")
+        self.extra_restrictions_separator.grid(**pad(y=0), **g.place(sticky=tk.W, cs=2))
+
+
 
 
 
@@ -308,7 +343,7 @@ class PathwayView(tk.Toplevel):
         self.create_tickboxes(self.tickbox_frame)
 
         g.next_row()
-        self.extra_restrictions_frame = ttk.Frame(self)
+        self.extra_restrictions_frame = ttk.Frame(self, borderwidth=2, relief=tk.GROOVE)
         self.extra_restrictions_frame_row = g.current_row
         self.extra_restrictions_frame.grid(**pad(y=0), **g.place(cs=2))
 
