@@ -16,7 +16,7 @@ class PathwayView(tk.Toplevel):
     ampl = AMPL()
     models = {
         "Zephyr Dual Imply with extra restrictions": "AMPL/models/zephyr_dual_imply_extra_restrictions.mod",
-        "Model A (faster, no extra restrictions)": "AMPL/models/model_A.mod", # Nasini
+        "Model A (faster, no extra restrictions)": "AMPL/models/model_A.mod",  # Nasini
     }
     solvers = {
         "cbc": "cbc",
@@ -35,7 +35,6 @@ class PathwayView(tk.Toplevel):
         self.solve_5s_count -= 1
         if self.solve_5s_count == 0:
             self.solved_label.config(text="")
-
 
     def solve(self):
         """
@@ -80,6 +79,7 @@ class PathwayView(tk.Toplevel):
 
             def __del__(self):
                 self.file.close()
+
         return Printer(file_path)
 
     def print_result(self, execution_time, printers=None):
@@ -101,7 +101,6 @@ class PathwayView(tk.Toplevel):
             printer("### Reactions that were inverted")
             for r in inverted_reactions:
                 printer(f"{r} : {' '.join(self.Y[r])} : {' '.join(self.X[r])}")
-
 
     def get_ampl_variables(self):
         def _and(i1, i2):
@@ -138,7 +137,7 @@ class PathwayView(tk.Toplevel):
         uninverted_edges = \
             [(c, r) for r in uninverted_reactions for c in self.X[r]] + \
             [(r, c) for r in uninverted_reactions for c in self.Y[r]]
-        inverted_edges =  \
+        inverted_edges = \
             [(c, r) for r in inverted_reactions for c in self.Y[r]] + \
             [(r, c) for r in inverted_reactions for c in self.X[r]]
         edges = uninverted_edges + inverted_edges
@@ -147,17 +146,20 @@ class PathwayView(tk.Toplevel):
         fig, ax = plt.subplots()
         pos = nx.spring_layout(G)
         add_yoffset = lambda pos, o: {k: (v[0], v[1] + o) for (k, v) in pos.items()}
-        nx.draw_networkx_nodes(G, pos, nodelist=self.reactions, node_color='grey', node_size=20, alpha=0.8, node_shape='s')
+        nx.draw_networkx_nodes(G, pos, nodelist=self.reactions, node_color='grey', node_size=20, alpha=0.8,
+                               node_shape='s')
         nx.draw_networkx_nodes(G, pos, nodelist=internal, node_color='g', node_size=20, alpha=0.8)
         nx.draw_networkx_nodes(G, pos, nodelist=external, node_color='r', node_size=20, alpha=0.8)
-        nx.draw_networkx_edges(G, pos, edgelist=uninverted_edges, width=1.0, alpha=0.5, arrows=True, arrowsize=10, arrowstyle='->')
-        nx.draw_networkx_edges(G, pos, edgelist=inverted_edges, edge_color='b', width=1.0, alpha=0.5, arrows=True, arrowsize=10, arrowstyle='->')
+        nx.draw_networkx_edges(G, pos, edgelist=uninverted_edges, width=1.0, alpha=0.5, arrows=True, arrowsize=10,
+                               arrowstyle='->')
+        nx.draw_networkx_edges(G, pos, edgelist=inverted_edges, edge_color='b', width=1.0, alpha=0.5, arrows=True,
+                               arrowsize=10, arrowstyle='->')
         nx.draw_networkx_labels(G, add_yoffset(pos, 0.05), font_size=8)
 
-        ax.plot([],[], color='grey', label='Reactions', linestyle='', marker='o', markersize=5, alpha=0.8)
-        ax.plot([],[], color='g', label='Internal compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
-        ax.plot([],[], color='r', label='External compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
-        ax.plot([],[], color='b', label='Inverted reactions', markersize=5, alpha=0.8)
+        ax.plot([], [], color='grey', label='Reactions', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.plot([], [], color='g', label='Internal compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.plot([], [], color='r', label='External compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.plot([], [], color='b', label='Inverted reactions', markersize=5, alpha=0.8)
         ax.axis('off')
         ax.legend(loc='best', prop={'size': 8})
 
@@ -166,7 +168,9 @@ class PathwayView(tk.Toplevel):
         canvas_widget = canvas.get_tk_widget()
         NavigationToolbar2Tk(canvas, self.canvas_frame)
         canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-        self.after(100, lambda: self.canvas_frame.bind("<Configure>", lambda event: canvas_widget.configure(width=event.width, height=event.height)))
+        self.after(100, lambda: self.canvas_frame.bind("<Configure>",
+                                                       lambda event: canvas_widget.configure(width=event.width,
+                                                                                             height=event.height)))
         self.resizable(True, True)
 
     def hide_show_extra_restrictions(self):
@@ -217,9 +221,7 @@ class PathwayView(tk.Toplevel):
         with open(self.dat, "w") as f:
             f.writelines(lines)
 
-
     class ExtraRestrictionsModifier:
-
         def __init__(self, outer, my_list, g: GridUtil, parent, to_add_from):
             self.outer = outer
             self.my_list = my_list
@@ -241,7 +243,7 @@ class PathwayView(tk.Toplevel):
             seperator = ttk.Separator(self.parent, orient=tk.VERTICAL)
             seperator.grid(**pad(y=(0, 10)), **self.g.place(sticky=tk.NSEW))
 
-            self.add_button = ttk.Button(self.parent, text="Add", command=None)
+            self.add_button = ttk.Button(self.parent, text="Add 🡕", command=self.add)
             self.add_button.grid(**pad(y=(0, 10)), **self.g.place(sticky=tk.W))
             self.reset_dropdown()
 
@@ -259,15 +261,33 @@ class PathwayView(tk.Toplevel):
             self.reset_dropdown()
             self.outer.rewrite_extra_restrictions_in_dat()
 
+        def add(self):
+            g = GridUtil()
+            pop_up = tk.Toplevel(self.parent)
+            pop_up.title("Add a new restriction")
+            pop_up.focus_set()
+            listbox = tk.Listbox(pop_up, selectmode=tk.MULTIPLE)
+            listbox.grid(**pad(x=(10, 0)), **g.place(sticky=tk.NSEW))
+            for item in self.to_add_from:
+                listbox.insert(tk.END, item)
 
+            scrollbar = ttk.Scrollbar(pop_up, orient=tk.VERTICAL, command=listbox.yview)
+            scrollbar.grid(**pad(x=(0, 10)), **g.place(sticky=tk.NSEW))
+            listbox.config(yscrollcommand=scrollbar.set)
+            def add_from_listbox():
+                for i in listbox.curselection():
+                    self.my_list.append(listbox.get(i))
+                self.reset_dropdown()
+                self.outer.rewrite_extra_restrictions_in_dat()
+                pop_up.destroy()
 
-
-
-
+            g.next_row()
+            ttk.Button(pop_up, text="Add", command=add_from_listbox).grid(**pad(), **g.place(cs=2, sticky=tk.NSEW))
 
     def create_extra_restrictions_frame(self, parent):
         g = GridUtil()
-        self.extra_restrictions_label = ttk.Label(parent, text="Extra restrictions :", font=("TkDefaultFont", 12, "bold"))
+        self.extra_restrictions_label = ttk.Label(parent, text="Extra restrictions :",
+                                                  font=("TkDefaultFont", 12, "bold"))
         self.extra_restrictions_label.grid(**pad(), **g.place(sticky=tk.W, cs=4))
         g.next_row()
         ############################################################
@@ -312,20 +332,11 @@ class PathwayView(tk.Toplevel):
         )
         self.forced_internals_modifier.init_ui()
 
-
-
-
-
-
-
-
-
-
-
     def create_tickboxes(self, parent):
         g = GridUtil()
         self.save_result_to_file_var = tk.IntVar(value=0)
-        self.save_result_to_file = ttk.Checkbutton(parent, text="Save result to file", variable=self.save_result_to_file_var)
+        self.save_result_to_file = ttk.Checkbutton(parent, text="Save result to file",
+                                                   variable=self.save_result_to_file_var)
         self.save_result_to_file.grid(**pad(y=0), **g.place(sticky=tk.W))
 
         self.visualize_result_var = tk.IntVar(value=0)
@@ -334,10 +345,10 @@ class PathwayView(tk.Toplevel):
         g.next_row()
 
         self.use_extra_restrictions_var = tk.BooleanVar(value=False)
-        self.use_extra_restrictions = ttk.Checkbutton(parent, text="Use extra restrictions", variable=self.use_extra_restrictions_var)
+        self.use_extra_restrictions = ttk.Checkbutton(parent, text="Use extra restrictions",
+                                                      variable=self.use_extra_restrictions_var)
         self.use_extra_restrictions.grid(**pad(y=0), **g.place(sticky=tk.W))
         self.use_extra_restrictions_var.trace("w", lambda *args: self.hide_show_extra_restrictions())
-
 
     def __init__(self, master, entry, mainloop=True):
         super().__init__(master)
@@ -415,8 +426,9 @@ class PathwayView(tk.Toplevel):
                 raise KeyboardInterrupt
                 exit(0)
 
+
 if __name__ == "__main__":
-    root = tk.Tk() 
+    root = tk.Tk()
     app = PathwayView(master=root, entry="hsa00010", mainloop=False)
     app.after(0, app.solve)
     app.mainloop()
