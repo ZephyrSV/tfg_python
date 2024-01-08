@@ -163,13 +163,10 @@ class PathwayView(tk.Toplevel):
         ax.legend(loc='best', prop={'size': 8})
 
         canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
-        canvas_widget = canvas.get_tk_widget()
-        canvas_widget = canvas.get_tk_widget()
+        self.canvas_widget = canvas.get_tk_widget()
         NavigationToolbar2Tk(canvas, self.canvas_frame)
-        canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-        self.after(100, lambda: self.canvas_frame.bind("<Configure>",
-                                                       lambda event: canvas_widget.configure(width=event.width,
-                                                                                             height=event.height)))
+        self.canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
         self.resizable(True, True)
 
     def hide_show_extra_restrictions(self):
@@ -360,7 +357,7 @@ class PathwayView(tk.Toplevel):
         self.title_label.grid(**pad(), **g.place(cs=2))
 
         self.canvas_frame = ttk.Frame(self)
-        self.canvas_frame.grid(**pad(), **g.place(rs=6))
+        self.canvas_frame.grid(**pad(), **g.place(rs=6, sticky=tk.NSEW))
 
         g.next_row()
         g.do_not_resize_col()
