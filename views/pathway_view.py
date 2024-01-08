@@ -37,10 +37,10 @@ class PathwayView(tk.Toplevel):
         Solves the pathway
         """
         self.ampl = AMPL()
-        if self.use_extra_restrictions_var.get():
-            self.ampl.read("AMPL/models/zephyr_dual_imply_extra_restrictions.mod")
-        else:
-            self.ampl.read("AMPL/models/model_A.mod")
+        model = "AMPL/models/"
+        model += "zephyr_dual_imply_extra_restrictions.mod" if self.use_extra_restrictions_var.get() else "model_A.mod"
+        print("model: ", model)
+        self.ampl.read(model)
         self.ampl.readData(self.dat)
         print("solver: ", self.solvers[self.solver_selector.get()])
         self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
@@ -196,16 +196,6 @@ class PathwayView(tk.Toplevel):
                 elif line.startswith("set forced_internals :="):
                     line = line.replace("set forced_internals :=", "").strip()
                     self.forced_internals = sorted(filter(lambda x: x != '', line[:-1].split(" ")))
-        print("I found the following reactions :")
-        print(self.reactions)
-        print("I found the following compounds :")
-        print(self.compounds)
-        print("I found the following uninvertibles :")
-        print(self.uninvertibles)
-        print("I found the following forced_externals :")
-        print(self.forced_externals)
-        print("I found the following forced_internals :")
-        print(self.forced_internals)
 
     def rewrite_extra_restrictions_in_dat(self):
         with open(self.dat, "r") as f:
