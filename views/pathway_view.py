@@ -9,7 +9,6 @@ from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from utils.KEGGIntegration import KEGGIntegration
-from utils.functional_programming import lmap
 from utils.ui_utils import pad, GridUtil
 
 
