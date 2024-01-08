@@ -27,6 +27,8 @@ class PathwayView(tk.Toplevel):
     save_result_to_file = None
     visualize_result_var = None
     visualize_result = None
+    Use_extra_restrictions_var = None
+    Use_extra_restrictions = None
     solve_5s_count = 0
 
     def five_secs_after_solve(self):
@@ -167,16 +169,97 @@ class PathwayView(tk.Toplevel):
         self.after(100, lambda: self.canvas_frame.bind("<Configure>", lambda event: canvas_widget.configure(width=event.width, height=event.height)))
         self.resizable(True, True)
 
+    def hide_show_extra_restrictions(self):
+        if not self.use_extra_restrictions_var.get():
+            self.extra_restrictions_frame.grid_remove()
+        else:
+            self.extra_restrictions_frame.grid(row=self.extra_restrictions_frame_row, columnspan=2, sticky=tk.W)
+
+    def get_data_from_dat(self):
+        with open(self.dat, "r") as f:
+            for line in f.readlines():
+                if line.startswith("set E :="):
+                    line = line.replace("set E :=", "").strip()
+                    self.reactions = line[:-1].split(" ")
+                elif line.startswith("set V :="):
+                    line = line.replace("set V :=", "").strip()
+                    self.compounds = line[:-1].split(" ")
+                elif line.startswith("set uninvertibles :="):
+                    line = line.replace("set uninvertibles :=", "").strip()
+                    self.uninvertibles = line[:-1].split(" ")
+                elif line.startswith("set forced_externals :="):
+                    line = line.replace("set forced_externals :=", "").strip()
+                    self.forced_externals = line[:-1].split(" ")
+                elif line.startswith("set forced_internals :="):
+                    line = line.replace("set forced_internals :=", "").strip()
+                    self.forced_internals = line[:-1].split(" ")
+        print("I found the following reactions :")
+        print(self.reactions)
+        print("I found the following compounds :")
+        print(self.compounds)
+        print("I found the following uninvertibles :")
+        print(self.uninvertibles)
+        print("I found the following forced_externals :")
+        print(self.forced_externals)
+        print("I found the following forced_internals :")
+        print(self.forced_internals)
+
+    def rewrite_extra_restrictions_in_dat(self):
+        with open(self.dat, "r") as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                if line.startswith("set uninvertibles :="):
+                    lines[i] = "set uninvertibles := " + " ".join(self.uninvertibles) + ";\n"
+                elif line.startswith("set forced_externals :="):
+                    lines[i] = "set forced_externals := " + " ".join(self.forced_externals) + ";\n"
+                elif line.startswith("set forced_internals :="):
+                    lines[i] = "set forced_internals := " + " ".join(self.forced_internals) + ";\n"
+        with open(self.dat, "w") as f:
+            f.writelines(lines)
+
+
+
+
+    def create_extra_restrictions_frame(self, parent):
+        g = GridUtil()
+        self.extra_restrictions_label = ttk.Label(parent, text="Extra restrictions :", font=("TkDefaultFont", 12, "bold"))
+        self.extra_restrictions_label.grid(**pad(), **g.place(sticky=tk.W, cs=2))
+
+        g.next_row()
+
+        self.uninvertibles_label = ttk.Label(parent, text="Uninvertibles :")
+        self.uninvertibles_label.grid(**pad(y=0), **g.place(sticky=tk.W))
+
+        g.next_row()
+        self.uninvertibles_dropdown = ttk.Combobox(parent, values=self.uninvertibles, state="readonly")
+        self.uninvertibles_dropdown.current(0)
+        self.uninvertibles_dropdown.grid(**pad(y=0), **g.place(sticky=tk.W))
+
+        self.add_uninvertible_button = ttk.Button(parent, text="Add", command=None)
+        self.add_uninvertible_button.grid(**pad(y=0), **g.place(sticky=tk.W))
+
+        self.remove_uninvertible_button = ttk.Button(parent, text="Remove", command=None)
+        self.remove_uninvertible_button.grid(**pad(y=0, x=0), **g.place(sticky=tk.W))
+
+
+
+
 
     def create_tickboxes(self, parent):
         g = GridUtil()
         self.save_result_to_file_var = tk.IntVar(value=0)
         self.save_result_to_file = ttk.Checkbutton(parent, text="Save result to file", variable=self.save_result_to_file_var)
-        self.save_result_to_file.grid(**pad(), **g.place(sticky=tk.W))
+        self.save_result_to_file.grid(**pad(y=0), **g.place(sticky=tk.W))
 
         self.visualize_result_var = tk.IntVar(value=0)
         self.visualize_result = ttk.Checkbutton(parent, text="Visualize result", variable=self.visualize_result_var)
-        self.visualize_result.grid(**pad(), **g.place(sticky=tk.W))
+        self.visualize_result.grid(**pad(y=0), **g.place(sticky=tk.W))
+        g.next_row()
+
+        self.use_extra_restrictions_var = tk.BooleanVar(value=False)
+        self.use_extra_restrictions = ttk.Checkbutton(parent, text="Use extra restrictions", variable=self.use_extra_restrictions_var)
+        self.use_extra_restrictions.grid(**pad(y=0), **g.place(sticky=tk.W))
+        self.use_extra_restrictions_var.trace("w", lambda *args: self.hide_show_extra_restrictions())
 
 
     def __init__(self, master, entry, mainloop=True):
@@ -184,6 +267,7 @@ class PathwayView(tk.Toplevel):
         self.entry = entry
         d = KEGGIntegration()
         self.dat = d.generate_dats([entry])[0][1]
+        self.get_data_from_dat()
         self.title(f"{entry}")
         ####
         # The UI
@@ -222,6 +306,14 @@ class PathwayView(tk.Toplevel):
         self.tickbox_frame.grid(**pad(y=0), **g.place(cs=2))
 
         self.create_tickboxes(self.tickbox_frame)
+
+        g.next_row()
+        self.extra_restrictions_frame = ttk.Frame(self)
+        self.extra_restrictions_frame_row = g.current_row
+        self.extra_restrictions_frame.grid(**pad(y=0), **g.place(cs=2))
+
+        self.create_extra_restrictions_frame(self.extra_restrictions_frame)
+        self.hide_show_extra_restrictions()
 
         g.next_row()
 

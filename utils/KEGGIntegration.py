@@ -290,7 +290,7 @@ class KEGGIntegration(SingletonClass):
 
             self.map_reaction_id_to_substrates_products_ids[reaction_id] = reaction
 
-    def generate_dats(self, entries: list):
+    def generate_dats(self, entries: list, overwrite: bool = False):
         """
         Generates the .dat files for the pathways
 
@@ -304,9 +304,16 @@ class KEGGIntegration(SingletonClass):
         list
             A list of tuples containing the pathway id and the path to the .dat file
         """
+        if not os.path.exists("dats"):
+            os.makedirs("dats")
+        new_entries = [e for e in entries if not os.path.exists("dats/" + e + ".dat")]
         print("<>  generating dat")
-        for e in entries:
-            self._generate_dat(e)
+        if overwrite:
+            for e in entries:
+                self._generate_dat(e)
+        else:
+            for e in new_entries:
+                self._generate_dat(e)
         print("</> generating dat")
         return [(entry, "dats/" + entry + ".dat") for entry in entries]
 
@@ -358,18 +365,7 @@ class KEGGIntegration(SingletonClass):
 
         # determine the set of reversible reactions
         # seen = {}
-        f.write("set uninvertibles :=\n")
-        # for reaction in kgml.reactions:
-        #     if reaction.type == "reversible":
-        #         continue
-        #     else:
-        #         for r in reaction.name.split(" "):
-        #             if r in seen:
-        #                 continue
-        #             f.write(r.replace("rn:", "") + " ")
-        #             seen[r] = True
-        f.write(";\n\n")
-        f.write("set forced_externals := ;\n\nset forced_internals := ;\n\n")
+        f.write("set uninvertibles := ;\n\nset forced_externals := ;\n\nset forced_internals := ;\n\n")
 
         f.close()
 
