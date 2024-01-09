@@ -380,7 +380,7 @@ class PathwayView(tk.Toplevel):
         self.solver_label.grid(**pad(), **g.place())
 
         g.do_not_resize_col()
-        self.solver_selector = ttk.Combobox(self, values=[key for key in self.solvers.keys()])
+        self.solver_selector = ttk.Combobox(self, values=[key for key in self.solvers.keys()], state="readonly")
         max_length = len(max(self.solvers.keys(), key=len))
         self.solver_selector.config(width=max_length)
         self.solver_selector.current(0)
