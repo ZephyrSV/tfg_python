@@ -1,3 +1,4 @@
+print("Loading App.py")
 import os
 if os.path.isdir(r"/opt/ampl/"):
     from amplpy import add_to_path

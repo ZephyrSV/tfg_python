@@ -307,14 +307,12 @@ class KEGGIntegration(SingletonClass):
         if not os.path.exists("dats"):
             os.makedirs("dats")
         new_entries = [e for e in entries if not os.path.exists("dats/" + e + ".dat")]
-        print("<>  generating dat")
         if overwrite:
             for e in entries:
                 self._generate_dat(e)
         else:
             for e in new_entries:
                 self._generate_dat(e)
-        print("</> generating dat")
         return [(entry, "dats/" + entry + ".dat") for entry in entries]
 
     def _generate_dat(self, pathway_id: str):
