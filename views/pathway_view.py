@@ -57,6 +57,23 @@ class PathwayView(tk.Toplevel):
                     text="The problem is infeasible! Try re downloading the database, or contacting the author.",
                     foreground="red")
             return
+        if "unbounded" in solve_result:
+            self.solved_label.config(
+                text="The problem is unbounded! Try re downloading the database, or contacting the author.",
+                foreground="red")
+            return
+        if "stopped" in solve_result:
+            self.solved_label.config(
+                text="The problem was stopped! Try re downloading the database, or contacting the author.",
+                foreground="red")
+            return
+        if "solved" not in solve_result:
+            self.solved_label.config(
+                text="The problem was not solved! \n"
+                     "Are you using a valid solver?\n"
+                     "Try re downloading the database, or contacting the author.",
+                foreground="red")
+            return
 
         printers = [print]
 
