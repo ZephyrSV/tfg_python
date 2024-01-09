@@ -388,7 +388,7 @@ class PathwayView(tk.Toplevel):
         ####
         g = GridUtil()
 
-        self.title_label = ttk.Label(self, text=f"Solving the {self.entry} pathway:", font=("Arial", 12, "bold", "underline"))
+        self.title_label = ttk.Label(self, text=f"Orienting the {self.entry} pathway:", font=("Arial", 12, "bold", "underline"))
         self.title_label.grid(**pad(), **g.place(cs=2))
 
         g.next_row()
