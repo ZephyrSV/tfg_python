@@ -157,7 +157,9 @@ class Pathway_selector(tk.Tk):
         Returns a function that sets the description label to the given text.
         """
         def set_description_label(event=None):
-            self.description_label.config(text=text)
+            geometry_info = self.dropdown.winfo_geometry()
+            max_wraplength = int(geometry_info.split("+")[0].split("x")[0]) + int(geometry_info.split("+")[1]) - 10
+            self.description_label.config(text=text, wraplength=max_wraplength)
             self.description_label.update()
         return set_description_label
 
