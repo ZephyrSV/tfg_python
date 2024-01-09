@@ -63,7 +63,7 @@ class PathwayView(tk.Toplevel):
         if self.save_result_to_file_var.get():
             file_path = filedialog.asksaveasfilename(defaultextension=".txt",
                                                      initialdir="./output",
-                                                     initialfile=f"{model}_{self.solver_selector.get()}_{self.entry}",
+                                                     initialfile=f"oriented_{self.entry}",
                                                      title="Save results to file",
                                                      filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
             if file_path:
@@ -420,7 +420,6 @@ class PathwayView(tk.Toplevel):
             except KeyboardInterrupt:
                 print("Interrupted by user")
                 self.destroy()
-                raise KeyboardInterrupt
                 exit(0)
 
 
