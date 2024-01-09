@@ -163,7 +163,6 @@ class Benchmark_view(tk.Toplevel):
         except KeyboardInterrupt:
             print("Interrupted by user")
             self.destroy()
-            raise KeyboardInterrupt
             exit(0)
 
 
