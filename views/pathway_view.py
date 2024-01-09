@@ -46,13 +46,24 @@ class PathwayView(tk.Toplevel):
         self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
         before_solve_time = time.time()
         self.ampl.solve()
+        solve_result = self.ampl.get_output("print solve_result;")
+        if "infeasible" in solve_result:
+            if self.use_extra_restrictions_var.get():
+                self.solved_label.config(
+                    text="The problem is infeasible! Check your extra restrictions.",
+                    foreground="red")
+            else:
+                self.solved_label.config(
+                    text="The problem is infeasible! Try re downloading the database, or contacting the author.",
+                    foreground="red")
+            return
 
         printers = [print]
 
         if self.save_result_to_file_var.get():
             file_path = filedialog.asksaveasfilename(defaultextension=".txt",
                                                      initialdir="./output",
-                                                     initialfile=f"{self.model_selector.get()}_{self.solver_selector.get()}_{self.entry}",
+                                                     initialfile=f"{model}_{self.solver_selector.get()}_{self.entry}",
                                                      title="Save results to file",
                                                      filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
             if file_path:
@@ -62,7 +73,9 @@ class PathwayView(tk.Toplevel):
         self.print_result(time.time() - before_solve_time, printers=printers)
         if self.visualize_result_var.get():
             self.draw_canvas_frame()
-        self.solved_label.config(text="Solved! Check console for results.")
+        self.solved_label.config(
+            text="Solved! Check console for results.",
+            foreground="green")
         self.solve_5s_count += 1
         self.after(5000, self.five_secs_after_solve)
 
@@ -389,7 +402,7 @@ class PathwayView(tk.Toplevel):
 
         g.next_row()
 
-        self.solved_label = ttk.Label(self, text="", foreground="green")
+        self.solved_label = ttk.Label(self, text="")
         self.solved_label.grid(**pad(y=0), **g.place(cs=2))
 
         g.next_row()
