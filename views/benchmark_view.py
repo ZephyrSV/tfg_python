@@ -136,7 +136,7 @@ class Benchmark_view(tk.Toplevel):
 
         self.select_solver_label = tkinter.Label(self, text="Select a solver")
         self.select_solver_label.grid(**g.place(sticky="nsew"), **pad())
-        self.solver_selector = tkinter.ttk.Combobox(self, values=[key for key in self.solvers.keys()])
+        self.solver_selector = tkinter.ttk.Combobox(self, values=[key for key in self.solvers.keys()], state="readonly")
         self.solver_selector.grid(**g.place(sticky="nsew"), **pad())
         self.solver_selector.current(0)
 
