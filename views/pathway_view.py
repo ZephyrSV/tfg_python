@@ -215,14 +215,14 @@ class PathwayView(tk.Toplevel):
         G, pos = self.build_graph()
         fig = self.build_figure(G, pos)
 
-        canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
-        canvas_widget = canvas.get_tk_widget()
-        canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        self.canvas_tkagg = FigureCanvasTkAgg(fig, master=self.canvas_frame)
+        self.canvas_tkagg.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
         toolbar_frame = tk.Frame(self.canvas_frame)
         toolbar_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
-        NavigationToolbar2Tk(canvas, toolbar_frame, pack_toolbar=False).pack(side=tk.LEFT, fill=tk.X)
+        self.ntb2tk = NavigationToolbar2Tk(self.canvas_tkagg, toolbar_frame, pack_toolbar=False)
+        self.ntb2tk.pack(side=tk.LEFT, fill=tk.X)
 
         include_labels = [True] # Needs to be mutable
 
@@ -231,9 +231,19 @@ class PathwayView(tk.Toplevel):
             Toggles the presence of labels on the canvas
             Returns: Nothing
             """
+            self.canvas_tkagg.get_tk_widget().pack_forget()
             include_labels[0] ^= True # XOR just because it looks cooler
-            canvas.figure = self.build_figure(G, pos, include_labels[0])
-            canvas.draw()
+            fig = self.build_figure(G, pos, include_labels[0])
+            self.canvas_tkagg = FigureCanvasTkAgg(fig, master=self.canvas_frame)
+            self.canvas_tkagg.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+            #The toolbar needs to be fixed after the canvas is redrawn
+            self.ntb2tk.destroy()
+            self.ntb2tk = NavigationToolbar2Tk(self.canvas_tkagg, toolbar_frame, pack_toolbar=False)
+            self.ntb2tk.pack(side=tk.LEFT, fill=tk.X)
+
+
+
+
         custom_button = tk.Button(toolbar_frame, text="Toggle Labels", command=toggle_labels)
         custom_button.pack(side=tk.RIGHT)
 
