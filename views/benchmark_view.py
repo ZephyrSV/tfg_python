@@ -36,7 +36,6 @@ class Benchmark_view(tk.Toplevel):
         "Model A": "AMPL/models/model_A.mod", # Nasini
         "Model B": "AMPL/models/model_B.mod", # Valiente
     }
-    ampls = {k: AMPL() for k in models.keys()}  # One ampl instance per model
     dats = {}
     _dats_lock = threading.Lock()
     result_count = 0
@@ -59,13 +58,14 @@ class Benchmark_view(tk.Toplevel):
 
 
     def solve_all_entries(self):
+        ampls = {k: AMPL() for k in self.models.keys()}  # One ampl instance per model
         solver_id = self.solver_selector.get()
         solver = self.solvers[solver_id]
         valid_duration_lists = []
         for entry, dat in self.dats.items():  # for each entry
             solve_duration_list = []
             is_valid = True
-            for k, ampl in self.ampls.items():  # for each model
+            for k, ampl in ampls.items():  # for each model
                 ampl.read(self.models[k])  # prepare ampl instances
                 ampl.option["solver"] = solver
                 print(f"Reading dat for {entry} at {dat}")

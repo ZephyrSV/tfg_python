@@ -67,6 +67,9 @@ class KEGGIntegration(SingletonClass):
             print("fetching pathways and their descriptions")
             self.map_pathway_id_to_description = KEGGIntegration.fetch_map_pathway_id_to_description()
             self.dump_data()
+        # filter out the ones that do not have any reactions
+        self.map_pathway_id_to_description = {k: v for (k, v) in self.map_pathway_id_to_description.items()
+                                              if k in self.map_pathway_id_to_list_reaction_id.keys()}
 
     def get_remaing_breaking_reaction_ids(self):
         return [x for x in self.broken_reaction_ids if x not in self.fetched_breaking_reaction_ids]
