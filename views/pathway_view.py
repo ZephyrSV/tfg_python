@@ -13,7 +13,6 @@ from utils.ui_utils import pad, GridUtil
 
 
 class PathwayView(tk.Toplevel):
-    ampl = AMPL()
     solvers = {
         "cbc (free)": "cbc",
         "CPLEX (requires licence for big models)": "cplex",
@@ -36,17 +35,17 @@ class PathwayView(tk.Toplevel):
         """
         Solves the pathway
         """
-        self.ampl = AMPL()
+        ampl = AMPL()
         model = "AMPL/models/"
         model += "zephyr_dual_imply_extra_restrictions.mod" if self.use_extra_restrictions_var.get() else "model_A.mod"
         print("model: ", model)
-        self.ampl.read(model)
-        self.ampl.readData(self.dat)
+        ampl.read(model)
+        ampl.readData(self.dat)
         print("solver: ", self.solvers[self.solver_selector.get()])
-        self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
+        ampl.option["solver"] = self.solvers[self.solver_selector.get()]
         before_solve_time = time.time()
-        self.ampl.solve()
-        solve_result = self.ampl.get_output("print solve_result;")
+        ampl.solve()
+        solve_result = ampl.get_output("print solve_result;")
         if "infeasible" in solve_result:
             if self.use_extra_restrictions_var.get():
                 self.solved_label.config(
@@ -86,8 +85,8 @@ class PathwayView(tk.Toplevel):
             if file_path:
                 printers.append(self.build_save_to_file_printer(file_path))
 
-        self.get_ampl_variables()
-        self.print_result(time.time() - before_solve_time, printers=printers)
+        self.get_ampl_variables(ampl)
+        self.print_result(ampl, time.time() - before_solve_time, printers=printers)
         if self.visualize_result_var.get():
             self.draw_canvas_frame()
         self.solved_label.config(
@@ -111,13 +110,13 @@ class PathwayView(tk.Toplevel):
 
         return Printer(file_path)
 
-    def print_result(self, execution_time, printers=None):
+    def print_result(self, ampl, execution_time, printers=None):
         if printers is None:
             printers = [print]
         for printer in printers:
             printer("###############################################")
-            printer("### Computed in %s seconds" % (execution_time))
-            printer("### Number of internal vertices ", int(self.ampl.getObjective("internal").value()))
+            printer(f"### Computed in {execution_time} seconds")
+            printer("### Number of internal vertices ", int(ampl.getObjective("internal").value()))
             printer("###############################################")
             printer("")
             printer("### reactionID : [Substrates] : [Products]")
@@ -131,14 +130,14 @@ class PathwayView(tk.Toplevel):
             for r in inverted_reactions:
                 printer(f"{r} : {' '.join(self.Y[r])} : {' '.join(self.X[r])}")
 
-    def get_ampl_variables(self):
+    def get_ampl_variables(self, ampl):
         def _and(i1, i2):
             if i1 == 1 and i2 == 1:
                 return 1
             return 0
 
-        variables = dict(self.ampl.get_variables())
-        sets = dict(self.ampl.get_sets())
+        variables = dict(ampl.get_variables())
+        sets = dict(ampl.get_sets())
 
         self.inverted = variables["inverted"].getValues().toDict()
 
@@ -149,10 +148,10 @@ class PathwayView(tk.Toplevel):
             has_incoming = variables["has_incoming"].getValues().toDict()
             self.internal = {k: _and(has_outgoint[k], has_incoming[k]) for k in has_outgoint.keys()}
 
-        self.X = {r_id: x.getValues().toList() for (r_id, x) in self.ampl.getSet("X").instances()}
-        self.Y = {r_id: x.getValues().toList() for (r_id, x) in self.ampl.getSet("Y").instances()}
-        self.reactions = self.ampl.getSet("E").getValues().toList()
-        self.compounds = self.ampl.getSet("V").getValues().toList()
+        self.X = {r_id: x.getValues().toList() for (r_id, x) in ampl.getSet("X").instances()}
+        self.Y = {r_id: x.getValues().toList() for (r_id, x) in ampl.getSet("Y").instances()}
+        self.reactions = ampl.getSet("E").getValues().toList()
+        self.compounds = ampl.getSet("V").getValues().toList()
 
     def draw_canvas_frame(self):
         if hasattr(self, "canvas_frame"):
