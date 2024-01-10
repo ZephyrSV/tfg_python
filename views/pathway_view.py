@@ -189,7 +189,7 @@ class PathwayView(tk.Toplevel):
                                arrowsize=10, arrowstyle='->')
         nx.draw_networkx_labels(G, add_yoffset(pos, 0.05), font_size=8)
 
-        ax.plot([], [], color='grey', label='Reactions', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.plot([], [], color='grey', label='Reactions', linestyle='', marker='s', markersize=5, alpha=0.8)
         ax.plot([], [], color='g', label='Internal compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
         ax.plot([], [], color='r', label='External compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
         ax.plot([], [], color='b', label='Inverted reactions', markersize=5, alpha=0.8)
