@@ -206,34 +206,35 @@ class PathwayView(tk.Toplevel):
         ax.legend(loc='best', prop={'size': 8})
         return fig
 
-    def draw_canvas_frame(self, include_labels=True, _Gpos = None):
+    def draw_canvas_frame(self):
         if hasattr(self, "canvas_frame"):
             self.canvas_frame.destroy()
         self.canvas_frame = ttk.Frame(self)
         self.canvas_frame.grid(**pad(), rowspan=6, column=2, row=0, sticky=tk.NSEW)
 
-        if _Gpos is None:
-            G, pos = self.build_graph()
-        else:
-            G, pos = _Gpos
-        fig = self.build_figure(G, pos, include_labels)
+        G, pos = self.build_graph()
+        fig = self.build_figure(G, pos)
 
         canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
         canvas_widget = canvas.get_tk_widget()
-        # Pack the canvas widget
         canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-        # Create a custom toolbar frame
         toolbar_frame = tk.Frame(self.canvas_frame)
         toolbar_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
-        # Add the NavigationToolbar2Tk to the custom toolbar frame
         NavigationToolbar2Tk(canvas, toolbar_frame, pack_toolbar=False).pack(side=tk.LEFT, fill=tk.X)
 
+        include_labels = [True] # Needs to be mutable
 
-        # Add a custom button to the toolbar frame
-        custom_button = tk.Button(toolbar_frame, text="Toggle Labels", command=
-        lambda: self.draw_canvas_frame(not include_labels, (G, pos)))
+        def toggle_labels():
+            """
+            Toggles the presence of labels on the canvas
+            Returns: Nothing
+            """
+            include_labels[0] ^= True # XOR just because it looks cooler
+            canvas.figure = self.build_figure(G, pos, include_labels[0])
+            canvas.draw()
+        custom_button = tk.Button(toolbar_frame, text="Toggle Labels", command=toggle_labels)
         custom_button.pack(side=tk.RIGHT)
 
         self.resizable(True, True)
