@@ -153,17 +153,10 @@ class PathwayView(tk.Toplevel):
         self.reactions = ampl.getSet("E").getValues().toList()
         self.compounds = ampl.getSet("V").getValues().toList()
 
-    def draw_canvas_frame(self):
-        if hasattr(self, "canvas_frame"):
-            self.canvas_frame.destroy()
-        self.canvas_frame = ttk.Frame(self)
-        self.canvas_frame.grid(**pad(), rowspan=6, column=2, row=0, sticky=tk.NSEW)
-
+    def build_graph(self):
         G = nx.Graph()
         G.add_nodes_from(self.reactions)
         G.add_nodes_from(self.compounds)
-        external = [c for c in self.compounds if self.internal[c] == 0]
-        internal = [c for c in self.compounds if self.internal[c] != 0]
         uninverted_reactions = [r for r in self.X.keys() if self.inverted[r] == 0]
         inverted_reactions = [r for r in self.X.keys() if self.inverted[r] != 0]
 
@@ -175,9 +168,24 @@ class PathwayView(tk.Toplevel):
             [(r, c) for r in inverted_reactions for c in self.X[r]]
         edges = uninverted_edges + inverted_edges
         G.add_edges_from(edges)
+        pos = nx.spring_layout(G)
+        return G, pos
+
+    def build_figure(self, G, pos, include_labels=True):
+        external = [c for c in self.compounds if self.internal[c] == 0]
+        internal = [c for c in self.compounds if self.internal[c] != 0]
+        uninverted_reactions = [r for r in self.X.keys() if self.inverted[r] == 0]
+        inverted_reactions = [r for r in self.X.keys() if self.inverted[r] != 0]
+
+        uninverted_edges = \
+            [(c, r) for r in uninverted_reactions for c in self.X[r]] + \
+            [(r, c) for r in uninverted_reactions for c in self.Y[r]]
+        inverted_edges = \
+            [(c, r) for r in inverted_reactions for c in self.Y[r]] + \
+            [(r, c) for r in inverted_reactions for c in self.X[r]]
 
         fig, ax = plt.subplots()
-        pos = nx.spring_layout(G)
+
         add_yoffset = lambda pos, o: {k: (v[0], v[1] + o) for (k, v) in pos.items()}
         nx.draw_networkx_nodes(G, pos, nodelist=self.reactions, node_color='grey', node_size=20, alpha=0.8,
                                node_shape='s')
@@ -187,7 +195,8 @@ class PathwayView(tk.Toplevel):
                                arrowstyle='->')
         nx.draw_networkx_edges(G, pos, edgelist=inverted_edges, edge_color='b', width=1.0, alpha=0.5, arrows=True,
                                arrowsize=10, arrowstyle='->')
-        nx.draw_networkx_labels(G, add_yoffset(pos, 0.05), font_size=8)
+        if include_labels:
+            nx.draw_networkx_labels(G, add_yoffset(pos, 0.05), font_size=8)
 
         ax.plot([], [], color='grey', label='Reactions', linestyle='', marker='s', markersize=5, alpha=0.8)
         ax.plot([], [], color='g', label='Internal compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
@@ -195,11 +204,37 @@ class PathwayView(tk.Toplevel):
         ax.plot([], [], color='b', label='Inverted reactions', markersize=5, alpha=0.8)
         ax.axis('off')
         ax.legend(loc='best', prop={'size': 8})
+        return fig
+
+    def draw_canvas_frame(self, include_labels=True, _Gpos = None):
+        if hasattr(self, "canvas_frame"):
+            self.canvas_frame.destroy()
+        self.canvas_frame = ttk.Frame(self)
+        self.canvas_frame.grid(**pad(), rowspan=6, column=2, row=0, sticky=tk.NSEW)
+
+        if _Gpos is None:
+            G, pos = self.build_graph()
+        else:
+            G, pos = _Gpos
+        fig = self.build_figure(G, pos, include_labels)
 
         canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
         canvas_widget = canvas.get_tk_widget()
-        NavigationToolbar2Tk(canvas, self.canvas_frame)
+        # Pack the canvas widget
         canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+        # Create a custom toolbar frame
+        toolbar_frame = tk.Frame(self.canvas_frame)
+        toolbar_frame.pack(side=tk.BOTTOM, fill=tk.X)
+
+        # Add the NavigationToolbar2Tk to the custom toolbar frame
+        NavigationToolbar2Tk(canvas, toolbar_frame, pack_toolbar=False).pack(side=tk.LEFT, fill=tk.X)
+
+
+        # Add a custom button to the toolbar frame
+        custom_button = tk.Button(toolbar_frame, text="Toggle Labels", command=
+        lambda: self.draw_canvas_frame(not include_labels, (G, pos)))
+        custom_button.pack(side=tk.RIGHT)
 
         self.resizable(True, True)
 
