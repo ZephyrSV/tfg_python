@@ -241,9 +241,6 @@ class PathwayView(tk.Toplevel):
             self.ntb2tk = NavigationToolbar2Tk(self.canvas_tkagg, toolbar_frame, pack_toolbar=False)
             self.ntb2tk.pack(side=tk.LEFT, fill=tk.X)
 
-
-
-
         custom_button = tk.Button(toolbar_frame, text="Toggle Labels", command=toggle_labels)
         custom_button.pack(side=tk.RIGHT)
 
