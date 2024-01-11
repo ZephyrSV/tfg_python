@@ -37,7 +37,7 @@ class PathwayView(tk.Toplevel):
         """
         ampl = AMPL()
         model = "AMPL/models/"
-        model += "zephyr_dual_imply_extra_restrictions.mod" if self.use_extra_restrictions_var.get() else "model_A.mod"
+        model += "serret_dual_imply_extra_restrictions.mod" if self.use_extra_restrictions_var.get() else "model_A.mod"
         print("model: ", model)
         ampl.read(model)
         ampl.readData(self.dat)

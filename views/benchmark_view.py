@@ -30,9 +30,9 @@ class Benchmark_view(tk.Toplevel):
         "Gurobi (requires licence for big models)": "gurobi",
     }
     models = {
-        "Zephyr old": "AMPL/models/zephyr_old.mod",
-        "Zephyr DualImply": "AMPL/models/zephyr_dual_imply.mod",
-        "Zephyr UniImply": "AMPL/models/zephyr_uni_imply.mod",
+        "Serret old": "AMPL/models/serret_old.mod",
+        "Serret DualImply": "AMPL/models/serret_dual_imply.mod",
+        "Serret UniImply": "AMPL/models/serret_uni_imply.mod",
         "Model A": "AMPL/models/model_A.mod", # Nasini
         "Model B": "AMPL/models/model_B.mod", # Valiente
     }
