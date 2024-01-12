@@ -13,7 +13,6 @@ from utils.ui_utils import pad, GridUtil
 
 
 class PathwayView(tk.Toplevel):
-    ampl = AMPL()
     solvers = {
         "cbc (free)": "cbc",
         "CPLEX (requires licence for big models)": "cplex",
@@ -36,17 +35,17 @@ class PathwayView(tk.Toplevel):
         """
         Solves the pathway
         """
-        self.ampl = AMPL()
+        ampl = AMPL()
         model = "AMPL/models/"
-        model += "zephyr_dual_imply_extra_restrictions.mod" if self.use_extra_restrictions_var.get() else "model_A.mod"
+        model += "serret_dual_imply_extra_restrictions.mod" if self.use_extra_restrictions_var.get() else "model_A.mod"
         print("model: ", model)
-        self.ampl.read(model)
-        self.ampl.readData(self.dat)
+        ampl.read(model)
+        ampl.readData(self.dat)
         print("solver: ", self.solvers[self.solver_selector.get()])
-        self.ampl.option["solver"] = self.solvers[self.solver_selector.get()]
+        ampl.option["solver"] = self.solvers[self.solver_selector.get()]
         before_solve_time = time.time()
-        self.ampl.solve()
-        solve_result = self.ampl.get_output("print solve_result;")
+        ampl.solve()
+        solve_result = ampl.get_output("print solve_result;")
         if "infeasible" in solve_result:
             if self.use_extra_restrictions_var.get():
                 self.solved_label.config(
@@ -86,8 +85,8 @@ class PathwayView(tk.Toplevel):
             if file_path:
                 printers.append(self.build_save_to_file_printer(file_path))
 
-        self.get_ampl_variables()
-        self.print_result(time.time() - before_solve_time, printers=printers)
+        self.get_ampl_variables(ampl)
+        self.print_result(ampl, time.time() - before_solve_time, printers=printers)
         if self.visualize_result_var.get():
             self.draw_canvas_frame()
         self.solved_label.config(
@@ -111,13 +110,13 @@ class PathwayView(tk.Toplevel):
 
         return Printer(file_path)
 
-    def print_result(self, execution_time, printers=None):
+    def print_result(self, ampl, execution_time, printers=None):
         if printers is None:
             printers = [print]
         for printer in printers:
             printer("###############################################")
-            printer("### Computed in %s seconds" % (execution_time))
-            printer("### Number of internal vertices ", int(self.ampl.getObjective("internal").value()))
+            printer(f"### Computed in {execution_time} seconds")
+            printer("### Number of internal vertices ", int(ampl.getObjective("internal").value()))
             printer("###############################################")
             printer("")
             printer("### reactionID : [Substrates] : [Products]")
@@ -131,14 +130,14 @@ class PathwayView(tk.Toplevel):
             for r in inverted_reactions:
                 printer(f"{r} : {' '.join(self.Y[r])} : {' '.join(self.X[r])}")
 
-    def get_ampl_variables(self):
+    def get_ampl_variables(self, ampl):
         def _and(i1, i2):
             if i1 == 1 and i2 == 1:
                 return 1
             return 0
 
-        variables = dict(self.ampl.get_variables())
-        sets = dict(self.ampl.get_sets())
+        variables = dict(ampl.get_variables())
+        sets = dict(ampl.get_sets())
 
         self.inverted = variables["inverted"].getValues().toDict()
 
@@ -149,22 +148,15 @@ class PathwayView(tk.Toplevel):
             has_incoming = variables["has_incoming"].getValues().toDict()
             self.internal = {k: _and(has_outgoint[k], has_incoming[k]) for k in has_outgoint.keys()}
 
-        self.X = {r_id: x.getValues().toList() for (r_id, x) in self.ampl.getSet("X").instances()}
-        self.Y = {r_id: x.getValues().toList() for (r_id, x) in self.ampl.getSet("Y").instances()}
-        self.reactions = self.ampl.getSet("E").getValues().toList()
-        self.compounds = self.ampl.getSet("V").getValues().toList()
+        self.X = {r_id: x.getValues().toList() for (r_id, x) in ampl.getSet("X").instances()}
+        self.Y = {r_id: x.getValues().toList() for (r_id, x) in ampl.getSet("Y").instances()}
+        self.reactions = ampl.getSet("E").getValues().toList()
+        self.compounds = ampl.getSet("V").getValues().toList()
 
-    def draw_canvas_frame(self):
-        if hasattr(self, "canvas_frame"):
-            self.canvas_frame.destroy()
-        self.canvas_frame = ttk.Frame(self)
-        self.canvas_frame.grid(**pad(), rowspan=6, column=2, row=0, sticky=tk.NSEW)
-
+    def build_graph(self):
         G = nx.Graph()
         G.add_nodes_from(self.reactions)
         G.add_nodes_from(self.compounds)
-        external = [c for c in self.compounds if self.internal[c] == 0]
-        internal = [c for c in self.compounds if self.internal[c] != 0]
         uninverted_reactions = [r for r in self.X.keys() if self.inverted[r] == 0]
         inverted_reactions = [r for r in self.X.keys() if self.inverted[r] != 0]
 
@@ -176,9 +168,24 @@ class PathwayView(tk.Toplevel):
             [(r, c) for r in inverted_reactions for c in self.X[r]]
         edges = uninverted_edges + inverted_edges
         G.add_edges_from(edges)
+        pos = nx.spring_layout(G)
+        return G, pos
+
+    def build_figure(self, G, pos, include_labels=True):
+        external = [c for c in self.compounds if self.internal[c] == 0]
+        internal = [c for c in self.compounds if self.internal[c] != 0]
+        uninverted_reactions = [r for r in self.X.keys() if self.inverted[r] == 0]
+        inverted_reactions = [r for r in self.X.keys() if self.inverted[r] != 0]
+
+        uninverted_edges = \
+            [(c, r) for r in uninverted_reactions for c in self.X[r]] + \
+            [(r, c) for r in uninverted_reactions for c in self.Y[r]]
+        inverted_edges = \
+            [(c, r) for r in inverted_reactions for c in self.Y[r]] + \
+            [(r, c) for r in inverted_reactions for c in self.X[r]]
 
         fig, ax = plt.subplots()
-        pos = nx.spring_layout(G)
+
         add_yoffset = lambda pos, o: {k: (v[0], v[1] + o) for (k, v) in pos.items()}
         nx.draw_networkx_nodes(G, pos, nodelist=self.reactions, node_color='grey', node_size=20, alpha=0.8,
                                node_shape='s')
@@ -188,19 +195,54 @@ class PathwayView(tk.Toplevel):
                                arrowstyle='->')
         nx.draw_networkx_edges(G, pos, edgelist=inverted_edges, edge_color='b', width=1.0, alpha=0.5, arrows=True,
                                arrowsize=10, arrowstyle='->')
-        nx.draw_networkx_labels(G, add_yoffset(pos, 0.05), font_size=8)
+        if include_labels:
+            nx.draw_networkx_labels(G, add_yoffset(pos, 0.05), font_size=8)
 
-        ax.plot([], [], color='grey', label='Reactions', linestyle='', marker='o', markersize=5, alpha=0.8)
+        ax.plot([], [], color='grey', label='Reactions', linestyle='', marker='s', markersize=5, alpha=0.8)
         ax.plot([], [], color='g', label='Internal compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
         ax.plot([], [], color='r', label='External compounds', linestyle='', marker='o', markersize=5, alpha=0.8)
         ax.plot([], [], color='b', label='Inverted reactions', markersize=5, alpha=0.8)
         ax.axis('off')
         ax.legend(loc='best', prop={'size': 8})
+        return fig
 
-        canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
-        canvas_widget = canvas.get_tk_widget()
-        NavigationToolbar2Tk(canvas, self.canvas_frame)
-        canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+    def draw_canvas_frame(self):
+        if hasattr(self, "canvas_frame"):
+            self.canvas_frame.destroy()
+        self.canvas_frame = ttk.Frame(self)
+        self.canvas_frame.grid(**pad(), rowspan=6, column=2, row=0, sticky=tk.NSEW)
+
+        G, pos = self.build_graph()
+        fig = self.build_figure(G, pos)
+
+        self.canvas_tkagg = FigureCanvasTkAgg(fig, master=self.canvas_frame)
+        self.canvas_tkagg.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+        toolbar_frame = tk.Frame(self.canvas_frame)
+        toolbar_frame.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.ntb2tk = NavigationToolbar2Tk(self.canvas_tkagg, toolbar_frame, pack_toolbar=False)
+        self.ntb2tk.pack(side=tk.LEFT, fill=tk.X)
+
+        include_labels = [True] # Needs to be mutable
+
+        def toggle_labels():
+            """
+            Toggles the presence of labels on the canvas
+            Returns: Nothing
+            """
+            self.canvas_tkagg.get_tk_widget().pack_forget()
+            include_labels[0] ^= True # XOR just because it looks cooler
+            fig = self.build_figure(G, pos, include_labels[0])
+            self.canvas_tkagg = FigureCanvasTkAgg(fig, master=self.canvas_frame)
+            self.canvas_tkagg.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+            #The toolbar needs to be fixed after the canvas is redrawn
+            self.ntb2tk.destroy()
+            self.ntb2tk = NavigationToolbar2Tk(self.canvas_tkagg, toolbar_frame, pack_toolbar=False)
+            self.ntb2tk.pack(side=tk.LEFT, fill=tk.X)
+
+        custom_button = tk.Button(toolbar_frame, text="Toggle Labels", command=toggle_labels)
+        custom_button.pack(side=tk.RIGHT)
 
         self.resizable(True, True)
 
