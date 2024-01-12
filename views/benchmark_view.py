@@ -1,3 +1,4 @@
+import os
 import time
 import tkinter
 from datetime import datetime
@@ -40,6 +41,7 @@ class Benchmark_view(tk.Toplevel):
     _dats_lock = threading.Lock()
     result_count = 0
     current_test_id = ""
+    file = None
 
     def insert_to_treeview(self, parent, text, *values):
         self.result_count += 1
@@ -81,6 +83,8 @@ class Benchmark_view(tk.Toplevel):
             if is_valid:
                 valid_duration_lists.append(solve_duration_list)
             self.after(0, self.insert_to_treeview, self.current_test_id, entry, solver_id, *solve_duration_list)
+            solve_duration_list_str = '\t'.join(map(lambda x: x.__str__(), solve_duration_list))
+            self.file.write(f"{entry}\t{solver_id}\t{solve_duration_list_str}\n")
         self.after(0, self.set_benchmark_average, self.current_test_id, solver_id, valid_duration_lists)
 
     def prepare_dats(self):
@@ -95,11 +99,17 @@ class Benchmark_view(tk.Toplevel):
     @print_thread_name
     def run_benchmark(self):
         print(f"Running benchmark with {self.entries.__len__()} entries")
+        if not os.path.isdir("output"):
+            os.mkdir("output")
+        self.file = open(f"output/benchmark_{datetime.now().strftime('%d_%m_%Y_%H_%M')}.txt", "w")
+        models_names_for_file = '\t'.join(map(lambda x: x+"'s solve duration", self.models.keys()))
+        self.file.write(f"entry\tsolver\t{models_names_for_file}\n")
         self.start_button.config(text="Generating dats...", state=tkinter.DISABLED)
         self.prepare_dats()
         self.start_button.config(text="Solving...")
         self.solve_all_entries()
         self.start_button.config(text="Start benchmark", state=tkinter.NORMAL)
+        self.file.close()
         print("Benchmark finished")
 
     def start_button_click(self):
