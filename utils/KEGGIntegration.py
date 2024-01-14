@@ -1,8 +1,6 @@
-import concurrent.futures
 import json
 import os
 import re
-import threading
 
 from Bio.KEGG import REST
 
@@ -35,15 +33,16 @@ class KEGGIntegration(SingletonClass):
             example: equation_verbose is something like "Maltose + H2O <=> 2 D-Glucose"
     """
     data_loc = "persistent_data/data.json"
+    map_reaction_id_to_substrates_products_ids = {}
+    map_synonym_to_compound_id = {}
+    broken_reaction_ids = []
+    fetched_breaking_reaction_ids = []
+    map_reaction_id_to_list_compound_id = {}
+    map_pathway_id_to_list_reaction_id = {}
+    map_pathway_id_to_description = {}
 
     def __init__(self):
-        self.map_reaction_id_to_substrates_products_ids = {}
-        self.map_synonym_to_compound_id = {}
-        self.broken_reaction_ids = []
-        self.fetched_breaking_reaction_ids = []
-        self.map_reaction_id_to_list_compound_id = {}
-        self.map_pathway_id_to_list_reaction_id = {}
-        self.map_pathway_id_to_description = {}
+
         if os.path.exists(self.data_loc):
             self.load_data()
         else:
@@ -105,7 +104,7 @@ class KEGGIntegration(SingletonClass):
         self.map_reaction_id_to_list_compound_id = data["map_reaction_id_to_list_compound_id"]
         self.map_pathway_id_to_list_reaction_id = data["map_pathway_id_to_list_reaction_id"]
         self.map_pathway_id_to_description = data["map_pathway_id_to_description"]
-        
+
     @staticmethod
     def fetch_map_reaction_id_to_list_compound_id():
         """
@@ -123,7 +122,6 @@ class KEGGIntegration(SingletonClass):
             else:
                 reaction_coumpound_ids[reaction_id] = [compound_id]
         return reaction_coumpound_ids
-        
 
     @staticmethod
     def fetch_map_synonym_to_compound_id():
@@ -146,6 +144,7 @@ class KEGGIntegration(SingletonClass):
                 print("I stored: ", compound_synonym, compound_names_id[compound_synonym])
 
         return compound_names_id
+
     @staticmethod
     def fetch_map_pathway_id_to_list_reaction_id():
         """
@@ -165,7 +164,6 @@ class KEGGIntegration(SingletonClass):
             else:
                 map_pathway_id_to_list_reaction_id[pathway_id] = [reaction_id]
         return map_pathway_id_to_list_reaction_id
-
 
     @staticmethod
     def split_into_smaller_sublist(list_to_split, n):
@@ -210,7 +208,7 @@ class KEGGIntegration(SingletonClass):
             print("Couldn't find the synonym :", synonym)
             return None
         candidates = [
-            candidate # compound id
+            candidate  # compound id
             for candidate in self.map_synonym_to_compound_id[synonym]
             if candidate in self.map_reaction_id_to_list_compound_id.get(reaction_id, [])
         ]
@@ -236,7 +234,7 @@ class KEGGIntegration(SingletonClass):
         for reaction in REST.kegg_list("reaction").read().split('\n')[:-1]:
             broken = False
             reaction_id, reaction_equation_verbose = reaction.split('\t')
-            reaction_equation_verbose = reaction_equation_verbose.split("; ")[-1] # remove the name of the equation
+            reaction_equation_verbose = reaction_equation_verbose.split("; ")[-1]  # remove the name of the equation
             self.map_reaction_id_to_substrates_products_ids[reaction_id] = {"substrates": [], "products": []}
             substrates_verbose, product_verbose = reaction_equation_verbose.split(' <=> ')
             for substrate_verbose in substrates_verbose.split(' + '):
@@ -267,11 +265,10 @@ class KEGGIntegration(SingletonClass):
             self.query_for_reactions(to_query)
             self.fetched_breaking_reaction_ids.extend(to_query)
 
-
-
     def query_for_reactions(self, reactions: list):
         """
-        Queries the KEGG database (GET of REST) for the reactions (by groups of 10) and adds them to the reactions dictionary
+        Queries the KEGG database (GET of REST) for the reactions (by groups of 10) and adds them to the reactions
+        dictionary
 
         Parameters
         ----------
@@ -301,6 +298,8 @@ class KEGGIntegration(SingletonClass):
         ----------
         entries : list
             A list of pathway ids for which the .dat files are to be generated
+        overwrite : bool
+            Whether to overwrite the existing .dat files
 
         Returns
         -------
@@ -332,7 +331,8 @@ class KEGGIntegration(SingletonClass):
 
         generic_pathway_reactions = {k[-5:]: v for k, v in self.map_pathway_id_to_list_reaction_id.items()}
 
-        reactions = {r_id: self.map_reaction_id_to_substrates_products_ids[r_id].values() for r_id in generic_pathway_reactions[pathway_id[-5:]]}
+        reactions = {r_id: self.map_reaction_id_to_substrates_products_ids[r_id].values() for r_id in
+                     generic_pathway_reactions[pathway_id[-5:]]}
 
         substrates_products = set()
         for substrates, products in reactions.values():
@@ -369,11 +369,3 @@ class KEGGIntegration(SingletonClass):
         f.write("set uninvertibles := ;\n\nset forced_externals := ;\n\nset forced_internals := ;\n\n")
 
         f.close()
-
-
-
-
-
-
-
-
