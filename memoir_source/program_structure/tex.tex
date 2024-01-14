@@ -6,12 +6,37 @@ In this section, we will discuss the program structure and data structure used i
 \subsection{File Organization}
 \label{subsec:file_organization}
 
-In our project, we follow a structured approach to organize our files. We have divided our code into multiple files based on their functionality and purpose. This modular approach helps in better code management and improves code reusability.
+In our project, we follow a structured approach to organize our files. 
+We have divided our code into multiple files based on their functionality and purpose. 
+This modular approach helps in better code management and improves code reusability.
 
-The main file of our project is the \texttt{App.py} file, which serves as the entry point for our application. It creates an instance of   from \texttt{views/pathway\_selector.py},
+\subsubsection{Entry Point of the Application - \texttt{App.py}}
 
-We have separate files for different components of our application, such as \texttt{views/pathway\_selector.py}, \texttt{data\_processing.py}, and \texttt{visualization.py}. Each file focuses on a specific aspect of the application and contains related functions and classes.
+The main file of our project is the \texttt{App.py} file, which serves as the entry point for our application. 
+It creates an instance of \texttt{Pathway\_selector} \texttt{Pathway\_selector(tk.Tk)} from \texttt{views/pathway\_selector.py} and calls its \texttt{mainloop()} method to start the application.
 
-Additionally, we have a separate folder for storing data files, named \texttt{data}, where we keep all the necessary data files for our application. This helps in keeping the project organized and makes it easier to manage and update the data.
+\subsubsection{Views}
 
-By following this file organization approach, we ensure that our code is well-structured, modular, and easy to navigate and maintain.
+The \texttt{views} folder contains all the files related to the user interface of our application.
+It contains the following files:
+
+\begin{description}
+    \item[\texttt{pathway\_selector.py}] This file contains the code for the pathway selector window, which is the first window that appears when the application is launched and serves as the application's home screen. It allows the user to select a pathway from the list of available pathways and click on the \texttt{Select} button to proceed to the next window, among other things.
+    \item[\texttt{pathway\_view.py}] This file contains the code for the pathway view window. This window allows the user to solve a pathway problem using the selected pathway. It also allows the user to view a representation of the pathway and its reactions hence the name pathway view.
+    \item[\texttt{benchmark\_view.py}] This file contains the code for the benchmark view window. This window allows the user to benchmark the performance of our AMPL models and compare the performance of various solvers.
+\end{description}
+
+\subsubsection{Models}
+
+The \texttt{models} folder contains all the files related to the AMPL models used in our project.
+
+\begin{description}
+    \item[\texttt{model\_A.mod}] As described in Section \ref{sec:model_a_b}. This model is used both in the benchmarking process and when solving a pathway in the pathway\_view when the user doesn't select the \texttt{Extra restrictions} option.
+    \item[\texttt{model\_B.mod}] As described in Section \ref{sec:model_a_b}. This model is only used during the benchmarking process.
+    \item[\texttt{serret\_dual\_imply\_extra\_restrictions.mod}] As described in Section \ref{sec:model_dualimply_extra_restrictions}. This model is use when solving a pathway in the pathway\_view when the user selects the \texttt{Extra restrictions} option.
+    \item[\texttt{serret\_dual\_imply.mod}] A varient of the model described in Section \ref{sec:model_dualimply_extra_restrictions} without the extra restrictions. This model is only used during the benchmarking process.
+    \item[\texttt{serret\_old.mod}] This is the first prototype of our model as seen in Section \ref{sec:first_prototype}.
+    \item[\texttt{serret\_uni\_imply.mod}] As described in Section \ref{sec:benchmark}. This model is only used during the benchmarking process.
+\end{description}
+
+\subsubsection{Utils}
