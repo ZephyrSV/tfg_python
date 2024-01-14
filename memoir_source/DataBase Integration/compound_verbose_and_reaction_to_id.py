@@ -45,7 +45,7 @@
             self.map_reaction_id_to_substrates_products_ids[reaction_id] = {"substrates": [], "products": []}
             substrates_verbose, product_verbose = reaction_equation_verbose.split(' <=> ')
             for substrate_verbose in substrates_verbose.split(' + '):
-                substrate_id = self.compound_verbose_and_reaction_to_id(substrate_verbose, reaction_id)
+                substrate_id = self.__compound_verbose_and_reaction_to_id(substrate_verbose, reaction_id)
                 if substrate_id is not None:
                     self.map_reaction_id_to_substrates_products_ids[reaction_id]\
                     ["substrates"].append(substrate_id)
@@ -56,7 +56,7 @@
             if broken:
                 continue
             for product_verbose in product_verbose.split(' + '):
-                product_id = self.compound_verbose_and_reaction_to_id(product_verbose, reaction_id)
+                product_id = self.__compound_verbose_and_reaction_to_id(product_verbose, reaction_id)
                 if product_id is not None:
                     self.map_reaction_id_to_substrates_products_ids[reaction_id]\
                     ["products"].append(product_id)
