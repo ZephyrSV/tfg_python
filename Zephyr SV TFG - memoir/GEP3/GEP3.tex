@@ -1,0 +1,217 @@
+\section{Budget} \label{sec:Budget}
+In this section, we present a comprehensive budget estimation for the successful completion of the project. The budget is categorized into two main components: Personnel Costs per Activity and Generic Costs. This breakdown offers transparency and insight into the allocation of resources.
+\subsection{Staff costs}
+
+As we saw in section \ref{sec:human_resources}, we identified three key individuals (the Author, the thesis supervisor and the GEP supervisor) who are involved in various roles to ensure the successful execution of the project. 
+
+In table \ref{tab:estimatedStaffCostsPerHour}, we present the estimated hourly rates for each of the roles, taking into account Social Security contributions. The cost estimation is based on average salaries for each role in the region of Barcelona. 
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l|l|l|l}
+    \rowcolor{black!15}
+        Role & Annual Salary & Annual Salary + SS (35\%) & Cost Per hour \\ \hline
+        Project Manager & €44,000.00 \cite{glassPM} & €59,400.00 & €34.22 \\ \hline
+        Junior Project Manager & €30,000.00 \cite{glassJPM} & €40,500.00 & €23.33 \\ \hline
+        Junior Researcher & €25,000.00 \cite{glassJR} & €33,750.00 & €19.44 \\ \hline
+        Senior Researcher & €39,000.00 \cite{glassSR}& €52,650.00 & €30.33 \\ \hline
+        Junior Full Stack Developer & €25,000.00 \cite{glassJFSD} & €33,750.00 & €19.44 \\
+    \end{tabular}
+    \caption{Estimated Staff Costs per hour (1736 working hours per year \cite{statistaHours})}
+    \label{tab:estimatedStaffCostsPerHour}
+\end{table}
+
+In table \ref{tab:PCA}, we present the estimated cost of each task by defining how many hours each role must spend on it and by using the data from table \ref{tab:estimatedStaffCostsPerHour}. 
+
+What we obtain is an estimation of the Personnel Cost per Activity or PCA.
+\begin{landscape}
+\begin{table}[!ht]
+    \centering
+    %\rotatebox{270}{
+    \begin{tabular}{|l|l|p{1.5cm}|p{1.5cm}|l|l|p{2cm}|l|l|}
+    \hline
+        \multirow{2}{*}{ID} & \multirow{2}{*}{Task} & \multicolumn{5}{c|}{Hours per role} & \multirow{2}{*}{Total Hours} & \multirow{2}{*}{Price} \\\cline{3-7} 
+        ~ & ~ & Project Manager & Jr.Project Manager & Jr. Researcher & Sr. researcher & Jr. Full Stack Dev. & ~ & ~ \\ \hline
+        \rowcolor{black!15}
+        T1 & Project Management & 25 & 75 & 5 & 10 & 5 & 120 & €3,102.82 \\ \hline
+        T1.1 & Context and scope & 5 & 25 & 0 & 0 & 0 & 30 & €754.32 \\ \hline
+        T1.2 & Temporal planning of the project & 5 & 15 & 0 & 0 & 0 & 20 & €521.03 \\ \hline
+        T1.3 & Budget and sustainability & 5 & 15 & 0 & 0 & 0 & 20 & €521.03 \\ \hline
+        T1.4 & Integration of Key Project Components & 5 & 15 & 0 & 0 & 0 & 20 & €521.03 \\ \hline
+        T1.5 & Meetings with the tutor & 5 & 5 & 5 & 10 & 5 & 30 & €785.43 \\ \hline
+        \rowcolor{black!15}
+        T2 & Design of the ILPModel & 0 & 0 & 90 & 0 & 0 & 90 & €1,749.71 \\ \hline
+        T2.1 & Study of ILP Modeling Using AMPL & 0 & 0 & 40 & 0 & 0 & 40 & €777.65 \\ \hline
+        T2.2 & Formulate the Hypergraph Model & 0 & 0 & 15 & 0 & 0 & 15 & €291.62 \\ \hline
+        T2.3 & Validation with Handcrafted Data & 0 & 0 & 10 & 0 & 0 & 10 & €194.41 \\ \hline
+        T2.4 & Testing with Real Data & 0 & 0 & 15 & 0 & 0 & 15 & €291.62 \\ \hline
+        T2.5 & Benchmarking and Optimization & 0 & 0 & 10 & 0 & 0 & 10 & €194.41 \\ \hline
+        \rowcolor{black!15}
+        T3 & App development & 0 & 0 & 0 & 0 & 210 & 210 & €4,082.66 \\ \hline
+        T3.1 & Database Interaction Setup & 0 & 0 & 0 & 0 & 35 & 35 & €680.44 \\ \hline
+        T3.2 & ILP Model Integration & 0 & 0 & 0 & 0 & 25 & 25 & €486.03 \\ \hline
+        T3.3 & Functionality Implementation & 0 & 0 & 0 & 0 & 50 & 50 & €972.06 \\ \hline
+        T3.4 & User Interface Design & 0 & 0 & 0 & 0 & 50 & 50 & €972.06 \\ \hline
+        T3.5 & User Documentation Creation & 0 & 0 & 0 & 0 & 50 & 50 & €972.06 \\ \hline
+        \rowcolor{black!15}
+        T4 & Project documentation & 0 & 0 & 0 & 0 & 50 & 50 & €972.06 \\ \hline
+        \rowcolor{black!15}
+        T5 & Preparation for the oral defence & 0 & 0 & 15 & 0 & 15 & 30 & €583.24 \\ \hline
+        \multicolumn{8}{r|}{Sum: } & €19,425.69 \\ \cline{9-9}
+    \end{tabular}
+    %}
+    \caption{Personnel Cost per Activity (PCA) based on the costs defined in table \ref{tab:estimatedStaffCostsPerHour}}
+    \label{tab:PCA}
+\end{table}
+\end{landscape}
+
+\newpage
+
+\subsection{Generic costs}
+In this subsection, we examine the amortization of material resources utilized during the course of this study. Note that all the software that we use are free to use or have an free educational licence option, therefore they are not included.
+To calculate the amortization of these material resources, we use the following formula:
+\begin{align*}
+    \text{Amortized Cost} = \frac{\text{Initial Cost}*\text{Hours of use for project}}{\text{Estimated hours of lifespan}}
+\end{align*}
+$\frac{}{}$
+Specifically, we consider the resources in table \ref{tab:amortization}:
+To calculate the values, we use :
+\begin{framed}
+\begin{align*}
+    &\text{Hours of use for project} =& 435 \text{ hours}\\
+    &\text{Estimated hours of lifespan} = &\frac{\text{Estimated years of lifespan}}{1736\text{ working hours per year} \cite{statistaHours}}
+\end{align*}    
+\end{framed}
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|}
+    \hline
+        \rowcolor{black!25}
+        Hardware & Price & Lifetime (in years) & Amortized price \\ \hline
+        Desktop Computer & €1,800 & 5 & €90 \\ \hline
+        QHD VA Display & €220 & 8 & €7 \\ \hline
+        Microsoft sculpt ergonomic keyboard & €80 & 5 & €4 \\ \hline
+        Logitec Superlight mouse & €80 & 4 & €5 \\ \hline
+        \multicolumn{3}{r|}{Total :} & €106 \\ \cline{4-4}
+    \end{tabular}
+    \caption{Amortization of physical resources}
+    \label{tab:amortization}
+\end{table}
+
+In addition to the direct material resource costs, there are indirect expenses that need to be considered for the project. These costs are essential for the smooth operation and completion of the study.
+\begin{list}{}{}
+\item \textbf{Electricity}\\
+   - Description: The cost of electrical consumption for running the computer, display, and other electronic equipment.\\
+   - Estimated Monthly Cost: 435 hours * 0.3kW (from personal testing) * 0.1224 €/kWH \cite{priceKWH} = 15.97€
+
+\item \textbf{Internet Service:}\\
+   - Description: The cost of internet connectivity, which is crucial for research, communication, and data access.\\
+   - Estimated Monthly Cost: 40€ per month \cite{priceinternet} * 12 * $\frac{435 \text{ project hours}}{8760 \text{ hours per year}}$ = 23.83€
+
+\end{list}
+
+\subsection{Budget Deviations}
+
+\subsubsection{Contingency}
+
+To account for unavoidable unexpected events, we include an additional 10\% in the total budget. This allowance is meant to accommodate the possible extra hours that may be required due to unforeseen circumstances.
+We have chosen to apply the same contingency factor to both PCA and GC because they are both calculated using a linear function of the total hours used.
+
+\subsubsection{Incidental Costs}
+
+In the previous sections, we have identified potential risks that may emerge during the course of the project. To address these risks and mitigate their impact on the budget, we propose the inclusion of an "incidental cost" component. This allocation will serve to cover any extra expenses that may arise due to unforeseen circumstances. 
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|}
+    \hline
+    \rowcolor{black!25}
+        Incident & Estimated Cost & Risk (\%) & Incidental Cost \\ \hline
+        Project Timeline & €2000 & 10 & €200 \\ \hline
+        Computational power & €375 & 5 & €18.75 \\ \hline
+        Intergration challenges & €1250 & 50 & €625 \\ \hline
+        Inexperience with ILP & €500 & 0 & €0 \\ \hline
+        \multicolumn{3}{r|}{Total Incidental Cost:}& €843.75 \\ \cline{4-4}
+    \end{tabular}
+    \caption{Incidental Costs}
+    \label{tab:incidentalCost}
+\end{table}
+
+\subsection{Management Control}
+In this section, we establish essential metrics to monitor and control project expenditures, ensuring that we adhere to the original budget. Our approach involves close supervision of task durations and cost estimations per hour, allowing us to align project progress with financial expectations.
+
+\subsubsection{Metrics for Budget Adherence:}
+\begin{enumerate}
+    \item \textbf{Task Duration Tracking:} We will closely monitor the actual time required to complete each task compared to the initial estimates. Deviations from estimated task durations will be identified and analyzed promptly.
+    
+    \item \textbf{Cost Estimation vs. Real Costs:} We will assess whether the cost estimations per hour, based on roles and responsibilities, align with actual costs incurred during the project. Any disparities will trigger further investigation.
+\end{enumerate}
+
+\subsubsection{Adaptation for Budget Control}
+
+Adherence to the budget is paramount. In cases where metrics indicate potential budget deviations, we will take proactive measures to realign with financial expectations:
+
+\begin{itemize}
+    \item \textbf{Task Reallocation:} If certain tasks consistently exceed estimated durations, we may consider redistributing responsibilities or resources to optimize efficiency.
+    
+    \item \textbf{Cost Adjustments:} Should discrepancies arise between estimated and actual costs, we will evaluate the factors contributing to the variance and adjust the budget accordingly.
+    
+    \item \textbf{Resource Optimization:} We will explore opportunities for resource optimization, including time and material resources, to ensure efficient utilization and cost-effectiveness.
+\end{itemize}
+
+By implementing these management control measures, we aim to maintain strict budget adherence throughout the project's lifecycle. This proactive approach allows us to adapt promptly and make informed decisions to ensure financial stability and project success.
+
+\subsection{Total Budget}
+We have compiled all the budget components discussed previously into the following table \ref{tab:finalBudget} to present the overall budget for the project:
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|}
+    \hline
+    \rowcolor{black!25}
+        Category & Cost\\ \hline
+        PCA & €19,425.69 \\ \hline
+        GC & €146.12 \\ \hline
+        Incidental Cost & €843.75 \\ \hline
+        \multicolumn{2}{c}{}\\ \hline
+        \cellcolor{black!15}
+        Total & €20,415.56 \\ \hline
+        \cellcolor{black!25}
+        Total with Contigency & €22,457.12 \\ \hline
+    \end{tabular}
+    \caption{Final Budget}
+    \label{tab:finalBudget}
+\end{table}
+
+\section{Sustainability report}
+
+The conclusion of my bachelor's program at UPC provides a valuable opportunity for self-reflection on my understanding of the environmental impact of software engineering projects.
+
+As the author of this thesis, I acknowledge that I possess a foundational understanding of sustainability, encompassing economic, environmental, and social dimensions. However, I am committed to continuous improvement in these areas.
+
+\subsection{Economic dimenstion}
+\smalltitle{Regarding PPP: Reflection on the cost you have estimated for the completion of the project}
+Reflecting on the cost estimation for this project, I find it to be a critical aspect of project planning and management. As detailed in Section \ref{sec:Budget}, we meticulously assessed the costs, factoring in personnel and material resources, to develop a comprehensive budget.
+
+One key takeaway from this exercise is the importance of accuracy in cost estimation. By thoroughly studying the costs associated with personnel and material resources, we aimed to create a realistic budget that aligns with project goals and objectives. However, it's essential to acknowledge that cost estimates are subject to variables and uncertainties that may arise during the project's execution.
+\smalltitle{Regarding Useful Life: How are currently solved economic issues (costs...) related to the problem that you want to address (state of the art)?, and How will your solution improve economic issues (costs ...) with respect other existing solutions?}
+It is important to note that this is a new and unique problem. The value of the results generated by the ILP (Integer Linear Programming) model developed in this thesis is yet unknown. Unlike established research topics or methodologies, there are no existing researchers or prior studies that directly address this particular issue. Therefore, it is challenging to draw comparisons or improvements based on existing solutions.
+
+\subsection{Environmental Dimension}
+\smalltitle{Regarding PPP: Have you estimated the environmental impact of the project?}
+As previously mentioned, assessing the environmental impact of this project presents a unique challenge. The value of the results derived from the ILP (Integer Linear Programming) model developed in this thesis remains uncertain, making it challenging to predict its environmental implications. In the absence of concrete data or precedents, any assessment would rely heavily on speculation.
+
+\smalltitle{Regarding PPP: Did you plan to minimize its impact, for example, by reusing resources?}
+The potential for mitigating the impact of this project, such as resource reuse, is contingent on its outcomes and applications. As previously discussed, the value and practical applications of the ILP (Integer Linear Programming) model developed in this thesis are yet to be determined. Consequently, any specific plans for minimizing impact, including resource reuse, are inherently linked to the project's findings and utilization.
+
+
+\smalltitle{Regarding Useful Life: How is currently solved the problem that you want to address (state of the art)?, and how will your solution improve the environment with respect other existing solutions?}
+It is important to note that this is a new and unique problem. The value of the results generated by the ILP (Integer Linear Programming) model developed in this thesis is yet unknown. Unlike established research topics or methodologies, there are no existing researchers or prior studies that directly address this particular issue. Therefore, it is challenging to draw comparisons or improvements based on existing solutions.
+
+\subsection{Social Dimension}
+\smalltitle{Regarding PPP: What do you think you will achieve -in terms of personal growth- from doing this project?}
+Engaging in this project offers a unique avenue for personal growth. It will deepen my expertise in hypergraph algorithms, honing problem-solving and research skills. Navigating novel challenges will cultivate innovation and analytical thinking. Moreover, as my knowledge expands, new professional opportunities are expected to emerge, enhancing my career prospects. Managing this project independently will also refine my time management and self-discipline. In essence, this endeavor is a pivotal step in my journey of personal and professional growth.
+
+\smalltitle{Regarding Useful Life: How is currently solved the problem that you want to address (state of the art)?, and how will your solution improve the quality of life (social dimension) with respect other existing solutions?}
+It is important to note that this is a new and unique problem. The value of the results generated by the ILP (Integer Linear Programming) model developed in this thesis is yet unknown. Unlike established research topics or methodologies, there are no existing researchers or prior studies that directly address this particular issue. Therefore, it is challenging to draw comparisons or improvements based on existing solutions.
+\smalltitle{Regarding Useful Life: Is there a real need for the project?}
+As said previously, the value of the results generated by the ILP (Integer Linear Programming) model developed in this thesis is yet unknown.

@@ -1,0 +1,728 @@
+\section{Creating an effective AMPL model}\label{sec:AMPL_MODELS}
+
+In this section, we delve into the process of creating an effective AMPL model to find optimal solutions for our problem. We will provide in-depth explanations of the key components, including parameters (param), sets (set), variables (var), objectives, and constraints.
+
+\subsection{Understanding the Basics of AMPL}
+
+AMPL, short for "A Mathematical Programming Language," is a powerful tool for mathematical optimization. To create a successful AMPL model, it's essential to grasp the following fundamental concepts:
+\begin{description}
+    \item[Parameters (param):] 
+    Parameters in AMPL represent constant values or inputs used in your mathematical model. They serve as the numeric data that influences the model's behavior. You define parameters using the `param` keyword, and they can be assigned specific values. \\
+    For instance, in a transportation optimization model, you could have a parameter representing the cost of shipping between two locations.\\
+    \item[Sets (set):]
+    Sets in AMPL are used to represent collections of elements or entities. These entities can be products, locations, time periods, or any relevant entities, depending on your problem domain. You define sets using the `set` keyword and use them to specify the domains for your variables and constraints. \\
+    In a product distribution model, you might define a set to represent all available distribution centers.\\
+    
+\item[Variables (var):]
+    Variables in AMPL symbolize the decision variables that the optimization model will adjust to achieve the desired outcome. You use the `var` keyword to define variables, setting their domains and optional bounds. These variables typically represent what you're trying to optimize. \\
+    For example, in a production scheduling model, you may define variables to represent the quantity of each product to be produced.\\
+    
+\item[Objectives:]
+    The objective function in an AMPL model defines what you aim to optimize. It is a mathematical expression that relies on variables and, sometimes, parameters within your model. You can specify objectives to be minimized or maximized. \\
+    For example, in a workforce scheduling model, your objective might be to minimize labor costs while meeting staffing requirements.\\
+
+\item[Constraints:]
+    Constraints are mathematical expressions that constrain the potential solutions of your optimization problem. These constraints typically consist of inequalities and equations involving variables, parameters, and sets. They ensure that the solution adheres to specific requirements or limitations. \\
+    In a project scheduling model, you might define constraints to manage resource availability or project duration.
+\end{description}
+
+    
+
+
+In AMPL, you combine these core components to construct a comprehensive mathematical model that represents your real-world optimization challenge. Whether you're optimizing supply chains, production processes, financial portfolios, or any other problem domain, a thorough understanding of parameters, sets, variables, objectives, and constraints is essential for constructing effective AMPL models that deliver optimal solutions.
+
+
+\subsection{Desired inputs/outputs} \label{sec:io}
+In the design of our AMPL model, we aim to create a versatile model that can work with any hypergraph  G = (V, E).
+
+\begin{description}
+    \item[Inputs:] ~
+    \begin{itemize}
+        \item $V$: The set of vertices. 
+        \item $E$: The set of hyper-edges.
+        \item $\forall e\ \in\ E,\ X(e)$: for each hyperedge, its tail set (which we call $X$).
+        \item $\forall e\ \in\ E,\ Y(e)$: for each hyperedge, its head set (which we call $Y$).
+        \item \begin{description}
+            \item[Optional] $\forall e\ \in\ E,\ invertible(e)$: for each hyperedge, whether it can be inverted.
+        \end{description}
+        \item \begin{description}
+            \item[Optional] $\forall n\ \in\ V,\ external(n)$: Whether we must force a vertex to be external.
+        \end{description}
+    \end{itemize}
+    \item[Outputs:] ~
+    \begin{itemize}
+        \item $\forall e\ \in\ E,\ inverted(e)$: Whether a hyperedge is inverted in our solution.
+        \item $\forall n\ \in\ V,\ is\_internal(e)$: Whether a vertex is internal in our solution.
+    \end{itemize}
+\end{description}
+
+\subsection{Explaining our models}
+In this section, we present the initial model prototype and two models created by the professor and his colleagues.
+\subsubsection{First prototype}
+In this section, we will provide an overview of the structure and functionality of the first prototype.
+
+As we can see in figure \ref{fig:first-Prototype}, the code is divided in 4 parts.
+
+\begin{enumerate}
+    \item \textbf{Inputs} The lines 5 through 9 defines the input fields as we described them in section \ref{sec:io}.
+    \item \textbf{Helpers} The lines 17 and 18 define to sets that we use as helpers for the rest of the program.
+    \begin{itemize}
+        \item
+        \begin{description}
+            \item[substrate\_in] ~\\ For every vertex $i$, we create a set of every hyperedge where $i$ acts as a substrate ($i$ belongs to the tail set)
+        \end{description}
+        \item
+        \begin{description}
+            \item[product\_in] ~\\ For every vertex $i$, we create a set of every hyperedge where $i$ acts as a product ($i$ belongs to the head set)
+        \end{description}
+    \end{itemize}
+    
+    \item \textbf{Variables} The lines 24 to 29 define the variables. In addition to the outputs that we defined in section \ref{sec:io}, we also have the binary variables:
+    \begin{itemize}
+        \item 
+        \begin{description}
+            \item[has\_out] ~\\ For every vertex $i$, the corresponding variable is equal to 1 only if 'i' has at least one outgoing hyperedge, 0 otherwise.
+        \end{description}
+        \item 
+        \begin{description}
+            \item[has\_in] ~\\ For every vertex $i$, the corresponding variable is equal to 1 only if 'i' has at least one incoming hyperedge, 0 otherwise.
+        \end{description}
+    \end{itemize}
+    \item \textbf{Rules} The lines 35 to 63 last part defines the objective and the constraints.
+    \begin{itemize}
+        \item 
+        \begin{description}
+            \item[maximize obj] ~\\
+            This defines the objective. We want to maximize the number of internal nodes
+        \end{description}
+        \item 
+        \begin{description}
+            \item[compute\_is\_internal] ~\\
+            The goal of this constraint is to only allow \textbf{is\_internal} to be 1 when both \textbf{has\_in} and \textbf{has\_out} are equal to 1.
+        \end{description}
+        \item 
+        \begin{description}
+            \item[substrates\_not\_inverted] ~\\
+            This constraint forces the \textbf{has\_in} variable assigned to every vertex $i$ to not be 0 when at least one of $i$'s hyperedges where it appears as substrate hasn't been inverted.
+        \end{description}        
+        \item 
+        \begin{description}
+            \item[substrates\_inverted] ~\\
+            This constraint forces the \textbf{has\_out} variable assigned to every vertex $i$ to not be 0 when at least one of $i$'s hyperedges where it appears as substrate has been inverted.
+        \end{description}
+        \item 
+        \begin{description}
+            \item[products\_not\_inverted] ~\\
+            This constraint forces the \textbf{has\_out} variable assigned to every vertex $i$ to not be 0 when at least one of $i$'s hyperedges where it appears as product hasn't been inverted.
+        \end{description}
+        \item 
+        \begin{description}
+            \item[products\_inverted] ~\\
+            This constraint forces the \textbf{has\_in} variable assigned to every vertex $i$ to not be 0 when at least one of $i$'s hyperedges where it appears as product has been inverted.
+        \end{description}
+        \item 
+        \begin{description}
+            \item[products\_inverted] ~\\
+            This constraint forces the \textbf{has\_in} variable assigned to every vertex $i$ to not be 0 when at least one of $i$'s hyperedges where it appears as product has been inverted.
+        \end{description}
+        \item 
+        \begin{description}
+            \item[not\_substrate\_at\_all] ~\\
+            This constraint forces the \textbf{has\_in} variable assigned to every vertex $i$ to be 0 when none of $i$'s hyperedges where it appears as \emph{substrate hasn't been inverted} and none where it appears as \emph{product has been inverted}.
+        \end{description}
+        \item 
+        \begin{description}
+            \item[not\_product\_at\_all] ~\\
+            This constraint forces the \textbf{has\_out} variable assigned to every vertex $i$ to be 0 when none of $i$'s hyperedges where it appears as \emph{product hasn't been inverted} and none where it appears as \emph{substrate has been inverted}.
+        \end{description}
+        \item 
+        \begin{description}
+            \item[respect\_invertability] ~\\
+            This constraint forces the \textbf{inverted} variable assigned to every hyperedge $i$ to be 0 when it isn't allowed to be inverted by the problem definition.
+        \end{description}
+    \end{itemize}
+\end{enumerate} 
+
+As observed, the presence of numerous strong constraints creates a significant interdependency among the variables: \textbf{inverted}, \textbf{has\_in}, \textbf{has\_out}, and \textbf{is\_internal}. Notably, when there is an outgoing edge, \textbf{has\_out} can only assume a value of 1, and a similar condition applies to \textbf{has\_in}. This strict mathematical relationship eliminates any ambiguity. It is through this robust mathematical correlation that we can confidently affirm the fidelity of our model in representing the problem.
+    
+    
+\begin{figure}[H]
+    \centering
+    \amplexternal{models/v1.mod}
+    \caption{The model file of the first prototype}
+    \label{fig:first-Prototype}
+\end{figure}
+
+
+
+\subsubsection{Models Developed by the Professor and His Colleagues} \label{sec:model_a_b}
+In this section, we introduce two models developed by the professor and their colleague. To enhance clarity within the context we presented, various aspects such as parameters, variables, sets, and/or rule names have been modified, ensuring that all the models share similar names. This deliberate adjustment simplifies comprehension and facilitates a more coherent understanding of the models as they are discussed in the subsequent content.
+
+We present below the first model (Figure \ref{fig:nasini}). To respect the author's anonymity, we call it "Model A".
+
+\begin{figure}[H]
+    \centering
+    \amplexternal{models/nasini.mod}
+    \caption{AMPL Model - Model A}
+    \label{fig:nasini}
+\end{figure}
+
+Model A is comparatively simpler, featuring only two rules and two variables, both of which also appear in the first prototype (Figure \ref{fig:first-Prototype}). Although the rules 'outgoing\_half\_implies\_internal' and 'incoming\_half\_implies\_internal' are presented slightly differently, they are mathematically equivalent to the rules 'not\_substrate\_at\_all' and 'not\_product\_at\_all' from the first prototype.
+
+As we will see in the following sections, this model excels in speed but lacks the mathematical robustness needed to accommodate more complex constraints, such as forcing certain vertices to be external or internal from the beginning.
+
+Similarly, the second model "Model B" (Figure \ref{fig:valiente}), is displayed below:
+
+\begin{figure}[H]
+    \centering
+    \amplexternal{models/valiente.mod}
+    \caption{AMPL Model - Model B}
+    \label{fig:valiente}
+\end{figure}
+
+Model B's design philosophy aimed to follow a mathematical procedure to convert a mathematical problem into an optimization problem. Model B's model is much stronger mathematically than Model A's and strongly inspired the final model chosen for the project.
+
+
+\subsection{Initial Benchmarking}
+Our benchmarking approach involves running 25 pathway optimizations for each of the models we want to evaluate, including the three largest ones. We conducted these benchmarks using the dedicated \textbf{Benchmark View} of our Python program, detailed in Section \ref{sec:benchmark_view}. The computer for all benchmarks is the high-end desktop computer described in Section \ref{sec:material_resources}. The outcomes of our initial benchmark are summarized in Table \ref{tab:initial_benchmark}, featuring five columns. The first column displays the pathway ID, the second indicates the solver used, and the last three columns depict the time taken by each model to complete the optimization problem in seconds.
+
+Upon examination of the results, a noticeable performance gap emerges, particularly when compared to our first prototype. This initial version exhibits suboptimal performance, taking roughly three times longer than \textbf{Model B} and eight times longer than \textbf{Model A} to solve the most challenging pathway problem. This difference highlights specific areas where improvements or optimizations could enhance the overall performance of our prototype models.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+\rowcolor[HTML]{C0C0C0} 
+entry    & solver     & First Prototype & Model A & Model B  \\\hline
+map01100 & cbc & 74.960s           & 8.572s        & 24.458s       \\\hline
+map01110 & cbc & 25.927s          & 3.938s       & 10.407s       \\\hline
+map01120 & cbc & 9.042s           & 1.186s       & 4.058s        \\\hline
+map01200 & cbc & 0.474s         & 0.258s       & 0.521s        \\\hline
+map01210 & cbc & 0.462s          & 0.343s      & 0.604s        \\\hline
+map01212 & cbc & 0.467s          & 0.211s      & 0.385s       \\\hline
+map01230 & cbc & 0.432s          & 0.243s      & 0.419s       \\\hline
+map01232 & cbc & 0.350s          & 0.244s      & 0.424s      \\ \hline
+map01250 & cbc & 0.401s          & 0.245s       & 0.710s       \\\hline
+map01240 & cbc & 1.148s          & 0.301s       & 1.373s        \\\hline
+map01220 & cbc & 0.769s          & 0.276s       & 0.479s       \\\hline
+map00010 & cbc & 0.357s          & 0.275s      & 0.339s      \\\hline
+map00020 & cbc & 0.351s          & 0.281s      & 0.308s      \\\hline
+map00030 & cbc & 0.351s         & 0.256s       & 0.365s       \\\hline
+map00040 & cbc & 0.296s         & 0.387s      & 0.352s        \\\hline
+map00051 & cbc & 0.345s         & 0.299s       & 0.341s      \\\hline
+map00052 & cbc & 0.294s          & 0.194s      & 0.316s       \\\hline
+map00053 & cbc & 0.389s         & 0.335s      & 0.317s       \\\hline
+map00500 & cbc & 0.310s          & 0.287s      & 0.304s      \\\hline
+map00520 & cbc & 0.491s          & 0.355s       & 0.540s       \\\hline
+map00620 & cbc & 0.357s           & 0.246s      & 0.406s       \\\hline
+map00630 & cbc & 0.446s          & 0.516s        & 0.970s       \\\hline
+map00640 & cbc & 0.999s          & 0.464s       & 0.516s       \\\hline
+map00650 & cbc & 0.769s          & 0.372s       & 0.464s       \\\hline
+map00660 & cbc & 0.401s          & 0.238s      & 0.271s      \\\hline
+\end{tabular}
+\caption{Initial Benchmark}
+\label{tab:initial_benchmark}
+\end{table}
+
+\subsection{Creating and optimizing our final model} \label{sec:model_dualimply_extra_restrictions}
+
+This section focuses on optimizing our models. \textbf{Serret's DualImply} model will be introduced in this section. 
+
+Drawing insights from extensive testing and our initial benchmark, we've identified key principles that contribute to improving the model's efficiency compared to others.
+
+Our optimization principles include:
+
+\begin{description}
+    \item[Simplicity in Representation:]
+        An effective model is achieved by minimizing the number of rules and variables for a concise representation.
+
+     \item[Multiplication of Binary Variables:]
+        Despite the multiplication support for binary variables in the \textbf{maximize/minimize} function in newer AMPL versions, we explore the efficiency gained by manually introducing rules and variables to transform the problem back into an integer form, rather than relying solely on AMPL's backend.
+\end{description}
+
+Guided by these considerations, we present a redesigned model. This model has undergone continuous refinement throughout the project's development, ensuring it is not only mathematically robust but also thoroughly optimized. The final representation of our optimized model is provided below:
+
+\begin{figure}[H]
+    \centering
+    \amplexternal{models/serret_dual_imply_extra_restrictions.mod}
+    \caption{Serret's DualImply Model (with extra restrictions)}
+    \label{fig:zephyr}
+\end{figure}
+
+This model is designed to handle extra constraints that were not initially part of the original problem definition but are expected to be biologically relevant and extend the problem's scope. These additional constraints, termed 'extra restrictions,' offer the following functionalities:
+
+\begin{enumerate}
+    \item The ability to designate certain vertices (or biological compounds) as internal or external.
+
+    \item The capability to prevent the inversion of specific hyper-edges (or biological reactions), ensuring the preservation of their original orientation.
+\end{enumerate}
+
+A
+    
+    
+\subsection{Mathematical proof of the final model} \label{sec:math_proof}
+
+In this section, we provide a formal mathematical proof to establish the equivalence between our proposed model and its Integer Linear Programming (ILP) representation. To facilitate this proof, we introduce specific predicates and functions that will help demonstrate the correspondence.
+
+\subsubsection{Introduction of Predicates and Functions:}
+
+We introduce the following predicates:
+    
+\begin{align*}
+    \text{is\_internal}_{i} : \quad&\text{True when the vertex i is internal}\\
+    \text{has\_outgoing}_{i} : \quad&\text{True when the vertex i acts a substrate in at least one hyperedge} \\
+    \text{has\_incoming}_{i} : \quad&\text{True when the vertex i acts a product in at least one hyperedge} \\
+\end{align*}
+
+Additionally, we define the following functions:
+\begin{align*}
+    \textbf{isOne}(x) : \quad & \text{Returns True if and only if x == 1, otherwise returns False} \\
+    \textbf{toNum}(x) : \quad & \text{Returns 1 if and only if predicate x is True, otherwise returns 0}
+\end{align*}
+
+These functions serve to establish the equivalence between the mathematical model and the ILP model.
+
+\subsubsection{Obtaining is\_internal from has\_outgoing and has\_incoming}
+
+The objective of our model is to find an orientation that maximizes the number of internal vertices. Thus, we formulate our maximizing function:
+
+\begin{align*}
+    to\_maximize~=\quad sum(~\{~\textbf{toNum}(\text{is\_internal}_i)~|~\forall i~\in~V~\}~)
+\end{align*}
+
+Now, we mathematically define when a node is internal, building upon the definition provided in Section \ref{sec:internal_external_definition}:
+
+\begin{align}
+    \text{is\_internal}_{i}\ \equiv~& \text{has\_incoming}_{i}\ \land    \ \text{has\_outgoing}_{i}\label{eq:is_internal_and}
+\end{align}
+
+We would like to prove that this alternative definition is equivalent:
+
+\begin{align}
+    &\text{is\_internal}_{i}\ \equiv~ \text{inequation\_1}_{i}\ \land    \ \text{inequation\_2}_{i} \label{eq:is_internal_ineqs}
+\end{align}
+
+Where inequation\_1$_i$ is defined as
+\begin{align}
+    \textbf{toNum}(\text{is\_internal}_{i})~*~2~<=~\textbf{toNum}(\text{has\_incoming}_{i})~+~\textbf{toNum}(\text{has\_outgoing}_{i}) \label{eq:ineq1}
+\end{align}
+
+and inequation\_2$_i$ is defined as
+\begin{align}
+    \textbf{toNum}(\text{is\_internal}_{i})~>=~\textbf{toNum}(\text{has\_incoming}_{i})~+~\textbf{toNum}(\text{has\_outgoing}_{i}) -1\label{eq:ineq2}
+\end{align}
+
+To do so we will use the Table \ref{tab:truth_and} to prove that, for every value of has\_incoming$_i$, has\_outgoing$_i$ and is\_internal$_i$, the equivalence \eqref{eq:is_internal_and} is the same as the equivalence \eqref{eq:is_internal_ineqs}:
+
+
+\begin{landscape}
+\begin{table}[H]
+    \centering
+    \begin{tblr}{
+        vlines,
+        hlines,
+        cells = {c},
+        cell{-}{1-3} = {lightergrey},
+        cell{1}{-} = {lightgrey},
+        vline{2,3} = {2-Z}{dashed},
+        hline{3-Y} = {-}{dotted},
+    }
+       is\_internal$_i$  & has\_incoming$_i$ & has\_incoming$_i$ & inequation\_1$_i$ \eqref{eq:ineq1} & inequation\_2$_i$ \eqref{eq:ineq2} & equivalence \eqref{eq:is_internal_ineqs} & equivalence \eqref{eq:is_internal_and}\\
+       F  & F & F & T & T & T & T  \\
+       F  & F & T & T & T & T & T  \\
+       F  & T & F & T & T & T & T  \\
+       F  & T & T & T & F & F & F \\
+       T  & F & F & F & T & F & F  \\
+       T  & F & T & F & T & F & F  \\
+       T  & T & F & F & T & F & F  \\
+       T  & T & T & T & T & T & T
+       
+    \end{tblr}
+    \caption{Truth table of the equivalence of is\_internal and the system of inequations}
+    \label{tab:truth_and}
+\end{table}    
+\end{landscape}
+
+Given what we just showed, we can create the following set of AMPL rules that create the interdependence of has\_incoming$_i$, has\_outgoing$_i$ and is\_internal$_i$ based the equivalence \ref{eq:is_internal_ineqs}.
+
+\begin{figure}[H]
+    \centering
+    \amplexternal{Creating an effective AMPL model/is_internal.mod}
+    \caption{Strong AMPL rules used to define has\_internal$_i$}
+    \label{fig:AMPL_rules_2_internal}
+\end{figure}
+
+\textbf{Optimization :}
+
+The maximizing function aims to maximize the number of internal vertices, as defined in the problem statement. Given that the variable \texttt{is\_internal$_i$} is solely used in the maximizing function and no other rules apart from those used to define \texttt{is\_internal}, we can make the assumption:
+\begin{quote}
+    When the solver is presented with a $is\_internal$ variable that can either be set to true or to false, the solver will always set it to true.
+\end{quote}
+
+Based on this assumption, we observe that the second inequality in \eqref{eq:ineq2} becomes redundant. Table \ref{tab:is_internal_optimization} demonstrates that we achieve identical results by utilizing only the first rule.
+
+\begin{framed}
+\begin{table}[H]
+    \centering
+    
+    \begin{tblr}{
+        cells = {c},
+        colspec = {X[2,m]X[2,m]X[2.2,m]X[2.2,m]X[2,m]},
+        cell{-}{1-2} = {lightergrey},
+        cell{1}{-} = {lightgrey},
+        vlines,
+        hlines,
+        vline{2} = {2-Z}{dashed},
+        hline{3-Y} = {-}{dotted},
+    }
+        has\_incoming$_i$ & has\_outgoing$_i$ & values of is\_internal$_i$ satisfying inequation\_1$_i$ \eqref{eq:ineq1} & values of is\_internal$_i$ satisfying inequation\_2$_i$ \eqref{eq:ineq2} & values of is\_internal$_i$ allowed by definition \eqref{eq:is_internal_ineqs} \\
+        F & F & F & \{ F, T~~\} & F \\
+        F & T & F & \{ F, T~~\} & F \\
+        T & F & F & \{ F, T~~\} & F \\
+        T & T & \{ F, T~~\} & T & T \\
+        
+    \end{tblr}
+    
+    ~ \newline
+    
+    \begin{tblr}
+    {
+        cells = {c},
+        colspec = {X[1.8,m]X[1.8,m]X[3,m]X[3,m]},
+        cell{-}{1-2} = {lightergrey},
+        cell{1}{-} = {lightgrey},
+        vlines,
+        hlines,
+        vline{2} = {2-Z}{dashed},
+        hline{3-Y} = {-}{dotted},
+    }
+        has\_incoming$_i$ & has\_outgoing$_i$ & values of is\_internal$_i$ satisfying inequation\_1$_i$ \eqref{eq:ineq1} & value of is\_internal$_i$ chosen by the solver based solely on inequation\_1 \eqref{eq:ineq1} \\
+        F & F & F & F \\
+        F & T & F & F \\
+        T & F & F & F \\
+        T & T & \{ F, T~~\} & T \\
+        
+    \end{tblr}
+    
+    \caption{Optimizing is\_internal by removing a redundant inequation}
+    \label{tab:is_internal_optimization}
+\end{table}
+\end{framed}
+
+\textbf{Optimization Impact:}
+
+Through extensive testing, implementing this optimization resulted in a noteworthy speedup of up to 1.14 with respect to the original method. This enhancement was particularly pronounced when applied to the largest model within our dataset.
+
+%We find that the boolean 'and' operator is equivalent to the binary multiply operator.
+%
+%
+%\begin{table}[H]
+%\centering
+%\begin{tblr}{
+%  cell{1}{1-3} = {lightgrey},
+%  cell{1}{5-7} = {lightgrey},
+%  cells = {c},
+%  vlines,
+%  vline{2,6} = {-}{dashed},
+%  hline{1-2,6} = {1-3,5-7}{},
+%  hline{3-5} = {1-3,5-7}{dotted},
+%}
+%a     & b     & a $\land$ b &  & a  & b  & a * b \\
+%False & False & False  &  & 0  & 0  & 0     \\
+%False & True  & False  &  & 0  & 1  & 0     \\
+%True  & False & False  &  & 1  & 0  & 0     \\
+%True  & True  & True   &  & 1  & 1  & 1     
+%\end{tblr}
+%\caption{Truth table of the '$\land$' and '*' operators}
+%\label{tab:truth_multiply}
+%\end{table}
+%
+%It is important to note that in an ILP model you are not allowed to multiply variables together, otherwise the model wouldn't be linear anymore. %But we are using the multiply in the maximize function, which is allowed.
+%We find the following equivalences :
+%
+%\begin{align}
+%    \text{is\_internal}_{i}\ \equiv~& \text{has\_incoming}_{i}\ \land    \ \text{has\_outgoing}_{i}\\
+%    \text{is\_internal}_{i}\ \equiv& \textbf{isOne}(\textbf{toNum}(\text{has\_incoming}_{i})\ *\ \textbf{toNum}(\text{has\_outgoing}_{i}))
+%\end{align}    
+%
+%The first equivalence is drawn from the definition of a internal vertex.
+%The second is made through from the equivalence of the '$\land$' operator for predicates and the '*' operator for binary variables.
+%
+%Our model wants to find a orientation that has the highest number of internal vertices, therefore we choose as a maximizing function.
+
+
+\subsubsection{Obtaining has\_outgoing from the X and Y sets}
+
+For this section, we need to introduce some new predicates and functions:
+
+\begin{align*}
+    %inX_{i,~j} : &\quad\text{True if the vertex i belongs }
+    \text{inverted}_{j} : &\quad\text{True if the solution inverts the hyperedge j.}\\
+    \textbf{inTailSet}(i) : &\quad\text{returns the set of  hyperedges that have the vertex i in their tail set.}\\
+    \textbf{inHeadSet}(i) : &\quad\text{returns the set of  hyperedges that have the vertex i in their head set.}
+\end{align*}
+
+We begin with the following statement:
+
+\begin{align}
+    \text{has\_outgoing}_{i}~\iff~(\exists~j~\in~\textbf{inTailSet}(i): \lnot\text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \text{inverted}_{j})
+%    \text{has\_incoming}_{i}~\iff~(\exists~j~\in~\textbf{inTailSet}(i): \text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \lnot\text{inverted}_{j})
+\end{align}
+
+Through this statement, we are saying that for a vertex to be considered to have an outgoing hyperedge in the solution, it must appear in the tail set of an uninverted hyperedge or in the head set of an inverted hyperedge in the problem input.
+%And reversably, for a vertex to be considered to have an incoming hyperedge in the solution, it must appear in the tail set of an inverted hyperedge or in the head set of an uninverted hyperedge in the problem input.
+
+Using the rule $p\iff q \equiv (\lnot p \vee q) \land (p \vee \lnot q)$, we can break down the statement above into :
+
+\begin{align}
+    %&\text{has\_outgoing}_{i}~\iff~(\exists~j~\in~\textbf{inTailSet}(i): \lnot\text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \text{inverted}_{j}) \newline\\
+    &\begin{aligned}
+        (\lnot\text{has\_outgoing}_{i}~\vee~(\exists~j~\in~\textbf{inTailSet}(i): \lnot\text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \text{inverted}_{j}))~\land~\\ 
+        (\text{has\_outgoing}_{i}~\vee~\lnot((\exists~j~\in~\textbf{inTailSet}(i): \lnot\text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \text{inverted}_{j})))    
+    \end{aligned} 
+\end{align}
+
+As we can see from the last statement, we have two parts that are combined with an $\land$. We will deal with each part individually by separating them into two parts.
+
+\smalltitle{First Part:}
+
+\begin{align}
+    &\lnot\text{has\_outgoing}_{i}~\vee~(\exists~j~\in~\textbf{inTailSet}(i): \lnot\text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \text{inverted}_{j}) \\
+    &\equiv\lnot\text{has\_outgoing}_{i}~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) >= 1)~\vee~(\sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) >= 1) \\
+    &\equiv\lnot\text{has\_outgoing}_{i}~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j}))\quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) >= 1) \\
+    &\equiv(1-\text{has\_outgoing}_{i} = 1)~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j}))\quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) >= 1) \\
+    &\equiv(\text{has\_outgoing}_{i} = 0)~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j}))\quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) >= 1) \\
+    &\equiv\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j}))\quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) >= \textbf{toNum}(\text{has\_outgoing}_{i})
+\end{align}
+
+The first step is made using the following consideration: \quad$\exists i \in \mathbb{S} : i \quad\equiv\quad (\sum_{\textbf{toNum}(i) \in \mathbb{S}} i) >= 1$
+
+The last step can be made using the following considerations : when $\text{has\_outgoing}_{i}$ is 1, it is trivial to see that the equivalence holds. When it is zero, the last statement will always be true since $(\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) + \sum_{~j~\in~\textbf{inHeadSet}(i)}~\textbf{toNum}(\text{inverted}_{j}))~\in~\mathbb{N}_0$.
+
+
+\smalltitle{Second Part:}
+
+\begin{align}
+&\text{has\_outgoing}_{i}~\vee~\lnot((\exists~j~\in~\textbf{inTailSet}(i): \lnot\text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \text{inverted}_{j})) \\
+&\equiv \text{has\_outgoing}_{i}~\vee~(\lnot(\exists~j~\in~\textbf{inTailSet}(i): \lnot\text{inverted}_{j})~\land~\lnot(\exists~j~\in~\textbf{inHeadSet}(i): \text{inverted}_{j})) \\
+&\equiv\text{has\_outgoing}_{i}~\vee~(\lnot(\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) >= 1)~\land~\lnot(\sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) >= 1)) \\
+&\equiv\text{has\_outgoing}_{i}~\vee~((\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) < 1)~\land~(\sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) <1)) \\
+&\equiv\text{has\_outgoing}_{i}~\vee~((\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) = 0)~\land~(\sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) =0)) \\
+&\equiv\text{has\_outgoing}_{i}~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) \quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) =0)\\
+&\equiv\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) + \sum_{~j~\in~\textbf{inHeadSet}(i)} \textbf{toNum}(\text{inverted}_{j}) <= |E|*\textbf{toNum}(\text{has\_outgoing}_{i})
+\end{align}
+
+The first step is made using the following consideration: \quad$\exists i \in \mathbb{S} : i \quad\equiv\quad (\sum_{i \in \mathbb{S}} i) >= 1$
+
+The last step can be made using the following considerations:
+when $\textbf{toNum}(\text{has\_outgoing}_{i})$ is 0, it is trivial to see that the equivalence holds. When it is 1, the value of the double sum should not be hindered, therefore we multiply $\textbf{toNum}(\text{has\_outgoing}_{i})$ by the highest value the double sums can have : the cardinality of the hyperedges (since a vertex cannot be part of both the head and tail set).
+
+\subsubsection{Obtaining has\_incoming from the X and Y sets}
+
+In the same way that we obtained has\_outgoing from the X and Y sets, we will do the same for has\_incoming.
+
+\begin{align}
+    \text{has\_incoming}_{i}~\iff~(\exists~j~\in~\textbf{inTailSet}(i): \text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \lnot\text{inverted}_{j})
+\end{align}
+
+Using the rule $p\iff q \equiv (\lnot p \vee q) \land (p \vee \lnot q)$, we can break down the statement above into :
+
+\begin{align}
+    &\begin{aligned}
+        (\lnot\text{has\_incoming}_{i}~\vee~(\exists~j~\in~\textbf{inTailSet}(i): \text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \lnot\text{inverted}_{j}))~\land~\\ 
+        (\text{has\_outgoing}_{i}~\vee~\lnot((\exists~j~\in~\textbf{inTailSet}(i): \text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \lnot\text{inverted}_{j})))    
+    \end{aligned} 
+\end{align}
+
+Again, we will break this statement down into two parts:
+
+\smalltitle{First Part:}
+
+\begin{align}
+    &\lnot\text{has\_incoming}_{i}~\vee~(\exists~j~\in~\textbf{inTailSet}(i): \text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \lnot\text{inverted}_{j}) \\
+    &\equiv\lnot\text{has\_incoming}_{i}~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j}) >= 1)~\vee~(\sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) >= 1) \\
+    &\equiv\lnot\text{has\_incoming}_{i}~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j}) \quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) >= 1) \\
+    &\equiv(1-\text{has\_incoming}_{i} = 1)~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j}) \quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) >= 1) \\
+    &\equiv(\text{has\_incoming}_{i} = 0)~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j}) \quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) >= 1) \\
+    &\equiv\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j}) \quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) >= \textbf{toNum}(\text{has\_incoming}_{i})
+\end{align}
+
+The first step is made using the following consideration: \quad$\exists i \in \mathbb{S} : i \quad\equiv\quad (\sum_{\textbf{toNum}(i) \in \mathbb{S}} i) >= 1$
+
+The last step can be made using the following considerations : when $\textbf{toNum}(\text{has\_incoming}_{i})$ is 1, it is trivial to see that the equivalence holds. When it is zero, the last statement will always be true since $(\sum_{~j~\in~\textbf{inTailSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) + \sum_{~j~\in~\textbf{inHeadSet}(i)}~\textbf{toNum}(\text{inverted}_{j}))~\in~\mathbb{N}_0$.
+
+
+\smalltitle{Second Part:}
+
+\begin{align}
+&\text{has\_incoming}_{i}~\vee~\lnot((\exists~j~\in~\textbf{inTailSet}(i): \text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \lnot\text{inverted}_{j})) \\
+&\equiv\text{has\_incoming}_{i}~\vee~(\lnot(\exists~j~\in~\textbf{inTailSet}(i): \text{inverted}_{j})~\land~\lnot(\exists~j~\in~\textbf{inHeadSet}(i): \lnot\text{inverted}_{j})) \\
+&\equiv\text{has\_incoming}_{i}~\vee~(\lnot(\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j}) >= 1)~\land~\lnot(\sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) >= 1)) \\
+&\equiv\text{has\_incoming}_{i}~\vee~((\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j}) < 1)~\land~(\sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) <1)) \\
+&\equiv\text{has\_incoming}_{i}~\vee~((\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j}) = 0)~\land~(\sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) =0)) \\
+&\equiv\text{has\_incoming}_{i}~\vee~(\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j})\quad + \sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) =0)\\
+&\equiv\sum_{~j~\in~\textbf{inTailSet}(i)} \textbf{toNum}(\text{inverted}_{j}) + \sum_{~j~\in~\textbf{inHeadSet}(i)} (1-\textbf{toNum}(\text{inverted}_{j})) <= |E|*\textbf{toNum}(\text{has\_incoming}_{i})
+\end{align}
+
+\subsubsection{Additional Constraints: forcing internal} \label{sec:extra_constraints}
+
+For a vertex to be considered internal, it must have at least one outgoing edge and at least one incoming edge.
+
+In the previous section we have already defined the predicates has\_outgoing and has\_incoming. Since this is a constraint and not a maximizing function we cannot use the integer multiplication operator '*' as it would make the model non-linear.
+
+Therefore we opted for the following construction which we will show is equivalent to the 'and' logical operator.
+
+\begin{table}[H]
+\centering
+\begin{tblr}{
+  cell{1}{1-3} = {lightgrey},
+  cell{1}{5-7} = {lightgrey},
+  cells = {c},
+  vlines,
+  vline{2,6} = {-}{dashed},
+  hline{1-2,6} = {1-3,5-7}{},
+  hline{3-5} = {1-3,5-7}{dotted},
+}
+a     & b     & a $\land$ b &  & \textbf{toNum}(a)  & \textbf{toNum}(b)  & \textbf{toNum}(a) + \textbf{toNum}(b) = 2 \\
+False & False & False  &  & 0  & 0  & False     \\
+False & True  & False  &  & 0  & 1  & False     \\
+True  & False & False  &  & 1  & 0  & False     \\
+True  & True  & True   &  & 1  & 1  & True     
+\end{tblr}
+\caption{Truth table of the '$\land$' operator and the construction $a+b=2$}
+\label{tab:truth_forced_internal}
+\end{table}
+
+Therefore we can say that :
+
+\begin{align}
+    i~\in~\text{Forced\_internals} &\iff \text{has\_outgoing}_{i}~\land~\text{has\_incoming}_{i} \\
+    \equiv i~\in~\text{Forced\_internals} &\iff \textbf{toNum}(\text{has\_outgoing}_{i})~+~\textbf{toNum}(\text{has\_incoming}_{i})~=~2
+\end{align}
+
+\subsubsection{Additional Constraints: forcing external} 
+
+For a vertex to be external, it must not be internal, so we are looking for the negation of the previous constraint.
+
+We therefore opted with the following construction which we will show is equivalent to the previous operator negated.
+
+\begin{table}[H]
+\centering
+\begin{tblr}{
+  cell{1}{1-3} = {lightgrey},
+  cell{1}{5-7} = {lightgrey},
+  cells = {c},
+  vlines,
+  vline{2,6} = {-}{dashed},
+  hline{1-2,6} = {1-3,5-7}{},
+  hline{3-5} = {1-3,5-7}{dotted},
+}
+a     & b     & $\lnot$(a $\land$ b) &  & \textbf{toNum}(a)  & \textbf{toNum}(b)  & \textbf{toNum}(a) + \textbf{toNum}(b) $<$ 2 \\
+False & False & True  &  & 0  & 0  & True     \\
+False & True  & True  &  & 0  & 1  & True     \\
+True  & False & True  &  & 1  & 0  & True     \\
+True  & True  & False   &  & 1  & 1  & False     
+\end{tblr}
+\caption{Truth table of the negated '$\land$' operator and the construction $\textbf{toNum}(a)+\textbf{toNum}(b) < 2$}
+\label{tab:truth_forced_external}
+\end{table}
+
+Therefore we can say that :
+
+\begin{align}
+    i~\in~\text{Forced\_externals} &\iff \lnot(\text{has\_outgoing}_{i}~\land~\text{has\_incoming}_{i}) \\
+    \equiv i~\in~\text{Forced\_externals} &\iff \textbf{toNum}(\text{has\_outgoing}_{i})~+~\textbf{toNum}(\text{has\_incoming}_{i})~<~2
+\end{align}
+
+\subsubsection{Additional Constraints: respecting the invertability of hyperedges} \label{sec:extra_constraints_end}
+Upon activating the \textbf{Use extra restrictions} button, a new menu surfaces. This menu empowers the user to establish additional constraints, as elaborated in Section \ref{sec:extra_constraints}. Within this menu, users can designate specific reactions (or hyperedges) as non-inverted, or classify particular compounds as external or internal. This feature provides a finer degree of control over the orientation and classification of elements in the hypergraph.
+
+Some hyperedges are invertible, some are not. To distinguish them, we define a subset of the hyperedges which we call 'uninvertibles'.
+
+The univertibles use the following definition:
+
+\begin{align}
+    i~\in~\text{internals} \iff \textbf{toNum}(inverted_{i}) = 0
+\end{align}
+
+\subsubsection{Comparing the mathematical correctness of Model A and Serret's models}
+
+Given what we have declared above, we can see that Zephyr's model is a direct implementation of the mathematical derivations we obtained from the definitions.
+
+On the other hand, Model A is less complete in regards of its mathematical correctness.
+In fact, here are the rules that model A follows:
+
+\begin{align}
+    \text{has\_outgoing}_{i}~\Longrightarrow~(\exists~j~\in~\textbf{inTailSet}(i): \lnot\text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \text{inverted}_{j}) \\
+    \text{has\_incoming}_{i}~\Longrightarrow~(\exists~j~\in~\textbf{inTailSet}(i): \text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \lnot\text{inverted}_{j})
+\end{align}
+
+Which are the same rules we defined above with the exception that it use a unidirectional implication instead of a bidirectional one.
+
+In fact, Nasini's rules allows to omit the differentiating has\_outgoing and has\_incoming and directly finds whether a vertex is internal :
+
+\begin{align}
+    \text{is\_internal}_{i}~\Longrightarrow~(\exists~j~\in~\textbf{inTailSet}(i): \lnot\text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \text{inverted}_{j}) \\
+    \text{is\_internal}_{i}~\Longrightarrow~(\exists~j~\in~\textbf{inTailSet}(i): \text{inverted}_{j})~\vee~(\exists~j~\in~\textbf{inHeadSet}(i): \lnot\text{inverted}_{j})
+\end{align}
+
+This is sufficient for cases where there are no additional restrictions, but Model A's model will fail when you introduce them.
+
+\subsection{Final Benchmark and conclusions} \label{sec:benchmark}
+
+For the sake of comparing Model A with a mathematically equal model, we also introduce a variation of Serret's DualImply model (Figure \ref{fig:zephyr}) which we call Serret's UniImply model (Figure \ref{fig:uni_imply}. As stated in the previous section, we cannot add the extra restrictions to that model since the model is not sufficiently mathematically robust.
+
+\begin{figure}[H]
+    \centering
+    \amplexternal{models/serret_uni_imply.mod}
+    \caption{Serret's UniImply model}
+    \label{fig:uni_imply}
+\end{figure}
+
+In the same fashion as we made the initial benchmark, we complete the final benchmark and display the results in Table \ref{tab:final_benchmark}.
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+\rowcolor[HTML]{C0C0C0} 
+entry    & solver     & First Prototype & Serret DualImply & Serret UniImply & Model A & Model B  \\\hline
+map01100 & cbc & 74.960s           & 24.274s                 & 9.383s                & 8.572s        & 24.458s       \\\hline
+map01110 & cbc & 25.927s          & 9.704s                 & 4.631s                & 3.938s       & 10.407s       \\\hline
+map01120 & cbc & 9.042s           & 3.279s                & 1.460s               & 1.186s       & 4.058s        \\\hline
+map01200 & cbc & 0.474s         & 0.485s               & 0.266s               & 0.258s       & 0.521s        \\\hline
+map01210 & cbc & 0.462s          & 0.507s                & 0.239s              & 0.343s      & 0.604s        \\\hline
+map01212 & cbc & 0.467s          & 0.329s                & 0.202s              & 0.211s      & 0.385s       \\\hline
+map01230 & cbc & 0.432s          & 0.389s                 & 0.260s              & 0.243s      & 0.419s       \\\hline
+map01232 & cbc & 0.350s          & 0.331s               & 0.224s               & 0.244s      & 0.424s      \\ \hline
+map01250 & cbc & 0.401s          & 0.382s                & 0.257s              & 0.245s       & 0.710s       \\\hline
+map01240 & cbc & 1.148s          & 1.080s                & 0.476s              & 0.301s       & 1.373s        \\\hline
+map01220 & cbc & 0.769s          & 0.539s                & 0.260s              & 0.276s       & 0.479s       \\\hline
+map00010 & cbc & 0.357s          & 0.307s                & 0.273s               & 0.275s      & 0.339s      \\\hline
+map00020 & cbc & 0.351s          & 0.299s                & 0.312s               & 0.281s      & 0.308s      \\\hline
+map00030 & cbc & 0.351s         & 0.313s                & 0.265s              & 0.256s       & 0.365s       \\\hline
+map00040 & cbc & 0.296s         & 0.286s                & 0.293s               & 0.387s      & 0.352s        \\\hline
+map00051 & cbc & 0.345s         & 0.331s                & 0.245s               & 0.299s       & 0.341s      \\\hline
+map00052 & cbc & 0.294s          & 0.418s               & 0.222s               & 0.194s      & 0.316s       \\\hline
+map00053 & cbc & 0.389s         & 0.384s               & 0.399s              & 0.335s      & 0.317s       \\\hline
+map00500 & cbc & 0.310s          & 0.319s               & 0.237s              & 0.287s      & 0.304s      \\\hline
+map00520 & cbc & 0.491s          & 0.359s                & 0.421s               & 0.355s       & 0.540s       \\\hline
+map00620 & cbc & 0.357s           & 0.460s               & 0.235s              & 0.246s      & 0.406s       \\\hline
+map00630 & cbc & 0.446s          & 0.786s                & 0.993s                 & 0.516s        & 0.970s       \\\hline
+map00640 & cbc & 0.999s          & 0.352s                & 0.604s               & 0.464s       & 0.516s       \\\hline
+map00650 & cbc & 0.769s          & 0.987s                & 0.437s                & 0.372s       & 0.464s       \\\hline
+map00660 & cbc & 0.401s          & 0.634s                 & 0.359s              & 0.238s      & 0.271s     \\\hline
+\end{tabular}
+\caption{Final Benchmark}
+\label{tab:final_benchmark}
+\end{table}
+
+\begin{quote}
+    \textbf{Note:} It's worth noting that the lackluster performance of Serret's UniImply model can be attributed to its utilization of a greater number of variables and rules compared to the more streamlined and elegant definitions employed by Model A. This highlights the importance of model simplicity and efficiency in achieving optimal outcomes, with Model A showcasing a favorable balance between mathematical robustness and computational speed.
+\end{quote}
+
+In conclusion, our comprehensive study and benchmarking analysis highlight Serret's DualImply model as an excellent solution for addressing the problem of orienting metabolic pathways to maximize the number of internal compounds. The model's mathematical robustness, coupled with its flexibility for extension through extra restrictions, positions it as a strong contender. The observed performance during benchmarking also establishes its efficiency relative to competing models.
+
+However, it's essential to note that Model A, with its faster execution and slightly weaker mathematical robustness, remains a relevant option within this domain. The choice between the two models may ultimately depend on specific user requirements and priorities.
+
+
+

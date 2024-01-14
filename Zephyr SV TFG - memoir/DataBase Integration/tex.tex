@@ -1,0 +1,189 @@
+\section{Database Integration}
+
+\subsection{Acknowledgment of Attempted Integration using bioservices}
+
+In the course of my research, I explored the possibility of integrating the KEGG database using the bioservices library to fetch reaction data. Regrettably, this approach encountered significant challenges, and I would like to provide an overview of the issues encountered during the integration attempt.
+
+The bioservices library was initially considered as a means to retrieve reactions from the KEGG database. However, this approach proved to be impractical for several reasons. 
+
+Firstly, the method of fetching all reactions using bioservices proved to be extremely slow, making it infeasible to acquire the data in a reasonable time frame. This approach was not scalable for large-scale data retrieval, which is essential for comprehensive analysis.
+
+Furthermore, due to the extensive number of requests sent to the KEGG server in a short period of time, the server interpreted our actions as a potential denial of service attack. As a result, our IP address was temporarily blocked, rendering us unable to access the KEGG database for several hours. 
+
+Given these limitations, it became evident that alternative strategies for data integration were necessary to overcome these challenges. 
+
+The attempt to integrate the KEGG database using the bioservices library is documented in Figure \ref{fig:bioservices}, which shows the code used in this effort.
+
+\begin{figure}[H]
+    \centering
+    \lstinputlisting[language=Python]{DataBase Integration/bioservices.py}
+    \caption{Integration attempt using bioservices}
+    \label{fig:bioservices}
+\end{figure}
+
+This experience has been valuable in highlighting the complexities and limitations of real-world data integration in scientific research, as well as the need for robust, efficient, and responsible data retrieval methods.
+
+
+\subsection{REST API Data Mapping: Needs and Retrievals}
+
+To effectively gather information from KEGG's REST API, we must retrieve the following:
+
+\begin{enumerate}
+\item Comprehensive pathways, including their identifiers (IDs) and user-friendly descriptions.
+\item Reaction identifiers associated with each pathway.
+\item Compound identifiers serving as substrates or products for each reaction.
+\end{enumerate}
+
+Regrettably, the REST API lacks specific calls to fulfill all our requirements directly. Instead, we employ a strategic approach by utilizing multiple endpoints and amalgamating their outcomes to obtain the necessary data.
+
+Here is the list of endpoints that we use:
+
+\begin{enumerate}
+    \item \href{https://rest.kegg.jp/list/pathway}{https://rest.kegg.jp/list/pathway} Returns the list of all pathway ids and a human readable description.
+    \begin{framed}
+        \textbf{Extract from output:}
+    \begin{verbatim}
+    map01100	Metabolic pathways
+    map01110	Biosynthesis of secondary metabolites
+    map01120	Microbial metabolism in diverse environments
+        \end{verbatim}
+    \end{framed}
+    \item \href{https://rest.kegg.jp/link/reaction/pathway}{https://rest.kegg.jp/link/reaction/pathway} Returns the list of all pathway ids and the reaction ids which belong to them.
+    \begin{framed}
+        \textbf{Extract from output:}
+    \begin{verbatim}
+    path:map00010	rn:R00014
+    path:rn00010	rn:R00014
+    path:map00010	rn:R00199
+        \end{verbatim}
+    \end{framed}
+    \item \href{https://rest.kegg.jp/list/compound}{https://rest.kegg.jp/list/compound} Returns the list of all compound ids and names used to refer to them
+    \begin{framed}
+        \textbf{Extract from output:}
+        \begin{verbatim}
+    C00001	H2O; Water
+    C00002	ATP; Adenosine 5'-triphosphate
+    C00003	NAD+; NAD; Nicotinamide adenine dinucleotide; DPN; 
+            Diphosphopyridine nucleotide; Nadide; beta-NAD+
+        \end{verbatim}
+    \end{framed}
+    \item \href{https://rest.kegg.jp/link/compound/reaction}{https://rest.kegg.jp/link/compound/reaction} Returns the list of all reactions ids and all commpounds ids that belong to that reaction
+    \begin{framed}
+        \textbf{Extract from output:}
+        \begin{verbatim}
+    rn:R00001	cpd:C00001
+    rn:R00002	cpd:C00001
+    rn:R00004	cpd:C00001
+        \end{verbatim}
+    \end{framed}
+    \item \href{https://rest.kegg.jp/list/reaction}{https://rest.kegg.jp/list/reaction} Returns the list of all reaction ids and a textual representation of their equation.
+    \begin{framed}
+        \textbf{Extract from output:}
+    \begin{verbatim}
+    R00001	polyphosphate polyphosphohydrolase; Polyphosphate + n 
+        H2O <=> (n+1) Oligophosphate
+    R00002	reduced ferredoxin:dinitrogen oxidoreductase (ATP-
+        hydrolysing); 16 ATP + 16 H2O + 8 Reduced ferredoxin <=> 
+        8 e- + 16 Orthophosphate + 16 ADP + 8 Oxidized ferredoxin
+    R00004	diphosphate phosphohydrolase; pyrophosphate 
+        phosphohydrolase; Diphosphate + H2O <=> 2 Orthophosphate
+        \end{verbatim}
+    \end{framed}
+    \item \href{https://rest.kegg.jp/get/R00014}{https://rest.kegg.jp/get/\textit{[Reaction id]}} Returns the entry for a specific reaction, including the ids of the pathways it belongs to and the equation in both identifier and human readable form. \textbf{Note :} You can at most query 10 different reactions at once.
+    \begin{framed}
+        \textbf{Extract from output:}
+    \begin{verbatim}
+    ENTRY       R00014                      Reaction
+    NAME        pyruvate:thiamin diphosphate 
+                    acetaldehydetransferase (decarboxylating)
+    DEFINITION  Pyruvate + Thiamin diphosphate <=> 2-(alpha-
+                    Hydroxyethyl)thiamine diphosphate + CO2
+    EQUATION    C00022 + C00068 <=> C05125 + C00011
+    PATHWAY     rn00010  Glycolysis / Gluconeogenesis
+                rn00020  Citrate cycle (TCA cycle)
+                rn00620  Pyruvate metabolism
+                rn00785  Lipoic acid metabolism
+        \end{verbatim}
+    \end{framed}
+\end{enumerate}
+
+As evident, the fulfillment of the first and second requirements is straightforward through the utilization of the first and second endpoints, respectively.
+
+However, addressing the third and final requirement—acquiring the list of compound identifiers for each reaction—poses a more intricate challenge. To achieve this efficiently, we must leverage all available endpoints, strategically combining their outputs. This comprehensive approach ensures a thorough extraction of the necessary data.
+
+\subsection{Equation Discovery: Unveiling Reaction Formulas and Compound IDs Across Varied Endpoints}
+
+In order to precisely outline our objectives, we aim to establish a mapping between reaction IDs and two distinct lists of compound IDs, one for substrates and the other for products.
+
+Throughout this section, compounds are typically presented either as compound IDs or by one of their various names (e.g., "Nicotinamide adenine dinucleotide"). It's essential to note that most compounds have multiple names.
+
+To underscore the fact that each compound is associated with several names, we choose to use the term \textbf{synonym} instead of \textbf{name} throughout the rest of this section.
+
+By leveraging the capabilities of the third endpoint, we can generate a mapping from synonyms to a list of compounds that share the same synonym. It's important to acknowledge that certain synonyms may refer to multiple distinct compounds, although the majority pertain to only one.
+\begin{exmp}~
+
+    "Quinone": ["C00472"\footnote{\href{https://rest.kegg.jp/get/C00472}{https://rest.kegg.jp/get/C00472}}, "C15602"\footnote{\href{https://rest.kegg.jp/get/C15602}{https://rest.kegg.jp/get/C15602}}]
+    
+    "Ethanol": ["C00469"\footnote{\href{https://rest.kegg.jp/get/C00469}{https://rest.kegg.jp/get/C00469}}]
+\end{exmp}
+
+Using the fourth endpoint, we can obtain a mapping of reaction IDs to a list of compound IDs, although we cannot determine if the compound acts as a substrate or product in the reaction.
+\begin{exmp}~
+
+    "R00001": ["C00001", "C00404", "C02174"]
+
+    "R00002": ["C00001", "C00002", "C00008", "C00009", "C00138", "C00139", "C05359"]
+\end{exmp}
+
+By utilizing the fifth endpoint, we can acquire a mapping of reaction IDs to an equation where the substrates and products are represented in the form of synonyms.
+\begin{exmp}~
+
+    "R00001": "polyphosphate polyphosphohydrolase; Polyphosphate + n H2O $<=>$ (n+1) Oligophosphate"
+    
+    "R00002": "reduced ferredoxin:dinitrogen oxidoreductase (ATP-hydrolysing); 16 ATP + 16 H2O + 8 Reduced ferredoxin $<=>$ 8 e- + 16 Orthophosphate + 16 ADP + 8 Oxidized ferredoxin"
+\end{exmp}
+
+\noindent\hrulefill
+
+The subsequent step involves using the three previously obtained mappings to establish a new mapping from \textbf{reaction IDs} to the \textbf{substrates' compound IDs} and \textbf{products' compound IDs}.
+
+Starting from the mapping of reaction IDs to an equation where the substrates and products are in their synonym form, we proceed to \textbf{discard} the equation's name by removing everything that precedes the last appearance of the "; " substring. If the "; " substring doesn't appear, then we retain everything.
+
+Next, we separate the \textbf{substrates} and \textbf{products} using the substring "$<=>$".
+
+From this point, we extract \textbf{each individual compound} by splitting them using the "+" character.
+
+At this stage, we are left with synonyms prefixed by a quantifier, such as a number or some expression with 'n' (for example, n+1). To remove this quantifier, we subtract any matches to the following regular expression:
+
+\begin{lstlisting}[style=regexStyle]
+^\d+n? |^\(n\+\d+\) |^n 
+\end{lstlisting}
+
+\textbf{\textasciicircum} matches with the start of a string.\\
+~\textbf{\textbackslash d}~ matches with any digit (equivalent to [1-9]). \\
+\textbf{+} is a quantifier that matches to one or more instances.\\
+\textbf{?} is a quantifier that matches to one or no instances.\\
+\textbf{\textbackslash +}~ matches with the char '+'.\\
+\textbf{\textbar}~ signifies alternate options. In this case, we can match any of the three options.
+
+This leaves us with one of the \textbf{synonyms} for each \textbf{compound} in the equation.
+
+By utilizing the mapping \textbf{synonym} to \textbf{list of compound IDs}, we can generate a list of candidate compound IDs. We filter out every candidate that does not appear in the list obtained through the mapping \textbf{reaction ID} to \textbf{list of compound IDs}.
+At this stage, if we have more than one or no candidates, we mark this reaction as a \textbf{broken reaction}. If we have exactly one candidate left, it indicates that we have identified the correct compound, and we can add it to our final mapping of \textbf{reaction ID} to \textbf{substrates and products} accordingly.
+
+Below is a Python extract that demonstrates this procedure.
+
+\begin{figure}[H]
+    \centering
+    \lstinputlisting[language=Python]{DataBase Integration/compound_verbose_and_reaction_to_id.py}
+    \caption{Obtaining compound ids from the human readable equation}
+    \label{fig:compound_verbose_and_reaction_to_id}
+\end{figure}
+
+Applying this procedure allows us to successfully retrieve the IDs for every substrate and product in an impressive 95.5\% of the reactions, precisely 11,456 out of 11,991, with just 5 requests to the KEGG REST API server.
+
+For the remaining 535 reactions marked as \textbf{broken}, we initiate GET requests using the sixth endpoint to retrieve compound IDs directly from the API results. Given our ability to request up to 10 reactions at a time, we accomplish this in 54 requests, bringing the total number of requests for the complete database creation needed to run our program to 59. 
+
+Remarkably, this efficient process enables us to construct the entire dataset in approximately 1 minute and 30 seconds, eliminating the risk of IP bans since we are making just a few requests.
+
+We store the final database as a JSON file, weighing in at 3.22 MB, enabling our program to run seamlessly without requiring an internet connection.

@@ -1,0 +1,287 @@
+\documentclass[12pt]{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[english]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem*{defn}{Definition}
+\newtheorem*{exmp}{Example}
+\newtheorem*{lem}{Lemma}
+\newtheorem*{prob}{Problem}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{savetrees}
+\usepackage{txfonts}
+\usepackage{tabularx}
+\usepackage{tabularray}
+\usepackage{framed}
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\large\bfseries}{\thesubsubsection}{1em}{}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{pgfgantt}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{contour}
+\usepackage{ulem}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{pdfpages}
+\usepackage{pdflscape}
+\usepackage{parskip}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{listings}
+
+% Make sections bigger, bold, and with more spacing
+\titleformat{\section}
+  {\Huge\bfseries} % Larger font size and bold
+  {\thesection}     % Section number
+  {1em}             % Horizontal spacing between number and title
+  {}                % Code before title
+  [\vspace{1ex}]    % Increase space after section
+
+% Make subsections bigger and bold
+\titleformat{\subsection}
+  {\LARGE\bfseries} % Larger font size and bold
+  {\thesubsection}  % Subsection number
+  {1em}             % Horizontal spacing between number and title
+  {}                % Code before title
+  [\vspace{0.5ex}]  % Increase space after subsection
+% Make subsubsections bigger and bold
+\titleformat{\subsubsection}
+  {\Large\bfseries} % Larger font size and bold
+  {\hspace{2em}\thesubsubsection}  % Subsection number
+  {1em}             % Horizontal spacing between number and title
+  {}                % Code before title
+  [\vspace{0.5ex}]  % Increase space after subsection
+
+
+
+\titlespacing*{\section}{0pt}{3.5ex}{0ex}
+\titlespacing*{\subsection}{0pt}{1.5ex plus 1ex minus 0.5ex}{1ex plus 0.5ex minus 0.2ex}
+
+
+\newcommand{\smalltitle}[1]{%
+    \par\vspace{0.5\baselineskip} % Add space above the title
+    \noindent\hspace{2em}\textbf{\large #1}\par % Indented title formatting
+    \vspace{0.5\baselineskip} % Add space below the title
+}
+\newcommand{\smallsmalltitle}[1]{%
+    \par\vspace{0.5\baselineskip} % Add space above the title
+    \noindent\textbf{#1}\par % Indented title formatting
+    \vspace{0.5\baselineskip} % Add space below the title
+}
+
+\renewcommand{\ULdepth}{1.8pt}
+\contourlength{0.8pt}
+
+
+\newcommand{\myuline}[1]{
+  \uline{\phantom{#1}}%
+  \llap{\contour{white}{#1}}%
+}
+
+\newcommand{\textbu}[1]{
+    \myuline{\textbf{#1}}
+}
+
+%%%% LISTINGS %%%%
+
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{deepgrey}{rgb}{0.25,0.25,0.25}
+\definecolor{lightgrey}{rgb}{0.8,0.8,0.8}
+\definecolor{orange}{rgb}{0.8,0.55,0.41}
+\definecolor{orangekeywords}{rgb}{0.8,0.4,0}
+
+
+% AMPL style for highlighting
+
+\lstdefinelanguage{ampl}
+{
+keywords={},
+}
+
+
+\newcommand\amplstyle{\lstset{
+language=ampl,
+backgroundcolor=\color{white},
+basicstyle=\scriptsize\ttfamily,
+numbers=left,
+emph={subject to, minimize, reset},          % Custom highlighting
+morekeywords={set,param,var,arc,integer,minimize,maximize,subject,to,node,sum,in,Current,complements,integer,solve_result_num,IN,contains,less,suffix,INOUT,default,logical,sum,Infinity,dimen,max,symbolic
+,Initial,div,min,table,LOCAL,else,option,then,OUT,environ,setof     ,union,all,exists,shell_exitcodeuntil,binary,forall,solve_exitcodewhile     ,by,if,solve_messagewithin,check,in,solve_result},             % Add keywords here
+keywordstyle=\bfseries\color{deepblue},
+emphstyle=\bfseries\color{deepred},    % Custom highlighting style
+morestring=[b]",
+stringstyle=\color{deepblue},
+commentstyle=\color{deepgreen},
+comment=[l]{\#},
+frame=single,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+
+% AMPL environment
+\lstnewenvironment{ampl}[1][]
+{
+\amplstyle
+\lstset{#1}
+}
+{}
+
+% AMPL for external files
+\newcommand\amplexternal[2][]{{
+\amplstyle
+\lstinputlisting[#1]{#2}}}
+
+% AMPL for inline
+\newcommand\amplinline[1]{{\amplstyle\lstinline!#1!}}
+
+\lstset{
+    language=Python,
+    basicstyle=\scriptsize\ttfamily,
+    numbers=left,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b,
+    morekeywords={as},
+    keywordstyle=\bfseries\color{orangekeywords},    % Custom highlighting style
+    stringstyle=\color{deepblue},
+    commentstyle=\color{deepgreen},
+}
+
+%%%% End of LISTINGS %%%%
+
+
+\title{GEP submission 2}
+\author{Zephyr Serret Verbist}
+
+\begin{document}
+
+\begin{titlepage}
+\includepdf[]{portada_followup.pdf}
+\end{titlepage}
+
+\renewcommand*\contentsname{Table of contents}
+\tableofcontents
+\listoffigures
+\listoftables
+\newpage
+
+\input{GEP1/GEP1}
+\input{GEP2/GEP2}
+\input{GEP3/GEP3}
+\section{Follow up}
+
+This section provides a detailed update on the current progress of the thesis, documented during the first two weeks of December.
+
+\subsection{Context of the Project}
+
+The project remains aligned with the original context, as outlined in earlier sections of this document. See section \ref{sec:context}.
+
+\subsection{Work Plan}
+
+The majority of the initially planned tasks progressed smoothly, with a notable exception being the integration of the KEGG database. Below is a breakdown of the original tasks as they were defined in table \ref{tab:TaskDurationAnddependencies} and an approximation of their progress.
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline \rowcolor{black!25}
+ID & Task & Completion \\ 
+\hline
+\rowcolor{black!15}
+T1 & Project Management & 100\% \\\hline
+T1.1 & Definition of the context and project scope & 100\%\\\hline
+T1.2 & Temporal planning of the project & 100\%\\\hline
+T1.3 & Budget and sustainability & 100\%\\\hline
+T1.4 & Integration of Key Project Components & 100\% \\\hline
+T1.5 & Meetings with the tutor & On-going\\\hline
+\rowcolor{black!15}
+T2 & Design of the ILP Model & 90\%\\\hline
+T2.1 & Study of ILP Modeling Using AMPL & 100\% \\\hline
+T2.2 & Formulate the Hypergraph Model& 100\% \\\hline
+T2.3 & Validation with Handcrafted Data &  100\% \\\hline
+T2.4 & Testing with Real Data &  100\%\\\hline
+T2.5 & Benchmarking and Optimization &  80\%\\\hline
+\rowcolor{black!15}
+T3 & App development & 70\% \\\hline
+T3.1 & Database Interaction Setup & 90\% \\\hline
+T3.2 & ILP Model Integration & 100\% \\\hline
+T3.3 & Functionality Implementation & 70\%\\\hline
+T3.4 & User Interface Design & 80\%\\\hline
+T3.5 & User Documentation Creation & 0\% \\\hline
+\rowcolor{black!15}
+T4 & Project documentation  & 50\% \\\hline
+\rowcolor{black!15}
+T5 & Preparation for the oral defence & 0\% \\\hline
+\end{tabular}
+\caption{Task Completion at follow up stage of development} 
+\label{tab:TaskCompletionAtFollowUp}
+\end{table}
+
+Below is a Gantt graph representation of the work plan for the rest of the project's development.
+\begin{landscape}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.4]{Gantt2.png}
+        \caption{Work plan as a Gantt Graph from 11th of december to end of project development}
+        \label{fig:Gant2}
+    \end{figure}
+\end{landscape}
+
+\subsubsection{Challenges in KEGG Integration}
+
+The integration of the KEGG database posed a challenge due to the prohibitive cost of acquiring a KEGG FTP database license (USD 2,000 per academic user per year) \cite{pricelicence}.
+
+To circumvent this financial constraint, we opted for the freely accessible KEGG REST API. In the initial approach, we aimed to query the REST API (utilizing the Python library bioservices) for each reaction, retrieving the substrates, products, and associated pathways. However, this strategy presented several drawbacks, including extended processing times and excessive request volume, leading to temporary IP bans from the KEGG Database (approximately 3 minutes for university network requests, 4 hours for private network requests).
+
+
+In response to these limitations, an alternative approach was adopted, involving direct retrieval of pathway information from the KEGG database. By parsing the associated KGML files\footnote{KGML or KEGG Markup Language enables automatic drawing of KEGG pathways and provides facilities for computational analysis and modeling of protein networks and chemical networks. \cite{KGMLDescription}}, we successfully extracted reaction details. This method initially exhibited improved performance; however, we subsequently encountered omissions of substrates and products within the KGML files. To rectify this issue, we refined the strategy to extract reaction IDs from KGML files and then query the KEGG API for detailed reaction information. While this approach provided comprehensive reaction descriptions, we later discovered that the KGML files contained incomplete reaction data, omitting several reactions altogether.
+
+Ultimately, the only viable method for obtaining a comprehensive list of reactions for a specific pathway through the REST API was to resort to the original approach of individual query-based extraction.
+
+Despite the limitations, significant optimizations were incorporated into the final database integration to enhance efficiency.
+
+The most significant optimization involved storing query results locally for subsequent program executions. This enhancement eliminates the need for repeated queries to the KEGG database, enabling either the utilization of persistent data (automatically downloaded from GitHub) or the on-demand rebuilding of persistent data (which can be time-consuming and require intermittent pauses in the event of IP bans). This approach ensures data accessibility while maintaining ease of use and eliminating the requirement for an active internet connection.
+
+A further optimization involved utilizing the biopython library (BIO.KEGG.REST) to directly query the REST API, allowing us to obtain information for up to 10 reactions in one request. This significantly reduced the number of API calls required, further mitigating the risk of IP bans.
+
+The final optimization involved introducing parallelism to the request process. By creating threads for simultaneous API queries, we could process multiple requests concurrently, further enhancing the overall efficiency of the database integration.
+
+These optimizations collectively transformed the initial challenges into a robust and efficient database integration strategy. The optimized approach effectively balances data accuracy, computational efficiency, and user experience, enabling seamless access to KEGG metabolic pathway information.
+
+\subsection{Methodology}
+
+The decision to maintain the Kanban methodology as we defined it in section \ref{sec:Methodology} for the project is well-founded and aligns with the project's current trajectory and future requirements. The methodology's emphasis on visualization, limited WIP, and continuous improvement has proven invaluable in managing the project's workflow effectively and ensuring its smooth progress. As the project continues to evolve, the Kanban methodology's adaptability will provide the team with the necessary tools to navigate new challenges and maintain a high level of efficiency.
+
+\subsection{Analysis of alternative solutions}
+
+The problem is novel and there are currently no alternative solutions. As a matter of fact, the value of the result of the algorithm for the field of biological pathways analysis is still unclear.
+
+\subsection{Integration of knowledge}
+The project's success lies in its ability to seamlessly integrate knowledge from various disciplines, including integer linear programming, parallelism and user interface design. By drawing upon these diverse perspectives, we were able to develop a comprehensive understanding of the problem and identify potential solutions that transcended the limitations of any single discipline.
+
+\subsection{Identification of applicable laws and regulations}
+
+The data for this thesis was obtained from the publicly accessible KEGG REST API, and the code was developed solely by the thesis team using GitHub Copilot, ensuring compliance with all applicable data and copyright regulations.
+
+\newpage
+%\bibliographystyle{acm}
+\bibliographystyle{unsrt}
+\bibliography{sample}
+
+\end{document}
