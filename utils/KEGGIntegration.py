@@ -52,7 +52,7 @@ class KEGGIntegration(SingletonClass):
 
         if len(self.map_reaction_id_to_substrates_products_ids) == 0:
             print("fetching reactions and their substrate product ids")
-            self.fetch_reaction_substrates_products_ids()
+            self.__fetch_reaction_substrates_products_ids()
             self.__dump_data()
         if len(self.map_pathway_id_to_list_reaction_id) == 0:
             print("fetching pathways and their reaction ids")
@@ -209,7 +209,7 @@ class KEGGIntegration(SingletonClass):
         print("compound: ", synonym, " has id: ", candidates[0], " for reaction: ", reaction_id)
         return candidates[0]
 
-    def fetch_reaction_substrates_products_ids(self):
+    def __fetch_reaction_substrates_products_ids(self):
         """
             Fetches the list of reactions and creates the map reaction_id to substrate_ids and product_ids:
             Uses the result from the KEGG api as well as :
