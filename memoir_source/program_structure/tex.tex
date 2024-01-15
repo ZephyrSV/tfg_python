@@ -140,3 +140,64 @@ The \texttt{GridUtil} class provides utility methods for managing the grid layou
 This class is particularly useful for managing the grid layout and ensuring flexibility during GUI development.
 
 
+\subsubsection{Pathway\_selector}
+
+The \texttt{Pathway\_selector} class provides a graphical user interface for selecting and exploring biochemical pathways. It utilizes the KEGGIntegration class to fetch pathway data and display relevant information.
+
+\textbf{Attributes:}
+
+\begin{itemize}
+    \item \textbf{default\_filter\_text}: A class attribute representing the default text in the filter box.
+\end{itemize}
+
+\textbf{Public methods:}
+
+\begin{itemize}
+    \item \textbf{\_\_init\_\_()}: Initializes the \texttt{Pathway\_selector} instance, setting up the graphical interface and necessary attributes.
+    \item \textbf{filter\_enter\_action()}: Handles the filter box's $<enter>$ action to filter the search pool based on descriptions.
+    \item \textbf{dropdown\_enter\_action()}: Handles the dropdown's enter action to select pathways based on descriptions.
+    \item \textbf{dropdown\_id\_enter\_action()}: Handles the dropdown's enter action to select pathways based on IDs.
+    \item \textbf{on\_entry\_filter\_click(event)}: Called when the filter entry is clicked to clear default text.
+    \item \textbf{on\_entry\_filter\_leave(event)}: Called when the filter entry loses focus to add default text if needed.
+    \item \textbf{set\_image()}: Sets the image in the image label to the selected pathway.
+    \item \textbf{show\_image\_button\_click()}: Handles the click event for the "Show Image" button.
+    \item \textbf{select\_pathway\_button\_click()}: Opens a new window with the selected pathway.
+    \item \textbf{benchmark\_button\_click()}: Opens a new window for benchmarking.
+    \item \textbf{update\_data\_button\_click()}: Updates the dataset, potentially causing an IP ban from the KEGG REST API.
+    \item \textbf{on\_dropdown\_select(event)}: Called when an option is selected in the dropdown for descriptions.
+    \item \textbf{on\_dropdown\_id\_select(event)}: Called when an option is selected in the dropdown for IDs.
+    \item \textbf{clear\_description\_label(event)}: Clears the description label.
+    \item \textbf{set\_description\_label\_func(text)}: Returns a function that sets the description label to the given text.
+    \item \textbf{dropdown\_set\_values()}: Sets the values of the dropdown.
+\end{itemize}
+
+The \texttt{Pathway\_selector} class provides a comprehensive interface for exploring biochemical pathways, allowing users to filter, search, and select pathways based on descriptions or IDs. Additionally, it includes features for showing pathway images, opening pathway windows, and initiating benchmarking processes. The class is integrated with the KEGGIntegration class for seamless data retrieval and updates.
+
+\subsubsection{Benchmark\_view}
+
+The \texttt{Benchmark\_view} class provides a graphical user interface for running benchmarks using various solvers and models. It interacts with the KEGGIntegration class to fetch data and generate '.dat' files for benchmarking.
+
+\textbf{Attributes:}
+
+\begin{itemize}
+    \item \textbf{solvers}: A dictionary mapping solver names to their corresponding identifiers.
+    \item \textbf{models}: A dictionary mapping model names to their file paths.
+    \item \textbf{dats}: A dictionary to store '.dat' files for benchmark entries.
+    \item \textbf{result\_count}: An integer representing the count of benchmark results.
+    \item \textbf{current\_test\_id}: A string representing the current test identifier.
+    \item \textbf{file}: A file object for writing benchmark results.
+\end{itemize}
+
+\textbf{Public methods:}
+
+\begin{itemize}
+    \item \textbf{\_\_init\_\_(self, master)}: Initializes the Benchmark\_view instance, setting up the graphical interface and necessary attributes.
+    \item \textbf{start\_button\_click()}: Starts the benchmark in a separate thread, creating a new entry in the Treeview and initiating the benchmarking process.
+    \item \textbf{run\_benchmark()}: Runs the benchmark process, handling the entire workflow from data preparation to solving entries.
+    \item \textbf{prepare\_dats()}: Prepares the '.dat' files for benchmark entries.
+    \item \textbf{solve\_all\_entries()}: Solves all benchmark entries using the selected solver and models, updating the graphical interface and writing results to a file.
+    \item \textbf{set\_benchmark\_average(entry, solver\_id, valid\_duration\_lists)}: Sets the benchmark average for a specific entry and solver.
+    \item \textbf{get\_last\_entry\_treeview\_id()}: Retrieves the last entry ID from the Treeview.
+    \item \textbf{insert\_to\_treeview(parent, text, *values)}: Inserts a new entry into the Treeview component of the graphical interface.
+    \item \textbf{create\_tickboxes(parent)}: Creates tickboxes in the graphical interface for specific options.
+\end{itemize}
