@@ -18,7 +18,7 @@ AMPL, short for "A Mathematical Programming Language," is a powerful tool for ma
     For example, in a production scheduling model, you may define variables to represent the quantity of each product to be produced.\\
     
 \item[Objectives:]
-    The objective function in an AMPL model defines what you aim to optimize. It is a mathematical expression that relies on variables and, sometimes, parameters within your model. You can specify objectives to be minimized or maximized. \\
+    The objective function in an AMPL model defines what you aim to optimize. It is a mathematical expression that relies on variables and parameters within your model. You can specify objectives to be minimized or maximized. \\
     For example, in a workforce scheduling model, your objective might be to minimize labor costs while meeting staffing requirements.\\
 
 \item[Constraints:]
@@ -33,7 +33,7 @@ In AMPL, you combine these core components to construct a comprehensive mathemat
 
 
 \subsection{Desired inputs/outputs} \label{sec:io}
-In the design of our AMPL model, we aim to create a versatile model that can work with any hypergraph  G = (V, E).
+In the design of our AMPL model, we aim to create a versatile model that can work with any hypergraph  H = (V, E).
 
 \begin{description}
     \item[Inputs:] ~
@@ -69,11 +69,11 @@ As we can see in figure \ref{fig:first-Prototype}, the code is divided in 4 part
     \begin{itemize}
         \item
         \begin{description}
-            \item[substrate\_in] ~\\ For every vertex $i$, we create a set of every hyperedge where $i$ acts as a substrate ($i$ belongs to the tail set)
+            \item[substrate\_in] ~\\ For every vertex $i$, we create a set of every hyperedge where $i$ acts as a substrate ($i$ belongs to the tail set).
         \end{description}
         \item
         \begin{description}
-            \item[product\_in] ~\\ For every vertex $i$, we create a set of every hyperedge where $i$ acts as a product ($i$ belongs to the head set)
+            \item[product\_in] ~\\ For every vertex $i$, we create a set of every hyperedge where $i$ acts as a product ($i$ belongs to the head set).
         \end{description}
     \end{itemize}
     
@@ -156,9 +156,9 @@ As observed, the presence of numerous strong constraints creates a significant i
 
 
 \subsubsection{Models Developed by the Professor and His Colleagues} \label{sec:model_a_b}
-In this section, we introduce two models developed by the professor and their colleague. To enhance clarity within the context we presented, various aspects such as parameters, variables, sets, and/or rule names have been modified, ensuring that all the models share similar names. This deliberate adjustment simplifies comprehension and facilitates a more coherent understanding of the models as they are discussed in the subsequent content.
+In this section, we introduce two models developed by the professor and their colleagues. To enhance clarity within the context we presented, various aspects such as parameters, variables, sets, and/or rule names have been modified, ensuring that all the models share similar names. This deliberate adjustment simplifies comprehension and facilitates a more coherent understanding of the models as they are discussed in the subsequent content.
 
-We present below the first model (Figure \ref{fig:nasini}). To respect the author's anonymity, we call it "Model A".
+We present below the first model (Figure \ref{fig:nasini}) which we call "Model A".
 
 \begin{figure}[H]
     \centering
@@ -169,7 +169,7 @@ We present below the first model (Figure \ref{fig:nasini}). To respect the autho
 
 Model A is comparatively simpler, featuring only two rules and two variables, both of which also appear in the first prototype (Figure \ref{fig:first-Prototype}). Although the rules 'outgoing\_half\_implies\_internal' and 'incoming\_half\_implies\_internal' are presented slightly differently, they are mathematically equivalent to the rules 'not\_substrate\_at\_all' and 'not\_product\_at\_all' from the first prototype.
 
-As we will see in the following sections, this model excels in speed but lacks the mathematical robustness needed to accommodate more complex constraints, such as forcing certain vertices to be external or internal from the beginning.
+As we will see in the following sections, this model excels in speed but lacks the mathematical robustness needed to accommodate more complex constraints, such as forcing certain vertices to be external or internal.
 
 Similarly, the second model "Model B" (Figure \ref{fig:valiente}), is displayed below:
 
@@ -186,7 +186,7 @@ Model B's design philosophy aimed to follow a mathematical procedure to convert 
 \subsection{Initial Benchmarking}
 Our benchmarking approach involves running 25 pathway optimizations for each of the models we want to evaluate, including the three largest ones. We conducted these benchmarks using the dedicated \textbf{Benchmark View} of our Python program, detailed in Section \ref{sec:benchmark_view}. The computer for all benchmarks is the high-end desktop computer described in Section \ref{sec:material_resources}. The outcomes of our initial benchmark are summarized in Table \ref{tab:initial_benchmark}, featuring five columns. The first column displays the pathway ID, the second indicates the solver used, and the last three columns depict the time taken by each model to complete the optimization problem in seconds.
 
-Upon examination of the results, a noticeable performance gap emerges, particularly when compared to our first prototype. This initial version exhibits suboptimal performance, taking roughly three times longer than \textbf{Model B} and eight times longer than \textbf{Model A} to solve the most challenging pathway problem. This difference highlights specific areas where improvements or optimizations could enhance the overall performance of our prototype models.
+Upon examination of the results, a noticeable performance gap emerges, particularly for the first prototype. This initial version exhibits suboptimal performance, taking roughly three times longer than \textbf{Model B} and eight times longer than \textbf{Model A} to solve the most challenging pathway problem. This difference highlights specific areas where improvements or optimizations could enhance the overall performance of our prototype models.
 
 \begin{table}[H]
 \centering
@@ -237,7 +237,7 @@ Our optimization principles include:
         An effective model is achieved by minimizing the number of rules and variables for a concise representation.
 
      \item[Multiplication of Binary Variables:]
-        Despite the multiplication support for binary variables in the \textbf{maximize/minimize} function in newer AMPL versions, we explore the efficiency gained by manually introducing rules and variables to transform the problem back into an integer form, rather than relying solely on AMPL's backend.
+        Despite support for the multiplication of binary variables in the \textbf{maximize/minimize} function in newer AMPL versions, we explore the efficiency gained by manually introducing rules and variables to transform the problem back into an integer form, rather than relying solely on AMPL's pre-compiler.
 \end{description}
 
 Guided by these considerations, we present a redesigned model. This model has undergone continuous refinement throughout the project's development, ensuring it is not only mathematically robust but also thoroughly optimized. The final representation of our optimized model is provided below:
@@ -256,13 +256,13 @@ This model is designed to handle extra constraints that were not initially part 
 
     \item The capability to prevent the inversion of specific hyper-edges (or biological reactions), ensuring the preservation of their original orientation.
 \end{enumerate}
-
-A
     
     
 \subsection{Mathematical proof of the final model} \label{sec:math_proof}
 
-In this section, we provide a formal mathematical proof to establish the equivalence between our proposed model and its Integer Linear Programming (ILP) representation. To facilitate this proof, we introduce specific predicates and functions that will help demonstrate the correspondence.
+In this section, we provide a formal mathematical proof to bring a robust logical grounding to our proposed model in establish the equivalence between our proposed model and its Integer Linear Programming (ILP) representation. 
+
+To facilitate this proof, we introduce specific predicates and functions that will help demonstrate the correspondence.
 
 \subsubsection{Introduction of Predicates and Functions:}
 

@@ -246,8 +246,8 @@ f the user opts for the \textbf{Visualize results} tickbox, a representation of 
 Given an hypergraph H = (V, E), where V is the set of \textbf{vertices} and E of \textbf{hyperedges}, 
 we create the graph G = ($V~\bigcup~E$, $E_T~\bigcup~E_H$), where:
 \begin{align*}
-    &E_T = \{\{u,~\{T,~H\}\}~\mid~u~\in~V,~\{T,~H\}~\in~E,~u~\in~T\}\\
-    &E_H = \{\{u,~\{T,~H\}\}~\mid~u~\in~V,~\{T,~H\}~\in~E,~u~\in~H\} 
+    &E_T = \{\{u,~e\}~\mid~u~\in~V,~e~\in~E,~u~\in~T(e)\}\\
+    &E_H = \{\{e,~u\}~\mid~u~\in~V,~e~\in~E,~u~\in~H(e)\} 
 \end{align*}
 We give an example of applying this procedure in Figure \ref{fig:hypergraph_as_graph}.
 

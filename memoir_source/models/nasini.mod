@@ -6,7 +6,6 @@ set E;
 
 set X{E} within V; # The tail set for each hyperedge
 set Y{E} within V; # The head set for each hyperedge
-param invertible{E} binary; # determines whether an edge is invertible
 
 #####################
 ## Variables

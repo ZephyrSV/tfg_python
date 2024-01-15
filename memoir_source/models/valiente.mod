@@ -1,4 +1,3 @@
-reset;
 set V;
 set E;
 
