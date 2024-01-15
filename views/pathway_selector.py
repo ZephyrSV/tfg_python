@@ -16,20 +16,6 @@ from tkinter import messagebox
 class Pathway_selector(tk.Tk):
     default_filter_text = "Search by description..."
 
-    def filter_enter_action(self, event=None):
-        """
-        This function is called when enter is pressed in the filter box.
-
-        The filter Entry is used to filter the search_pool in the dropdown based on their respective description.
-        """
-        self.filter_entry.config(fg='black')
-        search_pool = {entry: desc for entry, desc in self.kegg_integration.map_pathway_id_to_description.items() if self.filter_entry.get().upper() in desc.upper()}
-        if len(search_pool) == 0:
-            self.filter_entry.config(fg='red')
-            return
-        self.search_pool = search_pool
-        self.dropdown_set_values()
-
     def dropdown_enter_action(self, event=None):
         """
         This function is called when enter is pressed in the dropdown.
@@ -68,15 +54,6 @@ class Pathway_selector(tk.Tk):
             self.filter_entry.delete(0, "end")  # Clear the default text when clicked
         self.filter_entry.config(fg="black")  # Change the text color to black
 
-    def on_entry_filter_leave(self, event):
-        """
-        Called when the filter entry looses the focus.
-
-        Serves to add the default text in the filter entry if nothing is entered.
-        """
-        if self.filter_entry.get() == "":
-            self.filter_entry.insert(0, self.default_filter_text)  # Add the default text if nothing entered
-            self.filter_entry.config(fg="gray")  # Change the text color to gray
 
     def set_image(self):
         """
