@@ -14,7 +14,9 @@ from tkinter import messagebox
 
 
 class Pathway_selector(tk.Tk):
-    default_filter_text = "Search by description..."
+    executor = concurrent.futures.ThreadPoolExecutor()
+    kegg_integration = KEGGIntegration()
+    search_pool = None
 
     def dropdown_enter_action(self, event=None):
         """
@@ -149,8 +151,6 @@ class Pathway_selector(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.kegg_integration = KEGGIntegration()
-        self.executor = concurrent.futures.ThreadPoolExecutor()
         g = GridUtil()
 
 
@@ -217,8 +217,7 @@ class Pathway_selector(tk.Tk):
         self.image_label = tk.Label(self)
         self.image_label.grid(**pad(), **g.place(cs=4))
 
-        self.human_pathways = self.kegg_integration.map_pathway_id_to_description
-        self.search_pool = self.human_pathways
+        self.search_pool = self.kegg_integration.map_pathway_id_to_description
         self.dropdown_id.config(state='normal')
         self.dropdown.config(state='normal')
         self.dropdown_set_values()
