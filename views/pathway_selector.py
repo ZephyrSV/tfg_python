@@ -44,16 +44,6 @@ class Pathway_selector(tk.Tk):
         self.search_pool = search_pool
         self.dropdown_set_values()
 
-    def on_entry_filter_click(self, event):
-        """
-        Called when the filter entry is clicked.
-
-        Serves to clear the default text in the filter entry when clicked.
-        """
-        if self.filter_entry.get() == self.default_filter_text:
-            self.filter_entry.delete(0, "end")  # Clear the default text when clicked
-        self.filter_entry.config(fg="black")  # Change the text color to black
-
 
     def set_image(self):
         """
