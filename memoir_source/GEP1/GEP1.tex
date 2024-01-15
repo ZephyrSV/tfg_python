@@ -9,7 +9,7 @@ This article provides context for the research conducted in Zephyr Serret Verbis
 
 Hypergraphs are an extension of graphs that employs hyperedges instead of edges. A hyperedge is defined by two non-empty sets of nodes: a tail set and a head set. The hyperedge models a relationship originating from all elements in its tail set to all elements in its head set, or it can be undirected.
 
-Let us recall from~\cite{Gallo.Longo.Pallottino.Nguyen:1993} the following definition, where we impose the tail and head of a hyperedge to be nonempty sets of nodes.
+Let us recall from~\cite{Gallo.Longo.Pallottino.Nguyen:1993} the following definition, where we impose the tail set and head set of a hyperedge to be nonempty sets of nodes.
 
 \begin{defn}
 A directed hypergraph $H=(V,E)$ consists of a set of nodes $V$ and a set of hyperedges $E=\{\ (T(e),H(e))\ \mid T(e)\ \subseteq\ V,\ H(e)\ \subseteq\ V,\ T(e)\neq\emptyset,\ H(e)\neq\emptyset\}$.
@@ -25,7 +25,7 @@ A directed hypergraph $H=(V,E)$ consists of a set of nodes $V$ and a set of hype
     \draw (2,1) node (3) {$v_3$};
     \draw (4,2) node (4) {$v_4$};
     \draw (4,0) node (5) {$v_5$};
-    \draw (6,2) node [fill=yellow!50] (6) {$v_6$};
+    \draw (6,2) node (6) {$v_6$};
     \draw (6,0) node (7) {$v_7$};
     \draw[latex-latex] (1) .. controls (1.25,2) .. (2);
     \draw[latex-latex] (1) .. controls (1.25,2) .. (3);
@@ -73,7 +73,66 @@ In the context of undirected or partially directed hypergraphs, the objective is
 
 In essence, this problem seeks to find an orientation for the hyperedges that maximizes the internal connectivity of nodes while minimizing their isolation as external nodes. The ILP model will serve as a valuable tool to achieve this goal, providing an efficient means of optimizing the orientation of hyperedges and facilitating the analysis of complex hypergraph structures.
 
-\subsection{Stakeholders}
+The Figure \ref{fig:Hypergraph-orientation-example} shows two possible orientation of the hypergraph in Figure \ref{fig:Hypergraph-example} and demonstrates the impact of the orientation on the number of external nodes.
+The first orientation has 2 external nodes and the second one has 5 external nodes. The external nodes are highlighted in yellow. The first orientation is optimal in this case.
+
+\begin{figure}[H]
+    \centering
+    \begin{multicols}{2}
+        \begin{tikzpicture}[baseline,xscale=0.5675]
+            \tikzstyle{every picture}=[thick]
+            \tikzstyle{every node}=[inner sep=2pt,circle,draw]
+            \draw (0,2) node [fill=yellow!50] (1) {$v_1$};
+            \draw (2,3) node (2) {$v_2$};
+            \draw (2,1) node (3) {$v_3$};
+            \draw (4,2) node (4) {$v_4$};
+            \draw (4,0) node (5) {$v_5$};
+            \draw (6,2) node [fill=yellow!50] (6) {$v_6$};
+            \draw (6,0) node (7) {$v_7$};
+            \draw[-latex] (1) .. controls (1.25,2) .. (2);
+            \draw[-latex] (1) .. controls (1.25,2) .. (3);
+            \draw[-latex] (2) .. controls (2.75,2) .. (4);
+            \draw[-latex] (3) .. controls (2.75,2) .. (4);
+            \draw[-latex] (4) .. controls (5,0.78125) .. (6);
+            \draw[-latex] (5) .. controls (5,1.21875) .. (7);
+            \draw[latex-] (5) -- (7);
+            \draw (1,2.25) node[draw=none] {$e_1$};
+            \draw (3,2.25) node[draw=none] {$e_2$};
+            \draw (5,1.25) node[draw=none] {$e_3$};
+            \draw (5,-0.25) node[draw=none] {$e_6$};
+        \end{tikzpicture}
+        
+        \columnbreak           
+        
+        \begin{tikzpicture}[baseline,xscale=0.5675]
+            \tikzstyle{every picture}=[thick]
+            \tikzstyle{every node}=[inner sep=2pt,circle,draw]
+            \draw (0,2) node [fill=yellow!50] (1) {$v_1$};
+            \draw (2,3) node [fill=yellow!50] (2) {$v_2$};
+            \draw (2,1) node [fill=yellow!50] (3) {$v_3$};
+            \draw (4,2) node (4) {$v_4$};
+            \draw (4,0) node (5) {$v_5$};
+            \draw (6,2) node [fill=yellow!50] (6) {$v_6$};
+            \draw (6,0) node [fill=yellow!50] (7) {$v_7$};
+            \draw[latex-] (1) .. controls (1.25,2) .. (2);
+            \draw[latex-] (1) .. controls (1.25,2) .. (3);
+            \draw[-latex] (2) .. controls (2.75,2) .. (4);
+            \draw[-latex] (3) .. controls (2.75,2) .. (4);
+            \draw[-latex] (4) .. controls (5,0.78125) .. (6);
+            \draw[-latex] (5) .. controls (5,1.21875) .. (7);
+            \draw[-latex] (5) -- (7);
+            \draw (3,2.25) node[draw=none] {$e_2$};
+            \draw (5,1.25) node[draw=none] {$e_3$};
+            \draw (5,0.25) node[draw=none] {$e_4$};
+            \draw (1,1.75) node[draw=none] {$e_5$};
+        \end{tikzpicture}
+    \end{multicols}
+    \caption{Example of the orientation of a hypergraph and its impact on its internal and external nodes.}
+    \label{fig:Hypergraph-orientation-example}
+\end{figure}
+
+
+\subsection{Stakeholders} \label{sec:stakeholders}
 
 In this research project, the primary stakeholders involved are as follows:
 \begin{list}{}{\leftmargin=0em}
