@@ -15,14 +15,6 @@ from utils.ui_utils import GridUtil, pad
 import threading
 
 
-def print_thread_name(func):
-    def wrapper(*args, **kwargs):
-        current_thread = threading.current_thread()
-        print(f"Thread name: {current_thread.name}, Function name: {func.__name__}")
-        return func(*args, **kwargs)
-
-    return wrapper
-
 
 class Benchmark_view(tk.Toplevel):
     solvers = {
@@ -96,7 +88,6 @@ class Benchmark_view(tk.Toplevel):
         for entry, dat in self.kegg_integration.generate_dats(self.entries):
             self.add_to_dats(entry, dat)
 
-    @print_thread_name
     def run_benchmark(self):
         print(f"Running benchmark with {self.entries.__len__()} entries")
         if not os.path.isdir("output"):
