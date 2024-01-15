@@ -68,7 +68,7 @@ The \texttt{KEGGIntegration} class serves as a central hub for interacting with 
 
 During initialization, the class checks for existing data in the \texttt{data.json} file within the \texttt{persistent\_data} directory. If the file is absent, the class initiates the retrieval of data from the KEGG API, subsequently storing it in the data.json file for future reference. This approach optimizes performance by avoiding redundant API calls upon subsequent launches.
 
-The \texttt{KEGGIntegration} class has the following members:
+\textbf{Attributes:}
 
 \begin{itemize}
     \item \textbf{data\_loc}: A string variable that represents the location of the data.json file. It's value is not edited throughout the execution of the program. (Data Structure: String)
@@ -107,5 +107,36 @@ The \texttt{KEGGIntegration} class has the following methods:
     \item \textbf{generate\_dats(self, entries: list, overwrite: bool = False)}: This method generates the '.dat' files for the specified entries. The \textbf{entries} parameter is a list of pathway IDs, and the \textbf{overwrite} parameter determines whether to overwrite existing '.dat' files.
 \end{itemize}
 
+
+\subsubsection{GridUtil}
+
+The \texttt{GridUtil} class provides utility methods for managing the grid layout in a Tkinter-based GUI. This class facilitates the dynamic adjustment of row and column configurations to enhance responsiveness during resizing. Here's an overview of its functionalities:
+
+\textbf{Attributes:}
+
+\begin{itemize}
+\item \textbf{current\_row}: An integer representing the current row index.
+\item \textbf{current\_column}: An integer representing the current column index.
+\end{itemize}
+
+\textbf{Constructor:}
+
+\begin{itemize}
+\item \texttt{\_\_init\_\_(self, row=0, column=0)}: Initializes the \texttt{GridUtil} object with optional parameters for the initial row and column indices. It also initializes lists for rows and columns that should not be resized.
+\end{itemize}
+
+\textbf{Methods:}
+
+\begin{itemize}
+\item \texttt{set\_row(self, row)}: Sets the current row index to the specified value.
+\item \texttt{set\_column(self, column)}: Sets the current column index to the specified value.
+\item \texttt{next\_row(self)}: Increments the current row index and resets the current column index to zero. Returns the updated row index.
+\item \texttt{generate\_on\_resize(self)}: Returns a function that will be called on window resize. This function dynamically configures row and column weights based on the current state.
+\item \texttt{do\_not\_resize\_col(self)}: Adds the current column index to the list of columns that will not be resized.
+\item \texttt{do\_not\_resize\_row(self)}: Adds the current row index to the list of rows that will not be resized.
+\item \texttt{place(self, rs=1, cs=1, sticky="we")}: Returns a dictionary with grid parameters for placing Tkinter widgets. Advances the current column index by \texttt{cs}.
+\end{itemize}
+
+This class is particularly useful for managing the grid layout and ensuring flexibility during GUI development.
 
 
