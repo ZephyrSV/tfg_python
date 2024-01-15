@@ -139,7 +139,6 @@ The \texttt{GridUtil} class provides utility methods for managing the grid layou
 
 This class is particularly useful for managing the grid layout and ensuring flexibility during GUI development.
 
-
 \subsubsection{Pathway\_selector}
 
 The \texttt{Pathway\_selector} class provides a graphical user interface for selecting and exploring biochemical pathways. It utilizes the KEGGIntegration class to fetch pathway data and display relevant information.
@@ -147,23 +146,22 @@ The \texttt{Pathway\_selector} class provides a graphical user interface for sel
 \textbf{Attributes:}
 
 \begin{itemize}
-    \item \textbf{default\_filter\_text}: A class attribute representing the default text in the filter box.
+    \item \textbf{executor}: A class attribute representing the ThreadPoolExecutor for concurrent operations.
+    \item \textbf{kegg\_integration}: A class attribute representing the instance of the KEGGIntegration class.
+    \item \textbf{search\_pool}: A class attribute representing the list of pathways for the user to select from.
 \end{itemize}
 
 \textbf{Public methods:}
 
 \begin{itemize}
     \item \textbf{\_\_init\_\_()}: Initializes the \texttt{Pathway\_selector} instance, setting up the graphical interface and necessary attributes.
-    \item \textbf{filter\_enter\_action()}: Handles the filter box's $<enter>$ action to filter the search pool based on descriptions.
-    \item \textbf{dropdown\_enter\_action()}: Handles the dropdown's enter action to select pathways based on descriptions.
-    \item \textbf{dropdown\_id\_enter\_action()}: Handles the dropdown's enter action to select pathways based on IDs.
-    \item \textbf{on\_entry\_filter\_click(event)}: Called when the filter entry is clicked to clear default text.
-    \item \textbf{on\_entry\_filter\_leave(event)}: Called when the filter entry loses focus to add default text if needed.
+    \item \textbf{dropdown\_enter\_action()}: Handles the dropdown's \textbf{enter} action to select pathways based on descriptions.
+    \item \textbf{dropdown\_id\_enter\_action()}: Handles the dropdown's \textbf{enter} action to select pathways based on IDs.
     \item \textbf{set\_image()}: Sets the image in the image label to the selected pathway.
     \item \textbf{show\_image\_button\_click()}: Handles the click event for the "Show Image" button.
     \item \textbf{select\_pathway\_button\_click()}: Opens a new window with the selected pathway.
     \item \textbf{benchmark\_button\_click()}: Opens a new window for benchmarking.
-    \item \textbf{update\_data\_button\_click()}: Updates the dataset, potentially causing an IP ban from the KEGG REST API.
+    \item \textbf{update\_data\_button\_click()}: Gives a warning to the user and updates the dataset.
     \item \textbf{on\_dropdown\_select(event)}: Called when an option is selected in the dropdown for descriptions.
     \item \textbf{on\_dropdown\_id\_select(event)}: Called when an option is selected in the dropdown for IDs.
     \item \textbf{clear\_description\_label(event)}: Clears the description label.
@@ -171,7 +169,54 @@ The \texttt{Pathway\_selector} class provides a graphical user interface for sel
     \item \textbf{dropdown\_set\_values()}: Sets the values of the dropdown.
 \end{itemize}
 
-The \texttt{Pathway\_selector} class provides a comprehensive interface for exploring biochemical pathways, allowing users to filter, search, and select pathways based on descriptions or IDs. Additionally, it includes features for showing pathway images, opening pathway windows, and initiating benchmarking processes. The class is integrated with the KEGGIntegration class for seamless data retrieval and updates.
+The \texttt{Pathway\_selector} class' graphical interface provides various functionalities such as selecting pathways, showing images, opening pathway windows, benchmarking, and updating the dataset. The class maintains integration with the KEGGIntegration class for seamless data retrieval and updates.
+
+\subsubsection{Pathway\_view}
+
+The \texttt{Pathway\_view} class provides a graphical user interface for solving biochemical pathways. It utilizes the KEGGIntegration class to fetch pathway data and generate '.dat' files for solving.
+
+\textbf{Attributes:}
+
+\begin{itemize}
+    \item \textbf{save\_result\_to\_file\_var}: An integer variable representing the state of the "Save Result to File" checkbox.
+    \item \textbf{save\_result\_to\_file}: A checkbox indicating whether to save the result to a file.
+    \item \textbf{visualize\_result\_var}: An integer variable representing the state of the "Visualize Result" checkbox.
+    \item \textbf{visualize\_result}: A checkbox indicating whether to visualize the solved pathway.
+    \item \textbf{use\_extra\_restrictions\_var}: A boolean variable representing the state of the "Use Extra Restrictions" checkbox.
+    \item \textbf{use\_extra\_restrictions}: A checkbox indicating whether to use extra restrictions in the pathway model.
+    \item \textbf{solve\_5s\_count}: A counter for managing the display duration of the "Solved!" message.
+    \item \textbf{solvers}: A dictionary mapping solver names to their corresponding identifiers.
+\end{itemize}
+
+These attributes include counters, settings for solving and visualizing options, and variables related to saving results and using extra restrictions.
+
+\textbf{Methods:}
+
+\begin{itemize}
+    \item \textbf{create\_extra\_restrictions\_frame(self, parent)}: Creates the frame for managing extra restrictions, including labels and modifiers for uninvertibles, forced externals, and forced internals.
+    \item \textbf{create\_tickboxes(self, parent)}: Creates tickboxes for options like saving results to a file, visualizing results, and using extra restrictions.
+    \item \textbf{\_\_init\_\_(self, master, entry, mainloop=True)}: Initializes the `PathwayView` instance. It sets up the UI elements, including labels, solver selection, tickboxes, extra restrictions frame, and buttons for solving the pathway.
+    \item \textbf{solve()}: Solves the pathway using AMPL, handling various solve outcomes and displaying results.
+    \item \textbf{five\_secs\_after\_solve()}: Removes the "Solved!" message after 5 seconds.
+    \item \textbf{build\_save\_to\_file\_printer(self, file\_path)}: Returns a printer function for saving results to a specified file.
+    \item \textbf{print\_result(self, ampl, execution\_time, printers=None)}: Prints the computed results, including execution time, internal vertices, and detailed reaction information.
+    \item \textbf{get\_ampl\_variables(self, ampl)}: Retrieves AMPL variables and sets necessary for pathway analysis.
+    \item \textbf{build\_graph(self)}: Builds a graph representation of the pathway using NetworkX.
+    \item \textbf{build\_figure(self, G, pos, include\_labels=True)}: Builds and returns a figure for visualization, including nodes, edges, and labels.
+    \item \textbf{draw\_canvas\_frame(self)}: Draws and updates the canvas frame for visualizing the pathway graph. It includes functionality to toggle labels and a button for that purpose.
+    \item \textbf{hide\_show\_extra\_restrictions(self)}: Hides or shows the extra restrictions frame based on the state of the "Use Extra Restrictions" checkbox.
+    \item \textbf{get\_data\_from\_dat(self)}: Parses data from the DAT file, including reactions, compounds, uninvertibles, forced externals, and forced internals.
+    \item \textbf{rewrite\_extra\_restrictions\_in\_dat(self)}: Rewrites extra restrictions in the DAT file based on current data.
+\end{itemize}
+
+\textbf {Inner classes:}
+
+\begin{itemize}
+    \item \textbf{ExtraRestrictionsModifier}: An inner class for modifying extra restrictions. It provides methods for adding and removing elements from the list.
+    \item \textbf{Printer}: An inner class representing a printer for handling file output. It initializes a file for writing, has a `\_\_call\_\_` method for writing data to the file, and a `\_\_del\_\_` method to close the file.
+\end{itemize}
+
+
 
 \subsubsection{Benchmark\_view}
 
