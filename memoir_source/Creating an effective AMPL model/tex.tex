@@ -354,9 +354,9 @@ Given what we just showed, we can create the following set of AMPL rules that cr
 
 \textbf{Optimization :}
 
-The maximizing function aims to maximize the number of internal vertices, as defined in the problem statement. Given that the variable \texttt{is\_internal$_i$} is solely used in the maximizing function and no other rules apart from those used to define \texttt{is\_internal}, we can make the assumption:
+The maximizing function aims to maximize the number of internal vertices, as defined in the problem statement. Given that the variable \texttt{is\_internal$_i$} is solely used in the maximizing function and no other rules apart from those used to define \texttt{is\_internal}, we can make the following assumption:
 \begin{quote}
-    When the solver is presented with a $is\_internal$ variable that can either be set to true or to false, the solver will always set it to true.
+    When the solver is presented with a $is\_internal$ variable that can either be set to $True$ or to $False$, the solver will always set it to $True$.
 \end{quote}
 
 Based on this assumption, we observe that the second inequality in \eqref{eq:ineq2} becomes redundant. Table \ref{tab:is_internal_optimization} demonstrates that we achieve identical results by utilizing only the first rule.
@@ -647,7 +647,7 @@ The univertibles use the following definition:
 
 \subsubsection{Comparing the mathematical correctness of Model A and Serret's models}
 
-Given what we have declared above, we can see that Zephyr's model is a direct implementation of the mathematical derivations we obtained from the definitions.
+Given what we have declared above, we can see that Serret's DualImply model is a direct implementation of the mathematical derivations we obtained from the definitions.
 
 On the other hand, Model A is less complete in regards of its mathematical correctness.
 In fact, here are the rules that model A follows:

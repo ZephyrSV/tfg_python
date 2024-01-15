@@ -7,8 +7,8 @@ Throughout our project, a key aspect of our development journey involved creatin
 \textbf{Features at a Glance:}
 
 \begin{description}
-    \item[Model Trial:] Easily try out different models with a user-friendly interface, allowing for quick experimentation and comparison.
-    \item[Hypergraph Visualization:] Gain valuable insights through simple visualizations of hypergraphs, providing a clear representation of complex structures.
+    \item[Optimize Real Pathways:] Easily try out optimization models on real pathways, enabling users to gain a deeper understanding of the underlying concepts.
+    \item[Pathway Visualization:] Gain valuable insights through simple and intuitive visualizations of oriented hypergraphs.
     \item[Benchmarking Capabilities:] Evaluate model performance efficiently by benchmarking against diverse datasets, aiding in the assessment and selection of the most suitable models.
 \end{description}
 
@@ -30,7 +30,7 @@ Ensure that you have Python installed on your system. If not, download and insta
 
 \textbf{Step 3: Install AMPL}
 
-Make sure you have at least the free community version of AMPL installed on your device. You can download it from the AMPL website: \url{https://ampl.com/products/solvers/free-software/}
+Make sure you have at least the free community version of AMPL installed on your device. You can download it from the AMPL website: \url{https://ampl.com/start-free-now/}
 
 \textbf{Step 4: Set up the virtual environment}
 Next, create a virtual environment (venv) to isolate dependencies for the GUI. Open your terminal or command prompt and navigate to the directory containing the program files. Execute the following commands:
@@ -96,7 +96,8 @@ Let's explore the features available on this main page:
 
 \begin{enumerate}
     \item \textbf{Select by ID:} Utilize the dropdown menu to choose a pathway based on its unique identifier (ID). The user can also type in a search string in the field and pressing enter. The dropdown will then filter out all entries that do not contain the search string.
-    \item \textbf{Select by Description:} Alternatively, you can opt for pathway selection by choosing a human-readable description from the dropdown menu. In the same way as before, the user 
+    \item \textbf{Select by Description:} Alternatively, you can opt for pathway selection by choosing a human-readable description from the dropdown menu. 
+    In the same way as before, the user can also type in a search string in the field and pressing enter. The dropdown will then filter out all entries that do not contain the search string.
 \end{enumerate}
 
 
@@ -165,7 +166,7 @@ Let's delve into the key components and functionalities of this view:
 \begin{itemize}
     \item \textbf{Solver Selection Dropdown:} Users can choose from a dropdown menu to select the solver they want to use (CBC, Gurobi or CPLEX).\footnote{\textbf{Note:} CBC is marked as free, as you don't need a licence to use it. Unlike Gurobi and CPLEX.}
     \item \textbf{Save to File Tickbox:} A tickbox allowing users to specify whether to save the solver results to a file.
-    \item \textbf{Visualize Result Tickbox:} Users can choose to visualize the solver results by ticking this option.
+    \item \textbf{Visualize Result Tickbox:} Users can choose to visualize the oriented pathway by ticking this option.
     \item \textbf{Use Extra Restrictions Tickbox:} This tickbox enables users to apply additional restrictions to the solver process if needed.
     \item \textbf{Solve Button:} The SOLVE button triggers the solving of the AMPL problem with the chosen solver and configurations.
 \end{itemize}
@@ -318,7 +319,7 @@ We give an example of applying this procedure in Figure \ref{fig:hypergraph_as_g
 \end{framed}
 
 
-In our GUI, the graph visually distinguishes various elements: \textbf{external compounds} appear as red dots, \textbf{internal compounds} as green dots, and \textbf{reactions} as grey squares. Hyperedges with inverted orientation are uniquely identified by coloring their edges blue. A practical demonstration of this visualization is presented in the form of a screenshot in Figure \ref{fig:vis_labels}.
+In our GUI, the graph visually distinguishes various elements: \textbf{external compounds} appear as red dots, \textbf{internal compounds} as green dots, and \textbf{reactions} as grey squares. Reactions that have their orientation inverted are uniquely identified by coloring their edges blue. A practical demonstration of this visualization is presented in the form of a screenshot in Figure \ref{fig:vis_labels}.
 
 \begin{figure} [H]
     \centering
@@ -347,7 +348,7 @@ Upon activating the \textbf{Use extra restrictions} tickbox, a new menu surfaces
 
 By default, each of the extra restriction fields begins empty.
 
-To introduce a restriction, for example: preventing the inversion of reactions, users can click on the \textbf{Add} button. \\
+To introduce a restriction, for example: preventing the inversion of reactions, users can click on the corresponding \textbf{Add} button. \\
 This action triggers a popup window displaying a list of all potential values.\\In the case of our example, this list comprises reactions not yet marked as un-invertible. 
 
 Following the popup invocation, users can select one or more items to incorporate into the restriction list. As demonstrated in Figure \ref{fig:extra_add}, an example showcases a user adding the reactions 'R00014', 'R00206', and 'R00341'.
