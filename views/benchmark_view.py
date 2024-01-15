@@ -23,7 +23,7 @@ class Benchmark_view(tk.Toplevel):
         "Gurobi (requires licence for big models)": "gurobi",
     }
     models = {
-        "Serret old": "AMPL/models/serret_old.mod",
+        "First prototype": "AMPL/models/serret_old.mod",
         "Serret DualImply": "AMPL/models/serret_dual_imply.mod",
         "Serret UniImply": "AMPL/models/serret_uni_imply.mod",
         "Model A": "AMPL/models/model_A.mod", 
@@ -43,8 +43,9 @@ class Benchmark_view(tk.Toplevel):
             
 
     def set_benchmark_average(self, entry, solver_id, valid_duration_lists):
-        print(f"Setting benchmark average of {len(valid_duration_lists)} entries with solver {solver_id}")
-        self.treeview.item(entry, values=[solver_id] + list(np.average(valid_duration_lists, axis=0)))
+        solver = self.solvers[solver_id]
+        print(f"Setting benchmark average of {len(valid_duration_lists)} entries with solver {solver}")
+        self.treeview.item(entry, values=self.solvers[solver] + list(np.average(valid_duration_lists, axis=0)))
 
 
     def solve_all_entries(self):
@@ -70,10 +71,10 @@ class Benchmark_view(tk.Toplevel):
                 solve_duration_list.append(solve_duration)
             if is_valid:
                 valid_duration_lists.append(solve_duration_list)
-            self.after(0, self.insert_to_treeview, self.current_test_id, entry, solver_id, *solve_duration_list)
+            self.after(0, self.insert_to_treeview, self.current_test_id, entry, solver, *solve_duration_list)
             solve_duration_list_str = '\t'.join(map(lambda x: x.__str__(), solve_duration_list))
-            self.file.write(f"{entry}\t{solver_id}\t{solve_duration_list_str}\n")
-        self.after(0, self.set_benchmark_average, self.current_test_id, solver_id, valid_duration_lists)
+            self.file.write(f"{entry}\t{solver}\t{solve_duration_list_str}\n")
+        self.after(0, self.set_benchmark_average, self.current_test_id, solver, valid_duration_lists)
 
     def prepare_dats(self):
         """
@@ -104,10 +105,11 @@ class Benchmark_view(tk.Toplevel):
         Starts the benchmark
         """
         now = datetime.now()
+        solver = self.solvers[self.solver_selector.get()]
         self.insert_to_treeview(
             "",  # parent
             now.strftime("Benchmark %d/%m/%Y %H:%M"),  # entry name
-            self.solver_selector.get(),  # solver
+            solver, # solver
         )
         self.current_test_id = self.get_last_entry_treeview_id()
         print(f"Current test id: {self.current_test_id}")
