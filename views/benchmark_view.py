@@ -30,7 +30,6 @@ class Benchmark_view(tk.Toplevel):
         "Model B": "AMPL/models/model_B.mod", 
     }
     dats = {}
-    _dats_lock = threading.Lock()
     result_count = 0
     current_test_id = ""
     file = None
@@ -41,10 +40,7 @@ class Benchmark_view(tk.Toplevel):
 
     def get_last_entry_treeview_id(self):
         return self.result_count.__str__()
-
-    def add_to_dats(self, entry, dat):
-        with self._dats_lock:
-            self.dats[entry] = dat
+            
 
     def set_benchmark_average(self, entry, solver_id, valid_duration_lists):
         print(f"Setting benchmark average of {len(valid_duration_lists)} entries with solver {solver_id}")
@@ -86,7 +82,7 @@ class Benchmark_view(tk.Toplevel):
         """
 
         for entry, dat in self.kegg_integration.generate_dats(self.entries):
-            self.add_to_dats(entry, dat)
+            self.dats[entry] = dat
 
     def run_benchmark(self):
         print(f"Running benchmark with {self.entries.__len__()} entries")
