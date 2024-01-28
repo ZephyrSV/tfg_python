@@ -311,7 +311,7 @@ class PathwayView(tk.Toplevel):
             self.reset_dropdown()
 
         def reset_dropdown(self):
-            self.dropdown["values"] = self.my_list
+            self.dropdown["values"] = sorted(self.my_list)
             if len(self.my_list) > 0:
                 self.dropdown.current(0)
                 self.remove_button.config(state="enabled")
@@ -336,7 +336,7 @@ class PathwayView(tk.Toplevel):
 
             listbox = tk.Listbox(pop_up, selectmode=tk.MULTIPLE)
             listbox.grid(**pad(x=(10, 0)), **g.place(sticky=tk.NSEW))
-            for item in [item for item in self.to_add_from if item not in self.my_list]:
+            for item in sorted([item for item in self.to_add_from if item not in self.my_list]):
                 listbox.insert(tk.END, item)
 
             scrollbar = ttk.Scrollbar(pop_up, orient=tk.VERTICAL, command=listbox.yview)
