@@ -4,6 +4,8 @@ This is the repostitory for Zephyr Serret Verbist's bachelor's thesis.
 
 This study proposes an approach to optimize a solution to the problem of minimizing the number of external vertices in a hypergraph, using the context of **Metabolic Pathways**.
 
+![](example.png)
+
 ### What's in this repository?
 
 1. An easy to use UI to rapidly orient and visualize pathways from the [KEGG](https://www.kegg.jp/) database. 
@@ -54,3 +56,15 @@ pip install -r requirements.txt
 ```bash
 python3 App.py
 ```
+
+
+### Built With
+ - Tkinter - Python GUI
+ - AMPL - Mathematical Programming Language
+ - LaTeX - Document Preparation System
+
+### Authors
+    - Zephyr Serret Verbist
+
+### Acknowledgments
+This work was supervised by Gabriel Valiente Feruglio. A special thanks to him for his guidance and support throughout the project.
