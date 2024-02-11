@@ -2,7 +2,7 @@
 
 This is the repostitory for Zephyr Serret Verbist's bachelor's thesis.  
 
-This study proposes an approach to optimize a solution to the problem of minimizing the number of external vertices in a hypergraph, using the context of **Metabolic Pathways**.
+This study proposes an approach that utilizes ILP optimization to obtain a solution to the problem of minimizing the number of external vertices in a hypergraph, using the context of **Metabolic Pathways**.
 
 ![](example.png)
 
